@@ -62,7 +62,8 @@ public class MyApplication extends Application  {
             Log.d( TAG, "files err:"+e.getMessage() );
         }
       //  if(urls.size()==0){
-            urls.add("https://upos-sz-mirrorkodo.bilivideo.com/upgcxcode/30/93/272399330/272399330-1-208.mp4?e=ig8euxZM2rNcNbeghwdVhoMHhbdVhwdEto8g5X10ugNcXBMvNC8xNbLEkF6MuwLStj8fqJ0EkX1ftx7Sqr_aio8_&uipk=5&nbs=1&deadline=1616047844&gen=playurl&os=kodobv&oi=2071795667&trid=60bd210bb6f84eac9efbbc145d56497bT&platform=html5&upsig=7d46e9ddcd16807a453b4cd4b800736d&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,platform&mid=0&orderid=0,1&logo=80000000");
+            urls.add("https://upos-sz-mirrorkodo.bilivideo.com/upgcxcode/30/93/272399330/272399330-1-208.mp4?e=ig8euxZM2rNcNbeghwdVhoMHhbdVhwdEto8g5X10ugNcXBMvNC8xNbLEkF6MuwLStj8fqJ0EkX1ftx7Sqr_aio8_&uipk=5&nbs=1&deadline=1616075626&gen=playurl&os=kodobv&oi=2071795667&trid=286ec2a027224ddd9941d2f2e690d2e1T&platform=html5&upsig=b480538a885ff5b32ee5c5396be1d0e2&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,platform&mid=0&orderid=0,1&logo=80000000");
+            urls.add("https://upos-sz-mirrorcos.bilivideo.com/upgcxcode/73/44/272784473/272784473-1-208.mp4?e=ig8euxZM2rNcNbeghwdVhoMHhbdVhwdEto8g5X10ugNcXBMvNC8xNbLEkF6MuwLStj8fqJ0EkX1ftx7Sqr_aio8_&uipk=5&nbs=1&deadline=1616068591&gen=playurl&os=cosbv&oi=2071795668&trid=63ff7be59c8b476399f17e6c9df4fc3bT&platform=html5&upsig=bb64c663a712abd5fcd2a1a2e1687bc2&uparams=e,uipk,nbs,deadline,gen,os,oi,trid,platform&mid=0&orderid=0,1&logo=80000000");
       //  }
 
         InetAddress ipaddr =  NetUtils.getLocalIPAddress();
