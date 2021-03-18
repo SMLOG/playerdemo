@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.llw.androidtvdemo.view.MyVideoView;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.video_view)
     MyVideoView videoView;
+    
     @BindView(R.id.tv_play_time)
     TextView tvPlayTime;
     @BindView(R.id.time_seekBar)
@@ -45,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
     private int key = 0;
     private Handler handler = new Handler();
+
+    private int curIndex=0;
     private Runnable runnable = new Runnable() {
         public void run() {
             if (videoView.isPlaying()) {
@@ -68,8 +73,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 key = 1;
-                btnRestartPlay.setVisibility(View.VISIBLE);
-                layFinishBg.setVisibility(View.VISIBLE);
+                //mp.start();
+                //mp.setLooping(true);
+                initVideo();
+
+                //btnRestartPlay.setVisibility(View.VISIBLE);
+                //layFinishBg.setVisibility(View.VISIBLE);
             }
         });
 
@@ -78,7 +87,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                return false;
+                MyApplication.urls.remove(curIndex);
+                initVideo();
+                return true;
             }
         });
 
@@ -104,7 +115,10 @@ public class MainActivity extends AppCompatActivity {
 //        videoView.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/raw/test"));
 
         //网络视频
-        final Uri uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
+        //final Uri uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
+        if(curIndex>=MyApplication.urls.size())curIndex=0;
+
+        final Uri uri = Uri.parse(MyApplication.urls.get(curIndex));
         videoView.setVideoURI(uri);
         videoView.requestFocus();
 
