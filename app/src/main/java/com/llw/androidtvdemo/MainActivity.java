@@ -17,8 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.llw.androidtvdemo.view.MyVideoView;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
@@ -49,15 +47,14 @@ public class MainActivity extends AppCompatActivity {
     private int key = 0;
     private Handler handler = new Handler();
 
-    private int curIndex=0;
-    private Runnable runnable = new Runnable() {
+    private Runnable updateProgressBarThread = new Runnable() {
         public void run() {
             if (videoView.isPlaying()) {
                 int current = videoView.getCurrentPosition();
                 timeSeekBar.setProgress(current);
                 tvPlayTime.setText(time(videoView.getCurrentPosition()));
             }
-            handler.postDelayed(runnable, 500);
+            handler.postDelayed(updateProgressBarThread, 500);
         }
     };
 
@@ -75,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 key = 1;
                 //mp.start();
                 //mp.setLooping(true);
-                initVideo();
+                reNewVideoUri();
 
                 //btnRestartPlay.setVisibility(View.VISIBLE);
                 //layFinishBg.setVisibility(View.VISIBLE);
@@ -86,9 +83,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
+
+
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                MyApplication.urls.remove(curIndex);
-                initVideo();
+                App.playList.markCurItemErrorStatus();
+                reNewVideoUri();
                 return true;
             }
         });
@@ -116,11 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         //网络视频
         //final Uri uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
-        if(curIndex>=MyApplication.urls.size())curIndex=0;
-
-        final Uri uri = Uri.parse(MyApplication.urls.get(curIndex));
-        videoView.setVideoURI(uri);
-        videoView.requestFocus();
+        reNewVideoUri();
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -129,13 +124,34 @@ public class MainActivity extends AppCompatActivity {
                 tvTotalTime.setText(stringForTime(totalTime));
 
                 // 开始线程，更新进度条的刻度
-                handler.postDelayed(runnable, 0);
+                handler.postDelayed(updateProgressBarThread, 0);
                 timeSeekBar.setMax(videoView.getDuration());
                 //视频加载完成,准备好播放视频的回调
                 videoView.start();
             }
         });
 
+    }
+
+    private void reNewVideoUri() {
+        Uri uri  = null;
+
+
+        String url = App.playList.nextURL();
+
+        try {
+ //           uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
+
+            uri = Uri.parse("android.resource://" + getPackageName() + "/raw/test");
+
+            if (url != null && url.trim() != "") {
+                uri = Uri.parse(url);
+            }
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+        videoView.setVideoURI(uri);
+        videoView.requestFocus();
     }
 
     /**
@@ -154,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                     btnPlayOrPause.setBackground(getResources().getDrawable(R.mipmap.icon_pause));
                     btnPlayOrPause.setVisibility(View.VISIBLE);
                     // 开始线程，更新进度条的刻度
-                    handler.postDelayed(runnable, 0);
+                    handler.postDelayed(updateProgressBarThread, 0);
                     videoView.start();
                     timeSeekBar.setMax(videoView.getDuration());
                     timeGone();
