@@ -2,6 +2,9 @@ package com.llw.androidtvdemo;
 
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 
 import com.yanzhenjie.andserver.annotation.Controller;
 import com.yanzhenjie.andserver.annotation.GetMapping;
@@ -95,6 +98,19 @@ public class IndexController {
                 JSONObject jitem = new JSONObject();
                 jitem.put("id",item.id);
                 jitem.put("url",item.url);
+
+
+
+                String videoUrl = App.getProxy(App.getInstance().getApplicationContext())
+                        .getProxyUrl(item.url);
+
+                Bitmap videoThumbnail = ThumbnailUtils.createVideoThumbnail(
+                        videoUrl.replace("file://",""), MediaStore.Video.Thumbnails.MICRO_KIND);
+                Bitmap bitmap = Utils.createVideoThumbnail(
+                        videoUrl.replace("file://",""),
+                        MediaStore.Images.Thumbnails.MINI_KIND);
+                item.thumb = Utils.bitmapToBase64(videoThumbnail);
+                jitem.put("thumb",item.thumb);
                 jsonArray.put(jitem);
             }
         }catch (Exception e){e.printStackTrace();}

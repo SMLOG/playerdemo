@@ -26,5 +26,6 @@ public class VideoItem {
     public Integer seq=0;
     public Integer times=0;
     public Integer status=0;
+    public String thumb;
 
 }

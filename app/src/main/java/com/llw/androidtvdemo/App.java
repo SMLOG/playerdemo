@@ -5,6 +5,8 @@ import android.content.Context;
 import android.util.Log;
 
 
+import com.danikula.videocache.HttpProxyCacheServer;
+
 import java.net.InetAddress;
 
 public class App extends Application  {
@@ -20,6 +22,20 @@ public class App extends Application  {
 
     public static App getInstance(){
         return self;
+    }
+
+    private HttpProxyCacheServer proxy;
+
+    public static HttpProxyCacheServer getProxy(Context context) {
+        App app = (App) context.getApplicationContext();
+        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    private HttpProxyCacheServer newProxy() {
+        return new HttpProxyCacheServer.Builder(this)
+              //  .cacheDirectory()
+               // .maxCacheSize(1024 * 1024 * 1024)
+                .build();
     }
 
     @Override

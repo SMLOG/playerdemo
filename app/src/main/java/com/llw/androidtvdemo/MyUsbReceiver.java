@@ -3,7 +3,10 @@ package com.llw.androidtvdemo;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
@@ -25,6 +28,7 @@ public class MyUsbReceiver extends BroadcastReceiver {
     }
 
     private void loopDisk(File file){
+
         if (file.isDirectory()) {
             String[] files = file.list();
             for (int i = 0; i < files.length; i++) {

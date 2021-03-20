@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
             uri = Uri.parse("android.resource://" + getPackageName() + "/raw/test");
 
             if (url != null && url.trim() != "") {
-                uri = Uri.parse(url);
+                uri = Uri.parse(App.getProxy(getApplicationContext()).getProxyUrl(url));
             }
         } catch (Throwable e) {
             e.printStackTrace();

@@ -39,4 +39,6 @@ dependencies {
     implementation 'com.yanzhenjie.andserver:api:2.0.1'
     annotationProcessor 'com.yanzhenjie.andserver:processor:2.0.1'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+
+    implementation 'com.danikula:videocache:2.6.4'
 }
