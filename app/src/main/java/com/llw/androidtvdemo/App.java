@@ -8,6 +8,7 @@ import android.util.Log;
 import java.net.InetAddress;
 
 public class App extends Application  {
+    public static final String URLACTION ="urlaction" ;
     protected static PlayList playList = new PlayList();
 
     private Context mContext;

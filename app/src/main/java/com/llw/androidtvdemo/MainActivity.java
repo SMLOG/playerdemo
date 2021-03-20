@@ -1,5 +1,8 @@
 package com.llw.androidtvdemo;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -47,6 +50,16 @@ public class MainActivity extends AppCompatActivity {
     private int key = 0;
     private Handler handler = new Handler();
 
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(App.URLACTION)) {
+                int index = intent.getIntExtra("index", 0);
+                reNewVideoUri(index);
+            }
+        }
+    };
+
     private Runnable updateProgressBarThread = new Runnable() {
         public void run() {
             if (videoView.isPlaying()) {
@@ -72,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 key = 1;
                 //mp.start();
                 //mp.setLooping(true);
-                reNewVideoUri();
+                reNewVideoUri(-1);
 
                 //btnRestartPlay.setVisibility(View.VISIBLE);
                 //layFinishBg.setVisibility(View.VISIBLE);
@@ -87,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
                 App.playList.markCurItemErrorStatus();
-                reNewVideoUri();
+                reNewVideoUri(-1);
                 return true;
             }
         });
@@ -115,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         //网络视频
         //final Uri uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
-        reNewVideoUri();
+        reNewVideoUri(-1);
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -133,11 +146,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void reNewVideoUri() {
+    private void reNewVideoUri(int index) {
         Uri uri  = null;
 
 
-        String url = App.playList.nextURL();
+        String url = null;
+        if(index>=0&&index<App.playList.size()){
+          url =  App.playList.get(index).url;
+        }
+        if(url==null) url=App.playList.nextURL();
 
         try {
  //           uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");

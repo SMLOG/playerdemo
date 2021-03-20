@@ -1,6 +1,8 @@
 package com.llw.androidtvdemo;
 
 
+import android.content.Intent;
+
 import com.yanzhenjie.andserver.annotation.Controller;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
@@ -31,6 +33,9 @@ public class IndexController {
                 DbHelper.update(item);
             } else
                 DbHelper.insert(item);
+
+            App.playList.add(item);
+
             return "ok";
         } catch (JSONException e) {
             e.printStackTrace();
@@ -53,7 +58,14 @@ public class IndexController {
                 DbHelper.update(item);
             } else
                 DbHelper.insert(item);
-            App.playList.add(App.curIndex,item);
+            App.playList.add(item);
+
+            Intent intent = new Intent();
+            intent.setAction(App.URLACTION);
+            intent.putExtra("index",App.playList.size()-1);
+
+            App.getInstance().getApplicationContext().sendBroadcast(intent);
+
             return "ok";
         } catch (JSONException e) {
             e.printStackTrace();
