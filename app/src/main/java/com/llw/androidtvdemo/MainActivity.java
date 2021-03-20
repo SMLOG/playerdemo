@@ -3,6 +3,7 @@ package com.llw.androidtvdemo;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.video_view)
     MyVideoView videoView;
-    
+
     @BindView(R.id.tv_play_time)
     TextView tvPlayTime;
     @BindView(R.id.time_seekBar)
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
 
     private Runnable updateProgressBarThread = new Runnable() {
         public void run() {
@@ -105,10 +107,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(App.URLACTION);
+        registerReceiver(receiver, intentFilter);
+
+
     }
 
     /**
      * 时间转换方法
+     *
      * @param millionSeconds
      * @return
      */
@@ -147,24 +156,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reNewVideoUri(int index) {
-        Uri uri  = null;
+        Uri uri = null;
 
 
         String url = null;
-        if(index>=0&&index<App.playList.size()){
-          url =  App.playList.get(index).url;
+        if (index >= 0 && index < App.playList.size()) {
+            url = App.playList.get(index).url;
         }
-        if(url==null) url=App.playList.nextURL();
+        if (url == null) url = App.playList.nextURL();
 
         try {
- //           uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
+            //           uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
 
             uri = Uri.parse("android.resource://" + getPackageName() + "/raw/test");
 
             if (url != null && url.trim() != "") {
                 uri = Uri.parse(url);
             }
-        }catch (Throwable e){
+        } catch (Throwable e) {
             e.printStackTrace();
         }
         videoView.setVideoURI(uri);
@@ -173,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 控制视频是  播放还是暂停  或者是重播
+     *
      * @param isPlay
      * @param keys
      */
@@ -267,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 遥控器按键监听
+     *
      * @param keyCode
      * @param event
      * @return
@@ -285,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case KeyEvent.KEYCODE_BACK:    //返回键
-                Log.d(TAG,"back--->");
+                Log.d(TAG, "back--->");
 
                 return true;   //这里由于break会退出，所以我们自己要处理掉 不返回上一层
 
