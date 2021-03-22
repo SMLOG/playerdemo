@@ -182,7 +182,7 @@ Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playli
             uri = Uri.parse("android.resource://" + getPackageName() + "/raw/test");
 
             if (url != null && url.trim() != "") {
-                uri = Uri.parse(App.getProxy(getApplicationContext()).getProxyUrl(url));
+                uri = Uri.parse(App.getProxyUrl(url));
             }
         } catch (Throwable e) {
             e.printStackTrace();
