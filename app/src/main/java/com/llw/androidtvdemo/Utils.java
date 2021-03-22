@@ -97,7 +97,8 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    //        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     /**
      * Checks if the app has permission to write to device storage
@@ -108,6 +109,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
      */
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
+        /*
         int permission = ActivityCompat.checkSelfPermission(activity,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -116,5 +118,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,
                     REQUEST_EXTERNAL_STORAGE);
         }
+
+         */
     }
 }

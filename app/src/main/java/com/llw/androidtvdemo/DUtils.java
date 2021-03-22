@@ -1,16 +1,19 @@
 package com.llw.androidtvdemo;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
 import com.csvreader.CsvReader;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URLEncoder;
 
@@ -79,6 +82,26 @@ public class DUtils {
             @Override
             public void run() {
 
+                try {
+                    Process process = Runtime.getRuntime().exec("id");
+                    InputStream errorInput = process.getErrorStream();
+                    InputStream inputStream = process.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String error = "";
+                    String result = "";
+                    String line = "";
+                    while ((line = bufferedReader.readLine()) != null) {
+                        result += line;
+                    }
+                    bufferedReader = new BufferedReader(new InputStreamReader(errorInput));
+                    while ((line = bufferedReader.readLine()) != null) {
+                        error += line;
+                    }
+                    Log.d("usb",result);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 //scan local playlist
                 File localPlaylist =  new File("/storage/udisk0/part1/bilibili/playlist.csv");
                 App.playList.clear();

@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(App.URLACTION);
         registerReceiver(receiver, intentFilter);
 
-        ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+    //    ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
 Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playlist.csv")
         .canRead()?"readabel":"unreadble",Toast.LENGTH_LONG);
 
