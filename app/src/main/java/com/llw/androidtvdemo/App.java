@@ -2,12 +2,29 @@ package com.llw.androidtvdemo;
 
 import android.app.Application;
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
+import android.webkit.WebSettings;
 
 
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.danikula.videocache.file.FileNameGenerator;
+import com.danikula.videocache.file.Md5FileNameGenerator;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
 
 public class App extends Application  {
     public static final String URLACTION ="urlaction" ;
@@ -19,6 +36,7 @@ public class App extends Application  {
     private static App self;
     private ServerManager mServer;
     protected static int curIndex=0;
+    private UrlServiceApi urlServiceApi;
 
     public static App getInstance(){
         return self;
@@ -26,13 +44,66 @@ public class App extends Application  {
 
     private HttpProxyCacheServer proxy;
 
+    private static OkHttpClient getOkHttpClient() {
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request request = chain.request()
+                                .newBuilder()
+                                .removeHeader("User-Agent")//移除旧的
+                                .addHeader("User-Agent", WebSettings.getDefaultUserAgent(App.getInstance()))//添加真正的头部
+                                .build();
+                        return chain.proceed(request);
+                    }
+                }).build();
+        return httpClient;
+    }
+
+    public static UrlServiceApi initRetrofit(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(getOkHttpClient())
+                .baseUrl("https://www.ibilibili.com/")
+                .build();
+        UrlServiceApi urlServiceApi = retrofit.create(UrlServiceApi.class);
+        return urlServiceApi;
+    }
+    public static UrlServiceApi getUrlServiceApi(){
+        if(App.getInstance().urlServiceApi==null)
+            return App.getInstance().urlServiceApi = initRetrofit();
+        else return  App.getInstance().urlServiceApi;
+
+    }
+
+
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
     }
 
+    public static void updateCacheFolder(File file) {
+        App app = getInstance();
+        app.proxy = null;
+        if(file!=null && file.canWrite()){
+            app.proxy = new HttpProxyCacheServer.Builder(app)
+
+                      .cacheDirectory(file)
+                    // .maxCacheSize(1024 * 1024 * 1024)
+                    .build();
+        }else app.proxy=app.newProxy();
+        
+    }
+
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
+                /*.fileNameGenerator(new FileNameGenerator() {
+                    private Md5FileNameGenerator md5 = new Md5FileNameGenerator();
+                    @Override
+                    public String generate(String url) {
+                        url = url.replace("http://localhost:8080/api/get?url=","");
+                        return md5.generate(url);
+                    }
+                })*/
               //  .cacheDirectory()
                // .maxCacheSize(1024 * 1024 * 1024)
                 .build();
@@ -48,6 +119,64 @@ public class App extends Application  {
         for(VideoItem item:DbHelper.getActiveList()){
             playList.add(item);
         }
+
+        Call<ResponseBody> call = getUrlServiceApi().getParams("http://www.ibilibili.com/video/BV1SJ411K76h?from=search&seid=434365872046738989");
+        call.enqueue(new Callback<ResponseBody>() {
+
+            @Override
+            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                try{
+                    String body = response.body().string();
+                    Pattern pattern = Pattern.compile("data: \\{(.*?)\\}",Pattern.DOTALL|Pattern.MULTILINE);
+                    Matcher matcher = pattern.matcher(body);
+                    if(matcher.find()){
+                        String[] arr= matcher.group(1)
+                                .replaceAll("\"","")
+                                .replaceAll("\\s+","")
+                                .split(",");
+
+
+                        System.out.println(arr);
+
+                        Call<ResponseBody> call2 = getUrlServiceApi()
+                                .getData("http://bilibili.applinzi.com/index.php"
+                                ,arr[0].split(":")[1]
+                                ,arr[1].split(":")[1]
+                                ,arr[2].split(":")[1]
+                                );
+                        call2.enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+
+                                try {
+                                    String body = response.body().string();
+                                    System.out.println(body);
+                                }catch (Throwable tt){
+
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                t.printStackTrace();
+
+                            }
+                        });
+                    }
+                }catch (Throwable  t){
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+                t.printStackTrace();
+
+            }
+        });
+
         /*
         File urlsFile = new File(mContext.getFilesDir(), DATAFILENAME);
         try {

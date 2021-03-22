@@ -18,9 +18,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import com.csvreader.CsvReader;
 import com.llw.androidtvdemo.view.MyVideoView;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
@@ -78,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
+        Utils.verifyStoragePermissions(this);
         timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
         initVideo();
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -112,6 +117,11 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(App.URLACTION);
         registerReceiver(receiver, intentFilter);
 
+        ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playlist.csv")
+        .canRead()?"readabel":"unreadble",Toast.LENGTH_LONG);
+
+        DUtils.reloadPlayList();
 
     }
 
@@ -156,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reNewVideoUri(int index) {
+       // if(true)return;
         Uri uri = null;
 
 

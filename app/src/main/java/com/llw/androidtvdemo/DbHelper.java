@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 
 public class DbHelper extends SQLiteOpenHelper {
-    private static final int VERSION = 4;
+    private static final int VERSION = 5;
     private static final String DATABASE_NAME = "data.db";
     private static SQLiteDatabase mSqLiteDatabase;
 
@@ -160,6 +160,59 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
+    public static VideoItem UpdateOrInsert(String videoUrl, String title) {
+        VideoItem item = findByTitle(videoUrl);
+        if(item!=null){
+            item.title = title;
+            update(item);
+
+        }
+        else{
+            item = new VideoItem();
+            item.url = videoUrl;
+            item.title=title;
+            insert(item);
+            return findByTitle(videoUrl);
+        }
+
+        return item;
+    }
+
+    private static VideoItem findByTitle(String videoUrl) {
+        Cursor cursor = getDBInstance().rawQuery("select "
+                + VideoItem.Table.Cols.ID + "," +
+                VideoItem.Table.Cols.URL + "," +
+                VideoItem.Table.Cols.TITLE + "," +
+                VideoItem.Table.Cols.CREATE_DATE + "," +
+                VideoItem.Table.Cols.CAT + "," +
+                VideoItem.Table.Cols.LAST_UPATE + "," +
+                VideoItem.Table.Cols.TIMES + "," +
+                VideoItem.Table.Cols.STATUS + "," +
+                VideoItem.Table.Cols.SEQ
+                + " from " + VideoItem.Table.NAME
+                + " where " + VideoItem.Table.Cols.URL + "=?", new String[]{videoUrl});
+
+
+        VideoItem item = null;
+
+        while (cursor.moveToNext()) {
+            item = new VideoItem();
+            int i = 0;
+            item.id = cursor.getInt(i++);
+            item.url = cursor.getString(i++);
+            item.title = cursor.getString(i++);
+            item.createDate = cursor.getLong(i++);
+            item.cat = cursor.getString(i++);
+            item.lastUpdate = cursor.getLong(i++);
+            item.times = cursor.getInt(i++);
+            item.status = cursor.getInt(i++);
+            item.seq = cursor.getInt(i++);
+            break;
+        }
+        cursor.close();
+        return item;
+    }
+
     /**
      * 负责数据库的创建和初始化，只在第一次生成数据库的时候
      * 会被调用
@@ -168,7 +221,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL("create table " + VideoItem.Table.NAME + "(" +
                 VideoItem.Table.Cols.ID + " integer primary key autoincrement, " +
-                VideoItem.Table.Cols.URL + "," +
+                VideoItem.Table.Cols.URL + " NOT NULL UNIQUE," +
                 VideoItem.Table.Cols.TITLE + "," +
                 VideoItem.Table.Cols.CREATE_DATE + "," +
                 VideoItem.Table.Cols.CAT + "," +
@@ -186,17 +239,7 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         sqLiteDatabase.execSQL("drop table " + VideoItem.Table.NAME);
-        sqLiteDatabase.execSQL("create table " + VideoItem.Table.NAME + "(" +
-                VideoItem.Table.Cols.ID + " integer primary key autoincrement, " +
-                VideoItem.Table.Cols.URL + "," +
-                VideoItem.Table.Cols.TITLE + "," +
-                VideoItem.Table.Cols.CREATE_DATE + "," +
-                VideoItem.Table.Cols.CAT + "," +
-                VideoItem.Table.Cols.LAST_UPATE + "," +
-                VideoItem.Table.Cols.TIMES + "," +
-                VideoItem.Table.Cols.STATUS + "," +
-                VideoItem.Table.Cols.SEQ +
-                ")"
-        );
+        onCreate(sqLiteDatabase);
+
     }
 }

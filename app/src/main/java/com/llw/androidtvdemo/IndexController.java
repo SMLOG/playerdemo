@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import com.yanzhenjie.andserver.annotation.Controller;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.ResponseBody;
+import com.yanzhenjie.andserver.http.HttpRequest;
+import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
 
 import org.json.JSONArray;
@@ -20,8 +23,18 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 @Controller
 public class IndexController {
+    private static String TAG = "IndexController";
+
     @ResponseBody
     @PostMapping(path = "/api/addOrUpdate")
     String push(RequestBody body) throws IOException {
@@ -30,8 +43,8 @@ public class IndexController {
         try {
             JSONObject jitem = new JSONObject(content);
 
-            item.url=jitem.getString("url");
-            item.id=jitem.getInt("id");
+            item.url = jitem.getString("url");
+            item.id = jitem.getInt("id");
             if (item.id > 0) {
                 DbHelper.update(item);
             } else
@@ -55,17 +68,18 @@ public class IndexController {
         try {
             JSONObject jitem = new JSONObject(content);
 
-            item.url=jitem.getString("url");
-            item.id=jitem.getInt("id");
-            if (item.id > 0) {
-                DbHelper.update(item);
-            } else
-                DbHelper.insert(item);
-            App.playList.add(item);
+            int i=-1;
+            for(VideoItem it:App.playList)
+            {
+                i++;
+                if(it.url==jitem.getString("url")){
+                    break;
+                }
+            }
 
             Intent intent = new Intent();
             intent.setAction(App.URLACTION);
-            intent.putExtra("index",App.playList.size()-1);
+            intent.putExtra("index", i);
 
             App.getInstance().getApplicationContext().sendBroadcast(intent);
 
@@ -79,41 +93,83 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping("/api/delete")
-    public String delete(@RequestParam(name="ids") String ids
+    public String delete(@RequestParam(name = "ids") String ids
     ) {
-        for(String id:ids.split(","))
+        for (String id : ids.split(","))
             DbHelper.delete(Integer.parseInt(id));
         return "ok";
     }
     @ResponseBody
+    @GetMapping("/api/reloadplaylist")
+    public String reloadPlayList() {
+        DUtils.reloadPlayList();
+        return "ok";
+    }
+
+
+   /* @ResponseBody
+    @GetMapping("/api/get")
+    public String ib(HttpRequest req, HttpResponse resp)  {
+        try {
+            String uri = req.getURI();
+            Log.d(TAG, uri);
+            String rurl = uri.split("url=")[1];
+
+            JSONObject json =Bili.getParams(rurl);
+            if(json!=null){
+                String videoUrl = json.getString("url");
+                if(uri.indexOf("saveurlonly")>-1){
+                   VideoItem item = DbHelper.UpdateOrInsert(rurl,json.getString("title"));
+                    return "updateOrInsert ok id:"+item.id;
+                }
+                if(videoUrl!=null){
+                    resp.sendRedirect(videoUrl);
+                }
+
+            }
+
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
+
+        return "ok";
+    }*/
+
+    @ResponseBody
     @GetMapping("/api/list")
     public String list(
     ) {
-        ArrayList<VideoItem> items = DbHelper.getList();
+
+        ArrayList<VideoItem> items = App.playList;
         JSONArray jsonArray = new JSONArray();
 
-        try{
-            for(int i = 0;i < items.size();i++){
+        try {
+            for (int i = 0; i < items.size(); i++) {
                 VideoItem item = items.get(i);
                 JSONObject jitem = new JSONObject();
-                jitem.put("id",item.id);
-                jitem.put("url",item.url);
+                jitem.put("id", item.id);
+                jitem.put("url", item.url);
+                jitem.put("title", item.title);
+                jitem.put("status", item.status);
 
-
-
+                /*
                 String videoUrl = App.getProxy(App.getInstance().getApplicationContext())
                         .getProxyUrl(item.url);
 
                 Bitmap videoThumbnail = ThumbnailUtils.createVideoThumbnail(
-                        videoUrl.replace("file://",""), MediaStore.Video.Thumbnails.MICRO_KIND);
+                        videoUrl.replace("file://", ""), MediaStore.Video.Thumbnails.MICRO_KIND);
                 Bitmap bitmap = Utils.createVideoThumbnail(
-                        videoUrl.replace("file://",""),
+                        videoUrl.replace("file://", ""),
                         MediaStore.Images.Thumbnails.MINI_KIND);
-                item.thumb = Utils.bitmapToBase64(videoThumbnail);
-                jitem.put("thumb",item.thumb);
+                //item.thumb = Utils.bitmapToBase64(videoThumbnail);
+                */
+
+                jitem.put("thumb", item.thumb);
                 jsonArray.put(jitem);
             }
-        }catch (Exception e){e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return jsonArray.toString();
     }

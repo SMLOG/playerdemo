@@ -1,9 +1,13 @@
 package com.llw.androidtvdemo;
 
+import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.util.Base64;
+
+import androidx.core.app.ActivityCompat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,6 +15,7 @@ import java.io.IOException;
 public class Utils {
     /**
      * bitmap转为base64
+     *
      * @param bitmap
      * @return
      */
@@ -42,10 +47,12 @@ public class Utils {
         }
         return result;
     }
+
     public static Bitmap base64ToBitmap(String base64Data) {
         byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
+
     public static Bitmap createVideoThumbnail(String filePath, int kind) {
         Bitmap bitmap = null;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
@@ -75,4 +82,39 @@ mTextView01.setBackground(new BitmapDrawable(bmp));
 retriever.setDataSource("/sdcard/0001.mp4");
     Bitmap bmp = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 mTextView02.setBackground(new BitmapDrawable(bmp));*/
+
+    // 模拟键盘按键，Keycode对应Android键盘按键的的keycode
+    public static void setKeyPress(int keycode) {
+        try {
+            String keyCommand = "input keyevent " + keycode;
+            Runtime runtime = Runtime.getRuntime();
+            Process proc = runtime.exec(keyCommand);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+    /**
+     * Checks if the app has permission to write to device storage
+     * If the app does not has permission then the user will be prompted to
+     * grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE);
+        }
+    }
 }

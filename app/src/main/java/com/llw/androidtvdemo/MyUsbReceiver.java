@@ -27,6 +27,32 @@ public class MyUsbReceiver extends BroadcastReceiver {
         return false;
     }
 
+    private  File findCacheFolder(File file, String androidviedocache, int n){
+
+        if(file.isDirectory()){
+            if(file.getName().equalsIgnoreCase(androidviedocache)){
+                return file;
+            }else{
+
+                for(int i=0;i<n;i++){
+                    ArrayList<File> list = new ArrayList<File>();
+                    for(File c:file.listFiles()){
+                        if(c.isDirectory()){
+                            if(c.getName().equalsIgnoreCase(androidviedocache))return c;
+                            list.add(c);
+                        }
+                    }
+                }
+            }
+
+        }
+
+
+        return  null;
+    }
+
+
+
     private void loopDisk(File file){
 
         if (file.isDirectory()) {
@@ -66,7 +92,16 @@ public class MyUsbReceiver extends BroadcastReceiver {
         Uri uri = intent.getData();
         final String path = uri.getPath();
         final String featureFilePath=path+"/English";
-        if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
+        if (action.equals(Intent.ACTION_MEDIA_EJECT)) {
+            App.updateCacheFolder(null);
+
+        }else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
+            //发送返回按键
+            Utils.setKeyPress(4);
+
+           //File cacheFolder = findCacheFolder(new File(featureFilePath),"androidviedocache",3);
+           App.updateCacheFolder(new File(path+"/part0/androidviedocache"));
+
             new Thread() {
                 public void run() {
                     File file = new File(featureFilePath);
