@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -123,6 +125,21 @@ public class DUtils {
                             App.playList.add(item);
                         }
 
+                        List<String> list = new ArrayList<String>();
+                        File dirFile = new File("/storage/udisk0/part1/bilibili");
+                        loopListFile(list, dirFile);
+                        for(String file:list) {
+                            //System.out.println(file);
+                            //String info = file.split("_")[0]+".mp4";
+                            //File infoFile = new File(info);
+                            //System.out.println("bilibili/"+file.replace("/Volumes/Portable/bilibili/", "")+",test,abc");
+                            VideoItem item = new VideoItem();
+                            item.url = file;
+                            item.title=file;
+                            App.playList.add(item);
+
+                        }
+
 
                     }catch (Throwable e){
                         e.printStackTrace();
@@ -137,5 +154,18 @@ public class DUtils {
         }).start();
     }
 
+    public static void loopListFile(List<String> list, File dirFile) {
+        File[] files = dirFile.listFiles();
+        for(File file:files) {
+            if(file.getName().equals(".")||file.getName().equals(".."))
+                continue;
+
+            if(file.isDirectory()) {
+                loopListFile(list,file);
+            }else if(file.isFile() && file.getName().endsWith(".mp4")) {
+                list.add(file.getAbsolutePath());
+            }
+        }
+    }
 
 }

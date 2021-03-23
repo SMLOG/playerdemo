@@ -72,7 +72,7 @@ public class IndexController {
             for(VideoItem it:App.playList)
             {
                 i++;
-                if(it.url==jitem.getString("url")){
+                if(it.url.equals(jitem.getString("url"))){
                     break;
                 }
             }
@@ -103,7 +103,8 @@ public class IndexController {
     @GetMapping("/api/reloadplaylist")
     public String reloadPlayList() {
         DUtils.reloadPlayList();
-        return "ok";
+
+        return list();
     }
 
 
@@ -135,6 +136,14 @@ public class IndexController {
         return "ok";
     }*/
 
+    @GetMapping("/down")
+    @ResponseBody
+    public FileDownload download(HttpRequest request,HttpResponse respone){
+        FileDownload body = new FileDownload(request, respone);
+        respone.setBody(body);
+        return body;
+
+    }
     @ResponseBody
     @GetMapping("/api/list")
     public String list(

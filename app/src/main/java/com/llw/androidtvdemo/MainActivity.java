@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -52,9 +53,12 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnPlayOrPause;
     @BindView(R.id.btn_restart_play)
     ImageButton btnRestartPlay;
+    @BindView(R.id.status)
+    RelativeLayout status;
 
     private int key = 0;
     private Handler handler = new Handler();
+    private MediaController mc;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -73,10 +77,14 @@ public class MainActivity extends AppCompatActivity {
                 int current = videoView.getCurrentPosition();
                 timeSeekBar.setProgress(current);
                 tvPlayTime.setText(time(videoView.getCurrentPosition()));
+                status.setVisibility(View.GONE);
+
             }
             handler.postDelayed(updateProgressBarThread, 500);
         }
     };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         Utils.verifyStoragePermissions(this);
         timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
+        DUtils.reloadPlayList();
+
         initVideo();
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -103,8 +113,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-
-
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
                 App.playList.markCurItemErrorStatus();
                 reNewVideoUri(-1);
@@ -112,16 +120,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
         registerReceiver(receiver, intentFilter);
 
-    //    ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playlist.csv")
-        .canRead()?"readabel":"unreadble",Toast.LENGTH_LONG);
-
-        DUtils.reloadPlayList();
 
     }
 
@@ -142,11 +144,10 @@ Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playli
      * 初始化VideoView
      */
     private void initVideo() {
-        //本地视频
-//        videoView.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/raw/test"));
-
-        //网络视频
-        //final Uri uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
+        mc=new MediaController(this);
+        mc.setVisibility(View.GONE);
+        videoView.setMediaController(mc);
+        videoView.requestFocus();
         reNewVideoUri(-1);
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -166,19 +167,12 @@ Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playli
     }
 
     private void reNewVideoUri(int index) {
-       // if(true)return;
         Uri uri = null;
 
 
-        String url = null;
-        if (index >= 0 && index < App.playList.size()) {
-            url = App.playList.get(index).url;
-        }
-        if (url == null) url = App.playList.nextURL();
+        String  url = App.playList.nextURL(index);
 
         try {
-            //           uri = Uri.parse("http://gslb.miaopai.com/stream/ed5HCfnhovu3tyIQAiv60Q__.mp4");
-
             uri = Uri.parse("android.resource://" + getPackageName() + "/raw/test");
 
             if (url != null && url.trim() != "") {
@@ -303,7 +297,7 @@ Toast.makeText(MainActivity.this,new File("/storage/udisk0/part1/bilibili/playli
                 Log.d(TAG, "enter--->");
                 //如果是播放中则暂停、如果是暂停则继续播放
                 isVideoPlay(videoView.isPlaying(), key);
-
+                status.setVisibility(View.VISIBLE);
                 break;
 
             case KeyEvent.KEYCODE_BACK:    //返回键

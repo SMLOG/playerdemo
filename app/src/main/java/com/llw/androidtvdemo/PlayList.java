@@ -25,7 +25,11 @@ public class PlayList extends ArrayList<VideoItem> {
         }
     }
 
-    public String nextURL() {
+    public String nextURL(int index) {
+
+        if (index >= 0 && index < App.playList.size()) {
+            return App.playList.get(index).url;
+        }
        VideoItem item = this.next();
        if(item!=null)return item.url;
        else return null;

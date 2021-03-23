@@ -21,33 +21,36 @@
     </LinearLayout>
     <!--底部控制栏  开始时间 进度条 结束时间-->
     <RelativeLayout
-        android:background="@drawable/shape_gradual_change"
-        android:layout_alignParentBottom="true"
+        android:id="@+id/status"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_100">
+        android:layout_height="@dimen/dp_100"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/shape_gradual_change">
+
         <LinearLayout
-            android:gravity="center_vertical"
-            android:layout_margin="@dimen/dp_10"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/dp_10"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/tv_play_time"
-                android:text="00:00"
-                android:textSize="@dimen/sp_24"
-                android:textColor="@color/white"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_24" />
 
             <SeekBar
-                android:layout_marginLeft="@dimen/dp_20"
-                android:layout_marginRight="@dimen/dp_20"
                 android:id="@+id/time_seekBar"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
+                android:layout_marginLeft="@dimen/dp_20"
+                android:layout_marginRight="@dimen/dp_20"
+                android:layout_weight="1"
                 android:max="100"
                 android:maxHeight="3dp"
                 android:minHeight="3dp"
@@ -57,11 +60,11 @@
 
             <TextView
                 android:id="@+id/tv_total_time"
-                android:text="00:00"
-                android:textSize="@dimen/sp_24"
-                android:textColor="@color/white"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="@color/white"
+                android:textSize="@dimen/sp_24" />
         </LinearLayout>
     </RelativeLayout>
 

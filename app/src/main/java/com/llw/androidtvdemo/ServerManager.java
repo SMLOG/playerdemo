@@ -21,17 +21,14 @@ public class ServerManager {
                 .listener(new Server.ServerListener() {
                     @Override
                     public void onStarted() {
-                        // TODO The server started successfully.
                     }
 
                     @Override
                     public void onStopped() {
-                        // TODO The server has stopped.
                     }
 
                     @Override
                     public void onException(Exception e) {
-                        // TODO An exception occurred while the server was starting.
                     }
                 })
                 .build();

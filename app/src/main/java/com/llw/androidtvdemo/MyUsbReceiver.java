@@ -15,7 +15,6 @@ import java.util.ArrayList;
 public class MyUsbReceiver extends BroadcastReceiver {
     private String TAG="MyUsbReceiver";
     private String[] suffixs;
-    ArrayList<String> as = new ArrayList<String>();
     private  boolean isMovieSuffix( String fileName) {
         String name=fileName.toLowerCase();
 
@@ -51,36 +50,6 @@ public class MyUsbReceiver extends BroadcastReceiver {
         return  null;
     }
 
-
-
-    private void loopDisk(File file){
-
-        if (file.isDirectory()) {
-            String[] files = file.list();
-            for (int i = 0; i < files.length; i++) {
-                String s = files[i];
-                String path = file.getAbsolutePath() + "/" + s;
-                File f =new File(path);
-
-                if (f.isFile()) {
-                    if(isMovieSuffix(s)){
-                        as.add(path);
-                        VideoItem item = new VideoItem();
-                        item.url = path;
-                        item.seq = 0;
-                        item.times = 0;
-                        item.createDate = System.currentTimeMillis();
-                        item.lastUpdate = System.currentTimeMillis();
-                        item.cat = "";
-                        App.playList.add(item);
-                    }
-
-                }else {
-                    loopDisk(f);
-                }
-            }
-        }
-    }
     @Override
     public void onReceive(Context context, Intent intent) {
         final Context mContext = context;
@@ -105,7 +74,7 @@ public class MyUsbReceiver extends BroadcastReceiver {
             new Thread() {
                 public void run() {
                     File file = new File(featureFilePath);
-                    loopDisk(file);
+                    //loopDisk(file);
                     Intent intent=new Intent(mContext, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                    // intent.putStringArrayListExtra("ff",as);
