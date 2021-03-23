@@ -130,12 +130,13 @@ public class DUtils {
                         loopListFile(list, dirFile);
                         for(String file:list) {
                             //System.out.println(file);
-                            //String info = file.split("_")[0]+".mp4";
-                            //File infoFile = new File(info);
+                            String info = file.split("_")[0]+".info";
                             //System.out.println("bilibili/"+file.replace("/Volumes/Portable/bilibili/", "")+",test,abc");
+
                             VideoItem item = new VideoItem();
                             item.url = file;
                             item.title=file;
+                            Utils.getVideoInfo(item,info);
                             App.playList.add(item);
 
                         }

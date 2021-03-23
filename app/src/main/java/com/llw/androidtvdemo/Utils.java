@@ -1,16 +1,20 @@
 package com.llw.androidtvdemo;
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.util.Base64;
 
-import androidx.core.app.ActivityCompat;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class Utils {
     /**
@@ -120,5 +124,39 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         }
 
          */
+    }
+
+    public static String convertStreamToString(InputStream is) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        reader.close();
+        return sb.toString();
+    }
+
+    public static String getStringFromFile (String filePath) throws Exception {
+        File fl = new File(filePath);
+        FileInputStream fin = new FileInputStream(fl);
+        String ret = convertStreamToString(fin);
+        //Make sure you close all streams.
+        fin.close();
+        return ret;
+    }
+
+    public static VideoItem getVideoInfo(VideoItem item, String filePath){
+        try {
+            String content =getStringFromFile(filePath);
+            JSONObject obj = new JSONObject(content);
+            item.title=obj.getString("Title")+obj.getString("Description");
+            item.thumb = obj.getString("CoverURL");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return item;
     }
 }
