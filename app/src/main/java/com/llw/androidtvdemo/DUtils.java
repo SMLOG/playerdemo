@@ -9,6 +9,8 @@ import androidx.core.app.ActivityCompat;
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -96,18 +98,30 @@ public class DUtils {
                 File localPlaylist =  new File(dir+"playlist.csv");
                 try {
                     CsvWriter csvWriter = new CsvWriter(new FileWriter(localPlaylist,false),',');
-                    csvWriter.writeRecord(new String[]{"URL","TITLE","THUMB"});
+                    csvWriter.writeRecord(new String[]{"AID","URL","TITLE","THUMB"});
                     List<String> list = new ArrayList<String>();
                     File dirFile = new File(dir);
                     loopListFile(list, dirFile);
                     for(String file:list) {
                         String info = file.split("_")[0]+".info";
-
+                        String aid="";
                         VideoItem item = new VideoItem();
                         item.url = file.split(dir)[1];
-                        Utils.getVideoInfo(item,info);
+                        JSONObject jsonObj = Utils.getVideoInfo(info);
+                        if(jsonObj!=null){
+                            try{
+                                item.title = jsonObj.getString("Title");
+                              File subFolder =  new File(file).getParentFile().getParentFile();
+                              aid=subFolder.getName();
+                             //String dvi = subFolder+"/"+aid+"dvi";
+                            //jsonObj= Utils.getVideoInfo(dvi);
 
-                        csvWriter.writeRecord(new String[]{item.url,item.title,""});
+                            }catch (Exception e){
+
+                            }
+                        }
+
+                        csvWriter.writeRecord(new String[]{aid,item.url,item.title,""});
 
                     }
                     csvWriter.close();
@@ -130,11 +144,13 @@ public class DUtils {
                             VideoItem item = new VideoItem();
                             item.url=csvReader.get("URL");
                             if(item.url.indexOf("https://")==-1&&item.url.indexOf("http://")==-1){
-                                item.url = "/storage/udisk0/part1/bilibili/"+item.url;
+                                item.title=item.url = "/storage/udisk0/part1/bilibili/"+item.url;
 
                             }
                             //item.title=csvReader.get("TAGS");
-                            item.title=csvReader.get("TITLE");
+                            String title = csvReader.get("TITLE");
+                            if(title!=null&&!title.trim().equals(""))
+                                item.title=csvReader.get("TITLE");
                             App.playList.add(item);
                         }
 
