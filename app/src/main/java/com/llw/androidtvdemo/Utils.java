@@ -146,17 +146,17 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return ret;
     }
 
-    public static VideoItem getVideoInfo(VideoItem item, String filePath){
+    public static JSONObject getVideoInfo(VideoItem item, String filePath){
         try {
             String content =getStringFromFile(filePath);
             JSONObject obj = new JSONObject(content);
-            item.title=obj.getString("Title")+obj.getString("Description");
-            item.thumb = obj.getString("CoverURL");
+            item.title = obj.getString("Title");
+            return obj;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return item;
+        return null;
     }
 }

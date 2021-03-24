@@ -44,7 +44,7 @@ public class App extends Application {
 
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(2*1024*1024*1024)
+                .maxCacheSize(1024*1024*1024)
                 .build();
     }
 

@@ -7,11 +7,13 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 
 import com.csvreader.CsvReader;
+import com.csvreader.CsvWriter;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -85,26 +87,37 @@ public class DUtils {
             @Override
             public void run() {
 
+                sacnLocalDir2PlayListFile();
+                loadPlayList();
+            }
+
+            public void sacnLocalDir2PlayListFile(){
+                String dir = "/storage/udisk0/part1/bilibili/";
+                File localPlaylist =  new File(dir+"playlist.csv");
                 try {
-                    Process process = Runtime.getRuntime().exec("id");
-                    InputStream errorInput = process.getErrorStream();
-                    InputStream inputStream = process.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    String error = "";
-                    String result = "";
-                    String line = "";
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result += line;
+                    CsvWriter csvWriter = new CsvWriter(new FileWriter(localPlaylist,false),',');
+                    csvWriter.writeRecord(new String[]{"URL","TITLE","THUMB"});
+                    List<String> list = new ArrayList<String>();
+                    File dirFile = new File(dir);
+                    loopListFile(list, dirFile);
+                    for(String file:list) {
+                        String info = file.split("_")[0]+".info";
+
+                        VideoItem item = new VideoItem();
+                        item.url = file.split(dir)[1];
+                        Utils.getVideoInfo(item,info);
+
+                        csvWriter.writeRecord(new String[]{item.url,item.title,""});
+
                     }
-                    bufferedReader = new BufferedReader(new InputStreamReader(errorInput));
-                    while ((line = bufferedReader.readLine()) != null) {
-                        error += line;
-                    }
-                    Log.d("usb",result);
+                    csvWriter.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+            }
+            private void loadPlayList() {
                 //scan local playlist
                 File localPlaylist =  new File("/storage/udisk0/part1/bilibili/playlist.csv");
                 App.playList.clear();
@@ -125,29 +138,12 @@ public class DUtils {
                             App.playList.add(item);
                         }
 
-                        List<String> list = new ArrayList<String>();
-                        File dirFile = new File("/storage/udisk0/part1/bilibili");
-                        loopListFile(list, dirFile);
-                        for(String file:list) {
-                            //System.out.println(file);
-                            String info = file.split("_")[0]+".info";
-                            //System.out.println("bilibili/"+file.replace("/Volumes/Portable/bilibili/", "")+",test,abc");
-
-                            VideoItem item = new VideoItem();
-                            item.url = file;
-                            item.title=file;
-                            Utils.getVideoInfo(item,info);
-                            App.playList.add(item);
-
-                        }
-
-
                     }catch (Throwable e){
                         e.printStackTrace();
                     }
                 }
                 String remotePlayHost = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE)
-                        .getString("remoteplaylisthost","http://192.168.0.101/playlist.csv");
+                        .getString("remoteplaylisthost","http://192.168.0.101/bilibili/playlist.csv");
                 if(!remotePlayHost.trim().equalsIgnoreCase("")){
                     DUtils.download(remotePlayHost);
                 }

@@ -140,7 +140,6 @@ public class IndexController {
     @ResponseBody
     public FileDownload download(HttpRequest request,HttpResponse respone){
         FileDownload body = new FileDownload(request, respone);
-        respone.setBody(body);
         return body;
 
     }

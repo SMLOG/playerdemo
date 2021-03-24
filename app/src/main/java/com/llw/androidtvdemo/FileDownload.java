@@ -109,7 +109,7 @@ public class FileDownload implements ResponseBody{
     @Nullable
     @Override
     public MediaType contentType() {
-        return MediaType.ALL;
+        return MediaType.APPLICATION_OCTET_STREAM;
     }
 
     @Override
