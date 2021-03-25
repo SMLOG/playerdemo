@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.csvreader.CsvReader;
 import com.llw.androidtvdemo.view.MyVideoView;
+import com.llw.androidtvdemo.view.SelectPicPopupWindow;
 
 import java.io.File;
 import java.io.FileReader;
@@ -198,6 +199,9 @@ public class MainActivity extends AppCompatActivity {
                     btnPlayOrPause.setBackground(getResources().getDrawable(R.mipmap.icon_player));
                     btnPlayOrPause.setVisibility(View.VISIBLE);
                     videoView.pause();
+
+                    startActivity(new Intent(MainActivity.this, SelectPicPopupWindow.class));
+
                 } else {//继续播放
                     btnPlayOrPause.setBackground(getResources().getDrawable(R.mipmap.icon_pause));
                     btnPlayOrPause.setVisibility(View.VISIBLE);
