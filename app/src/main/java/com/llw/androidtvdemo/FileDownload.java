@@ -3,20 +3,25 @@ package com.llw.androidtvdemo;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.yanzhenjie.andserver.framework.body.FileBody;
+import com.yanzhenjie.andserver.framework.body.StreamBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.ResponseBody;
+import com.yanzhenjie.andserver.util.IOUtils;
 import com.yanzhenjie.andserver.util.MediaType;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 
 
-public class FileDownload implements ResponseBody{
+public class FileDownload implements ResponseBody {
     private final HttpRequest request;
     private final HttpResponse response;
     private String file;
@@ -25,6 +30,8 @@ public class FileDownload implements ResponseBody{
     private long startByte;
 
     public FileDownload(HttpRequest request, HttpResponse response) {
+
+
         this.request = request;
         this.response = response;
         String path ="/storage/udisk0/part1/bilibili/285817851/1/285817851_1_0.mp4";
@@ -40,6 +47,7 @@ public class FileDownload implements ResponseBody{
     public void fileChunkDownload(String filePath, HttpRequest request, HttpResponse response) {
         String range = request.getHeader("Range");
         File file = new File(filePath);
+        this.file = filePath;
         //开始下载位置
         long startByte = 0;
         //结束下载位置
@@ -78,7 +86,7 @@ public class FileDownload implements ResponseBody{
         //文件名
         String fileName = file.getName();
         //文件类型
-        String contentType = "video/mp4";
+        //String contentType = "video/mp4";
 
         byte[] fileNameBytes = fileName.getBytes(StandardCharsets.UTF_8);
         fileName = new String(fileNameBytes, 0, fileNameBytes.length, StandardCharsets.ISO_8859_1);
@@ -89,12 +97,13 @@ public class FileDownload implements ResponseBody{
         //http状态码要为206：表示获取部分内容
         response.setStatus(HttpResponse.SC_PARTIAL_CONTENT);
         //response.setContentType(contentType);
-        response.setHeader("Content-Type", contentType);
+        //response.setHeader("Content-Type", contentType);
         //inline表示浏览器直接使用，attachment表示下载，fileName表示下载的文件名
         response.setHeader("Content-Disposition", "inline;filename=" + fileName);
-        response.setHeader("Content-Length", String.valueOf(contentLength));
+        //response.setHeader("Content-Length", String.valueOf(contentLength));
         // Content-Range，格式为：[要下载的开始位置]-[结束位置]/[文件总大小]
         response.setHeader("Content-Range", "bytes " + startByte + "-" + endByte + "/" + file.length());
+
         this.startByte=startByte;
         this.endByte =endByte;
         this.contentLength = contentLength;
@@ -109,7 +118,7 @@ public class FileDownload implements ResponseBody{
     @Nullable
     @Override
     public MediaType contentType() {
-        return MediaType.APPLICATION_OCTET_STREAM;
+        return MediaType.getFileMediaType("abc.mp4");
     }
 
     @Override

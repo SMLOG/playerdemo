@@ -12,6 +12,7 @@ import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.ResponseBody;
+import com.yanzhenjie.andserver.framework.body.FileBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
@@ -20,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -136,12 +138,16 @@ public class IndexController {
         return "ok";
     }*/
 
-    @GetMapping("/down")
-    @ResponseBody
-    public FileDownload download(HttpRequest request,HttpResponse respone){
-        FileDownload body = new FileDownload(request, respone);
-        return body;
 
+
+    @GetMapping("/down")
+    public void download(HttpRequest request,HttpResponse respone){
+        try{
+            com.yanzhenjie.andserver.http.ResponseBody  body = new FileDownload(request, respone);
+            respone.setBody(body);
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
     }
     @ResponseBody
     @GetMapping("/api/list")
