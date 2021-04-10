@@ -12,11 +12,12 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <!--自定义的VideoView  做了绘制改变，和网络地址许可-->
-        <com.llw.androidtvdemo.view.MyVideoView
+        <com.llw.demo.view.MyVideoView
             android:id="@+id/video_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:focusable="true" />
 
     </LinearLayout>
     <!--底部控制栏  开始时间 进度条 结束时间-->
