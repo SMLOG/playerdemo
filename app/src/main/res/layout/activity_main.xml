@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <!--自定义的VideoView  做了绘制改变，和网络地址许可-->
-        <com.llw.demo.view.MyVideoView
+        <com.usbtv.demo.view.MyVideoView
             android:id="@+id/video_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

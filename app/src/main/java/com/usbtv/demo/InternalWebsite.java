@@ -1,4 +1,4 @@
-package com.llw.demo;
+package com.usbtv.demo;
 
 import com.yanzhenjie.andserver.annotation.Website;
 import com.yanzhenjie.andserver.framework.website.AssetsWebsite;

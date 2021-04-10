@@ -1,4 +1,4 @@
-package com.llw.demo;
+package com.usbtv.demo;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,8 +25,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.llw.demo.view.MyVideoView;
-import com.llw.demo.view.SelectPicPopupWindow;
+import com.usbtv.demo.view.MyVideoView;
+import com.usbtv.demo.view.SelectPicPopupWindow;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

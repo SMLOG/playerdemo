@@ -1,4 +1,4 @@
-package com.llw.demo.view;
+package com.usbtv.demo.view;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.llw.demo.R;
+import com.usbtv.demo.R;
 
 import java.util.Timer;
 import java.util.TimerTask;

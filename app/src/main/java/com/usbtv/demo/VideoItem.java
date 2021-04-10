@@ -1,4 +1,4 @@
-package com.llw.demo;
+package com.usbtv.demo;
 
 
 public class VideoItem {

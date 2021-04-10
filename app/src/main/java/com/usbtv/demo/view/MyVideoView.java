@@ -1,11 +1,11 @@
-package com.llw.demo.view;
+package com.usbtv.demo.view;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.widget.VideoView;
 
-import com.llw.demo.view.util.SSlUtils;
+import com.usbtv.demo.view.util.SSlUtils;
 
 import javax.net.ssl.HttpsURLConnection;
 

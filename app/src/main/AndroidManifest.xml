@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.llw.demo"
+    package="com.usbtv.demo"
     tools:ignore="MissingLeanbackLauncher">
 
     <uses-feature
@@ -18,14 +18,14 @@
 
 
     <application
-        android:name="com.llw.demo.App"
+        android:name="com.usbtv.demo.App"
         android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme2">
-        <receiver android:name="com.llw.demo.BootBroadcastReceiver" >
+        <receiver android:name="com.usbtv.demo.BootBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -36,14 +36,14 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name="com.llw.demo.MainActivity">
+        <activity android:name="com.usbtv.demo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.llw.demo.view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
+        <activity android:name="com.usbtv.demo.view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
     </application>
 
 </manifest>

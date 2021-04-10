@@ -1,4 +1,4 @@
-package com.llw.demo.view.util;
+package com.usbtv.demo.view.util;
 
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
