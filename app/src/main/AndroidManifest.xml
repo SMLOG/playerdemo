@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
+    <uses-permission  android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name="com.usbtv.demo.App"
@@ -44,6 +44,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.usbtv.demo.view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
+        <service android:name=".TopWindowService" />
     </application>
 
 </manifest>

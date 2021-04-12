@@ -199,5 +199,13 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return null;
     }
 
+    public static void execLocalCmdByAdb(String cmd){
+        try{
+            exec("adb connect 127.0.0.1");
+            exec("adb shell "+ cmd);
+        }finally {
+            exec("adb disconnect 127.0.0.1");
+        }
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.usbtv.demo;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 
@@ -77,6 +78,7 @@ public class DowloadPlayList {
 
                 File localPlaylist = new File(s+"playlist.json");
                 if (s!=null && localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()) {
+                    Log.d(App.TAG,localPlaylist.getAbsolutePath()+" exists");
 
                     try {
                         String content = Utils.getStringFromFile(localPlaylist.getAbsolutePath());
@@ -99,7 +101,12 @@ public class DowloadPlayList {
 
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Log.d(App.TAG,e.getMessage());
+
                     }
+                }else{
+                    Log.d(App.TAG,localPlaylist.getAbsolutePath()+" not exists");
+
                 }
 
                 String remotePlayHost = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE)

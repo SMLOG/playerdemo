@@ -13,13 +13,15 @@ import java.net.InetAddress;
 
 public class App extends Application {
     public static final String URLACTION = "urlaction";
+    public static final String TAG ="usbtv.demo" ;
     public static String host;
     protected static PlayList playList = new PlayList();
 
     private Context mContext;
-    private String TAG = "App";
     private static App self;
     private ServerManager mServer;
+
+    private static boolean mediaMounted =false;
 
     public static App getInstance() {
         return self;
@@ -30,6 +32,14 @@ public class App extends Application {
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    public synchronized static boolean isMediaMounted() {
+        return mediaMounted;
+    }
+
+    public synchronized static void setMediaMounted(boolean mediaMounted) {
+        App.mediaMounted = mediaMounted;
     }
 
     public static void updateCacheFolder(File file) {

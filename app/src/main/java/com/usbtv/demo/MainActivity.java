@@ -12,8 +12,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.MediaController;
 import android.widget.RelativeLayout;
@@ -93,71 +96,79 @@ public class MainActivity extends AppCompatActivity {
     };
     private Timer timer;
 
-    @Override
-    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
-        if (Build.VERSION.SDK_INT == 28) {
-            try {
-                ViewParent viewRootImpl = getWindow().getDecorView().getParent();
-                Class viewRootImplClass = viewRootImpl.getClass();
-
-                Field mAttachInfoField = viewRootImplClass.getDeclaredField("mAttachInfo");
-                mAttachInfoField.setAccessible(true);
-                Object mAttachInfo = mAttachInfoField.get(viewRootImpl);
-                Class mAttachInfoClass = mAttachInfo.getClass();
-
-                Field mHasWindowFocusField = mAttachInfoClass.getDeclaredField("mHasWindowFocus");
-                mHasWindowFocusField.setAccessible(true);
-                mHasWindowFocusField.set(mAttachInfo, true);
-                boolean mHasWindowFocus = (boolean) mHasWindowFocusField.get(mAttachInfo);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        return super.dispatchKeyEvent(event);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+
+       /* requestWindowFeature(Window.FEATURE_NO_TITLE);// 隐藏标题栏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
+                */
+
+
+
+
+        //setContentView(R.layout.activity_main);
+
+        //ButterKnife.bind(this);
         //Utils.verifyStoragePermissions(this);
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
         registerReceiver(receiver, intentFilter);
 
+        //WindowManager wm=(WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+
+
+        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
+                Context.WINDOW_SERVICE);
+
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+
+        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+        layoutParams.type = WindowManager.LayoutParams.LAST_APPLICATION_WINDOW;
+        layoutParams.flags = WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        layoutParams.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+
+
+        layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+
+
+
+        LayoutInflater inflater =LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
+
+        RelativeLayout mInView = (RelativeLayout)inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
+        videoView = mInView.findViewById(R.id.video_view);
+        timeSeekBar = mInView.findViewById(R.id.time_seekBar);
+        tvPlayTime = mInView.findViewById(R.id.tv_play_time);
+        tvTotalTime = mInView.findViewById(R.id.tv_total_time);
+        layFinishBg = mInView.findViewById(R.id.lay_finish_bg);
+        btnPlayOrPause = mInView.findViewById(R.id.btn_play_or_pause);
+        btnRestartPlay = mInView.findViewById(R.id.btn_restart_play);
+        status = mInView.findViewById(R.id.status);
+
+        wm.addView(mInView, layoutParams);
+        
+/*
+        Intent show = new Intent(this, TopWindowService.class);
+        show.putExtra(TopWindowService.OPERATION,
+                TopWindowService.OPERATION_SHOW);
+        startService(show);*/
+
+
+
+
         timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
         DowloadPlayList.reloadPlayList();
-        //Utils.setKeyPress(4);
-        //initDelayShutdown();
+
         timer = new Timer();
 
         initVideo();
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
 
-                //
-                //mp.setLooping(true);
-                reNewVideoUri(App.playList.getaIndex(),-1);
-                //mp.start();
-                //btnRestartPlay.setVisibility(View.VISIBLE);
-                //layFinishBg.setVisibility(View.VISIBLE);
-            }
-        });
-
-        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                reNewVideoUri(App.playList.getaIndex(),-1);
-                return true;
-            }
-        });
 
 
 
@@ -215,6 +226,23 @@ public class MainActivity extends AppCompatActivity {
                 timeSeekBar.setMax(videoView.getDuration());
                 //视频加载完成,准备好播放视频的回调
                 videoView.start();
+            }
+        });
+
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                reNewVideoUri(App.playList.getaIndex(),-1);
+            }
+        });
+
+        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
+                reNewVideoUri(App.playList.getaIndex(),-1);
+                return true;
             }
         });
 
