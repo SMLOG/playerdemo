@@ -2,6 +2,9 @@ package com.usbtv.demo;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.widget.SeekBar;
+
+import com.usbtv.demo.view.MyVideoView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,6 +17,7 @@ public class PlayList {
     private ArrayList<Aid>  aidList = new ArrayList<Aid>();;
     private int bIndex = 0;
     private int aIndex = 0;
+    private MyVideoView videoView;
 
     public int getbIndex() {
         return bIndex;
@@ -28,6 +32,7 @@ public class PlayList {
     }
 
 
+
     private int autoAindex(){
         if( aIndex>= aidList.size()) aIndex = 0;
         if(aIndex<0) aIndex  = 0;
@@ -36,20 +41,15 @@ public class PlayList {
 
     public synchronized String nextURL(int bIndex) {
 
-        this.bIndex++;
-        if(bIndex<0 && this.bIndex>=0)bIndex = this.bIndex;
+        if(bIndex<0 )bIndex = this.bIndex++;
 
         if(aidList.size()==0)return  null;
-
-
-
-
 
         autoAindex();
 
         if(bIndex >=  aidList.get(aIndex).getItems().size() || bIndex<0){
             bIndex = 0 ;
-            aIndex++;
+            aIndex++;autoAindex();
             while (aidList.get(aIndex).getItems().size()==0){
                 aIndex++;
                 autoAindex();
@@ -61,6 +61,8 @@ public class PlayList {
         SharedPreferences.Editor editor = sp.edit();
         editor.putInt("aIndex",aIndex);
         editor.putInt("bIndex",bIndex);
+        this.aIndex = aIndex;
+        this.bIndex = bIndex;
         editor.commit();
 
         return  getUrl(aIndex,bIndex);
@@ -90,5 +92,13 @@ public class PlayList {
         synchronized (this){
             this.aIndex = aIndex;
         }
+    }
+
+    public MyVideoView getVideoView() {
+        return videoView;
+    }
+
+    public void setVideoView(MyVideoView videoView) {
+        this.videoView = videoView;
     }
 }

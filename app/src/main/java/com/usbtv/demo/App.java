@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.usbtv.demo.view.MyVideoView;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -21,6 +22,8 @@ public class App extends Application {
     private static App self;
     private ServerManager mServer;
 
+    protected static MyVideoView videoView;
+
     private static boolean mediaMounted =false;
 
     public static App getInstance() {
@@ -32,6 +35,14 @@ public class App extends Application {
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    public static MyVideoView getVideoView() {
+        return videoView;
+    }
+
+    public static void setVideoView(MyVideoView videoView) {
+        App.videoView = videoView;
     }
 
     public synchronized static boolean isMediaMounted() {

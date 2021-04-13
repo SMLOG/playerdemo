@@ -7,6 +7,7 @@ import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.ResponseBody;
+import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
@@ -16,15 +17,26 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-@Controller
+@RestController
 public class IndexController {
     private static String TAG = "IndexController";
 
 
     @ResponseBody
     @GetMapping(path = "/api/status")
-    String status(RequestBody body) throws IOException {
-        return "{aIndex:"+App.playList.getaIndex()+",bIndex:"+App.playList.getbIndex()+"}";
+    String status(RequestBody body,HttpResponse response) throws IOException {
+        response.setHeader("Content-Type","application/json; charset=utf-8");
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("aIndex", App.playList.getaIndex());
+            jsonObject.put("bIndex", App.playList.getbIndex());
+            jsonObject.put("progress", (App.getVideoView().getCurrentPosition()));
+            jsonObject.put("duration", App.getVideoView().getDuration());
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
     }
 
     @ResponseBody
@@ -36,7 +48,10 @@ public class IndexController {
 
             int aIndex=params.getInt("aIndex");
             int bIndex = params.getInt("bIndex");
-            App.sendPlayBroadCast(aIndex,bIndex);
+            double progress = params.getDouble("progress");
+            if(aIndex == App.playList.getaIndex()&&bIndex == App.playList.getbIndex()){
+                App.getVideoView().seekTo((int) (progress*App.getVideoView().getDuration()));
+            }else  App.sendPlayBroadCast(aIndex,bIndex);
 
 
             return "ok";
