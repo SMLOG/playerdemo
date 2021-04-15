@@ -47,7 +47,7 @@ public class PlayList {
 
         autoAindex();
 
-        if(bIndex >=  aidList.get(aIndex).getItems().size() || bIndex<0){
+        if(bIndex >=  aidList.get(aIndex).getItems().size()){
             bIndex = 0 ;
             aIndex++;autoAindex();
             while (aidList.get(aIndex).getItems().size()==0){

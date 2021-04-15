@@ -31,7 +31,10 @@ public class IndexController {
             jsonObject.put("aIndex", App.playList.getaIndex());
             jsonObject.put("bIndex", App.playList.getbIndex());
             jsonObject.put("progress", (App.getVideoView().getCurrentPosition()));
+            jsonObject.put("curPosition", (App.getVideoView().getCurrentPosition()));
             jsonObject.put("duration", App.getVideoView().getDuration());
+            jsonObject.put("isPlaying", App.getVideoView().isPlaying());
+
 
         }catch (Exception e){
             e.printStackTrace();
@@ -44,14 +47,21 @@ public class IndexController {
     String play(RequestBody body) throws IOException {
         String content = body.string();
         try {
+
             JSONObject params = new JSONObject(content);
 
             int aIndex=params.getInt("aIndex");
             int bIndex = params.getInt("bIndex");
+            boolean isPlaying = params.getBoolean("isPlaying");
             double progress = params.getDouble("progress");
             if(aIndex == App.playList.getaIndex()&&bIndex == App.playList.getbIndex()){
                 App.getVideoView().seekTo((int) (progress*App.getVideoView().getDuration()));
             }else  App.sendPlayBroadCast(aIndex,bIndex);
+            if(isPlaying!=App.getVideoView().isPlaying()){
+                if(isPlaying)
+                App.getVideoView().start();
+                else App.getVideoView().pause();
+            }
 
 
             return "ok";
