@@ -6,7 +6,6 @@
     import android.content.IntentFilter;
     import android.media.MediaPlayer;
     import android.net.Uri;
-    import android.os.Build;
     import android.os.Bundle;
     import android.os.Handler;
     import android.os.Message;
@@ -14,8 +13,6 @@
     import android.view.KeyEvent;
     import android.view.LayoutInflater;
     import android.view.View;
-    import android.view.ViewParent;
-    import android.view.Window;
     import android.view.WindowManager;
     import android.widget.ImageButton;
     import android.widget.MediaController;
@@ -24,7 +21,6 @@
     import android.widget.TextView;
     import android.widget.Toast;
 
-    import androidx.annotation.NonNull;
     import androidx.annotation.Nullable;
     import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,7 +29,6 @@
 
     import java.io.BufferedReader;
     import java.io.InputStreamReader;
-    import java.lang.reflect.Field;
     import java.text.SimpleDateFormat;
     import java.util.Calendar;
     import java.util.Formatter;
@@ -42,7 +37,6 @@
     import java.util.TimerTask;
 
     import butterknife.BindView;
-    import butterknife.ButterKnife;
 
     public class MainActivity extends AppCompatActivity {
 
@@ -76,6 +70,9 @@
                     int aIndex = intent.getIntExtra("aIndex", 0);
                     int bIndex = intent.getIntExtra("bIndex", 0);
                     reNewVideoUri(aIndex,bIndex);
+                }else if (intent.getAction().equals(App.exit)) {
+                    MainActivity.this.finish();
+
                 }
             }
         };
@@ -103,7 +100,6 @@
             super.onCreate(savedInstanceState);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-
            /* requestWindowFeature(Window.FEATURE_NO_TITLE);// 隐藏标题栏
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
@@ -119,6 +115,7 @@
 
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(App.URLACTION);
+            intentFilter.addAction(App.exit);
             registerReceiver(receiver, intentFilter);
 
             //WindowManager wm=(WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
@@ -167,13 +164,14 @@
             App.setVideoView(videoView);
 
             timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
-            DowloadPlayList.reloadPlayList();
 
             timer = new Timer();
 
             initVideo();
 
+          //  reNewVideoUri(0,0);
 
+            App.sendPlayBroadCast(-1,0);
 
 
 

@@ -11,6 +11,7 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -24,25 +25,28 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme2">
-        <receiver android:name="com.usbtv.demo.BootBroadcastReceiver" >
+        <receiver android:name=".BootBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MEDIA_MOUNTED" />
                 <action android:name="android.intent.action.MEDIA_REMOVED" />
                 <action android:name="android.intent.action.MEDIA_EJECT" />
                 <data android:scheme="file" />
             </intent-filter>
         </receiver>
-
-        <activity android:name="com.usbtv.demo.MainActivity">
+        <receiver android:name=".BootBroadcastReceiver2" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.usbtv.demo.view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
+        <activity android:name=".view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
         <service android:name=".TopWindowService" />
     </application>
 

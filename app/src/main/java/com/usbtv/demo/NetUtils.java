@@ -1,5 +1,9 @@
 package com.usbtv.demo;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -64,5 +68,25 @@ public class NetUtils {
 
         return null;
 
+    }
+
+    private static final int NETWORK_NONE=-1; //无网络连接
+    private static final int NETWORK_WIFI=0; //wifi
+    private static final int NETWORK_MOBILE=1; //数据网络
+
+    public static int getNetWorkState(Context context){
+        ConnectivityManager connectivityManager=(ConnectivityManager)
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo=connectivityManager.getActiveNetworkInfo();
+        if(activeNetworkInfo!=null&&activeNetworkInfo.isConnected()){
+            if(activeNetworkInfo.getType()==(ConnectivityManager.TYPE_WIFI)){
+                return NETWORK_WIFI;
+            }else if(activeNetworkInfo.getType()==(ConnectivityManager.TYPE_MOBILE)){
+                return NETWORK_MOBILE;
+            }
+        }else{
+            return NETWORK_NONE;
+        }
+        return NETWORK_NONE;
     }
 }

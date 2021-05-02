@@ -41,11 +41,11 @@ public class DowloadPlayList {
 
                         ByteArrayOutputStream fos = new ByteArrayOutputStream();
                         while ((len = is.read(bytes)) != -1) {
-                            fos.write(bytes,0,len);
+                            fos.write(bytes, 0, len);
                         }
 
-                        ArrayList<Aid> aidList= (ArrayList<Aid>) JSON.parseArray(fos.toString(), Aid.class);
-                        App.playList.addAll(aidList,url);
+                        ArrayList<Aid> aidList = (ArrayList<Aid>) JSON.parseArray(fos.toString(), Aid.class);
+                        App.playList.addAll(aidList, url);
                         //System.out.println(aidList);
 
                     } catch (Exception e) {
@@ -58,69 +58,81 @@ public class DowloadPlayList {
 
     }
 
-    public static void reloadPlayList() {
+    public static void loadPlayList(boolean isUsingThread) {
+
+        if(isUsingThread){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    reLoadPlayList();
+                    Utils.exec("cd "+getDataFilesDir()+" && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
+                    reLoadPlayList();
+                    //Utils.exec("cd "+getDataFilesDir()+" && wget -q -O - http://192.168.0.101/bilibili/index.cgi|sh");
+                }
+
+            }).start();
+        }else{
+            Utils.exec("cd "+getDataFilesDir()+" && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
+            reLoadPlayList();
+        }
+        App.sendPlayBroadCast(-1,0);
+
+    }
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+    public static void reLoadPlayList() {
+        String s = getDataFilesDir();
 
-                loadPlayList();
+        File localPlaylist = new File(s + "playlist.json");
+        if (s != null && localPlaylist.getParentFile().isDirectory() ) {
+            Log.d(App.TAG, localPlaylist.getAbsolutePath() + " exists");
+
+            if(localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()){
+                try {
+                    String content = Utils.getStringFromFile(localPlaylist.getAbsolutePath());
+                    ArrayList<Aid> aidList = (ArrayList<Aid>) JSON.parseArray(content, Aid.class);
+                    App.playList.addAll(aidList, "file://" + localPlaylist.getAbsolutePath());
+
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d(App.TAG, e.getMessage());
+
+                }
             }
-
-
-
-            private void loadPlayList() {
-
-                PlayList newPlayList = new PlayList();
-                String s = getDataFilesDir();
-                App.playList = newPlayList;
-
-                File localPlaylist = new File(s+"playlist.json");
-                if (s!=null && localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()) {
-                    Log.d(App.TAG,localPlaylist.getAbsolutePath()+" exists");
-
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    List<Aid> aidList = null;
                     try {
-                        String content = Utils.getStringFromFile(localPlaylist.getAbsolutePath());
-                        ArrayList<Aid> aidList= (ArrayList<Aid>) JSON.parseArray(content, Aid.class);
-                        App.playList.addAll(aidList,"file://"+localPlaylist.getAbsolutePath());
-
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                List<Aid> aidList = null;
-                                try {
-                                    aidList = Aid.scan(s);
-                                    App.playList.addAll(aidList,"file://"+localPlaylist.getAbsolutePath());
-
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }).start();
+                        aidList = Aid.scan(s);
+                        App.playList.addAll(aidList, "file://" + localPlaylist.getAbsolutePath());
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Log.d(App.TAG,e.getMessage());
-
                     }
-                }else{
-                    Log.d(App.TAG,localPlaylist.getAbsolutePath()+" not exists");
-
                 }
+            }).start();
 
-                String remotePlayHost = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE)
-                        .getString("remoteplaylisthost", "http://192.168.0.101/bilibili/playlist.json");
+        } else {
+            Log.d(App.TAG, localPlaylist.getAbsolutePath() + " not exists");
 
-                if (!remotePlayHost.trim().equalsIgnoreCase("")) {
-                    DowloadPlayList.download(remotePlayHost);
-                }
-            }
-        }).start();
+        }
+
+
     }
 
     private static String getDataFilesDir() {
-        return "/storage/udisk0/part1/bilibili/";
+        File cachedir = new File( "/storage/udisk0/part1/bilibili");
+        if(cachedir.exists())return cachedir.getAbsolutePath()+"/";
+        else {
+            cachedir = App.getInstance().getCacheDir();
+            return cachedir.getAbsolutePath()+"/";
+
+        }
+
     }
 
 

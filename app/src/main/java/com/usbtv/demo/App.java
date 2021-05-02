@@ -17,6 +17,7 @@ import java.net.InetAddress;
 
 public class App extends Application {
     public static final String URLACTION = "urlaction";
+    public static final String exit = "exit";
     public static final String TAG ="usbtv.demo" ;
     public static String host;
     protected static PlayList playList = new PlayList();
@@ -70,6 +71,14 @@ public class App extends Application {
 
     }
 
+    public static void sendExit() {
+
+        Intent intent = new Intent();
+        intent.setAction(App.exit);
+
+        App.getInstance().getApplicationContext().sendBroadcast(intent);
+    }
+
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
                 .maxCacheSize(1024*1024*1024)
@@ -92,6 +101,8 @@ public class App extends Application {
         App.getInstance().getApplicationContext().sendBroadcast(intent);
         return true;
     }
+
+
     public static String getProxyUrl(String url) {
       /*  if (url.startsWith("http://") || url.startsWith("https://")) {
             if (App.proxy == null) {
@@ -115,6 +126,7 @@ public class App extends Application {
 
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
         Log.d(TAG, ipaddr.getHostAddress());
+        DowloadPlayList.loadPlayList(true);
     }
 
     private void createAndStartWebServer(Context context) {

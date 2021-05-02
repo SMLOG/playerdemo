@@ -176,7 +176,12 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
 
     public  static String exec(String cmd){
         try {
-            Process process = Runtime.getRuntime().exec(cmd);
+
+            Process process=null;
+            if(cmd.indexOf("|")>-1){
+                 process = Runtime.getRuntime().exec(new String[]{"sh","-c",cmd});
+            }
+            else process= Runtime.getRuntime().exec(cmd);
             InputStream errorInput = process.getErrorStream();
             InputStream inputStream = process.getInputStream();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));

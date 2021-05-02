@@ -41,7 +41,7 @@ public class PlayList {
 
     public synchronized String nextURL(int bIndex) {
 
-        if(bIndex<0 )bIndex = this.bIndex++;
+        if(bIndex<0 )bIndex = ++this.bIndex;
 
         if(aidList.size()==0)return  null;
 
@@ -72,9 +72,13 @@ public class PlayList {
         String url = aidList.get(aIndex).getItems().get(bIndex).getPath();
         return this.aidList.get(aIndex).getServerBase()+this.aidList.get(aIndex).getAid()+ File.separator+url;
     }
+
+    public String getAidUrl(int aIndex){
+        return this.aidList.get(aIndex).getServerBase()+this.aidList.get(aIndex).getAid();
+    }
     public synchronized void  addAll(List<Aid> aidList, String host) {
 
-
+        this.aidList.clear();
         for(int k =0;k<aidList.size();k++){
             Aid o = aidList.get(k);
             if(null== o.getServerBase()){
@@ -82,10 +86,11 @@ public class PlayList {
             }
             int index = this.aidList.indexOf(o);
             if(index >-1)aidList.set(index, o);
-            else this.aidList.add(o);
+            else
+            this.aidList.add(o);
         }
 
-        App.sendPlayBroadCast(-1,-1);
+        //App.sendPlayBroadCast(-1,-1);
     }
 
     public void setAIndex(int aIndex) {
@@ -100,5 +105,18 @@ public class PlayList {
 
     public void setVideoView(MyVideoView videoView) {
         this.videoView = videoView;
+    }
+
+    public void delete(int aIndex, int bIndex) {
+       // Item item = this.aidList.get(aIndex).getItems().get(bIndex);
+        String path;
+        if(bIndex==-1) path =getAidUrl(aIndex);
+        else
+         path = getUrl(aIndex,bIndex);
+        this.aidList.get(aIndex).getItems().remove(bIndex);
+        if(path.startsWith("file://")){
+            path = path.replace("file://","");
+            new File(path).delete();
+        }
     }
 }

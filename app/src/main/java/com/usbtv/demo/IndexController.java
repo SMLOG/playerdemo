@@ -42,6 +42,15 @@ public class IndexController {
         return jsonObject.toString();
     }
 
+
+    @ResponseBody
+    @GetMapping(path = "/api/reLoadPlayList")
+    String reLoadPlayList(RequestBody body) throws IOException {
+
+        DowloadPlayList.loadPlayList(false);
+
+        return "ok";
+    }
     @ResponseBody
     @PostMapping(path = "/api/play")
     String play(RequestBody body) throws IOException {
@@ -81,6 +90,13 @@ public class IndexController {
         }
         return null;
     }
+    @GetMapping(path = "/api/delete")
+    String delete(@RequestParam(name = "aIndex") int aIndex,@RequestParam(name = "bIndex") int bIndex,HttpResponse response) throws IOException {
+         App.playList.delete(aIndex,bIndex);
+
+        return null;
+    }
+
     @ResponseBody
     @PostMapping(path = "/api/event")
     String event(RequestBody body) throws IOException {
@@ -88,6 +104,9 @@ public class IndexController {
         try {
             JSONObject params = new JSONObject(content);
             String str=params.getString("event");
+            if(App.exit.equals(str)){
+                App.sendExit();
+            }
             Utils.exec(str);
             return "ok";
         } catch (JSONException e) {
@@ -97,14 +116,6 @@ public class IndexController {
         return "";
     }
 
-    @ResponseBody
-    @GetMapping("/api/delete")
-    public String delete(@RequestParam(name = "ids") String ids
-    ) {
-        for (String id : ids.split(","))
-            DbHelper.delete(Integer.parseInt(id));
-        return "ok";
-    }
 
    /* @ResponseBody
     @GetMapping("/api/get")
