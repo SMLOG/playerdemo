@@ -8,6 +8,8 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.view.MyVideoView;
 
 import org.json.JSONObject;
@@ -18,7 +20,9 @@ import java.net.InetAddress;
 public class App extends Application {
     public static final String URLACTION = "urlaction";
     public static final String exit = "exit";
-    public static final String TAG ="usbtv.demo" ;
+    public static final String TAG = "demo";
+    private static DatabaseHelper databaseHelper = null;
+
     public static String host;
     protected static PlayList playList = new PlayList();
     private static Status status;
@@ -128,7 +132,20 @@ public class App extends Application {
         Log.d(TAG, ipaddr.getHostAddress());
         DowloadPlayList.loadPlayList(true);
     }
-
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        if (databaseHelper != null) {
+            OpenHelperManager.releaseHelper();
+            databaseHelper = null;
+        }
+    }
+    public static DatabaseHelper getHelper() {
+        if (databaseHelper == null) {
+            databaseHelper = OpenHelperManager.getHelper(App.getInstance(), DatabaseHelper.class);
+        }
+        return databaseHelper;
+    }
     private void createAndStartWebServer(Context context) {
 
         mServer = new ServerManager();

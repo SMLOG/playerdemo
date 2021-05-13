@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class Utils {
+    
     /**
      * bitmap转为base64
      *

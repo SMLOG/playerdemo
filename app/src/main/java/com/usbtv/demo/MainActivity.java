@@ -71,7 +71,7 @@
                     int bIndex = intent.getIntExtra("bIndex", 0);
                     reNewVideoUri(aIndex,bIndex);
                 }else if (intent.getAction().equals(App.exit)) {
-                    MainActivity.this.finish();
+                    //System.exit(0);
 
                 }
             }
@@ -135,7 +135,7 @@
 
 
 
-            layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+            layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
 
 
 
@@ -150,7 +150,6 @@
             btnPlayOrPause = mInView.findViewById(R.id.btn_play_or_pause);
             btnRestartPlay = mInView.findViewById(R.id.btn_restart_play);
             status = mInView.findViewById(R.id.status);
-
             wm.addView(mInView, layoutParams);
 
     /*

@@ -25,6 +25,13 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             //Utils.simulateKeystroke(4);
             //Utils.execLocalCmdByAdb("input keyevent 4");
            // execLocalCmdByAdb
+
+            App.sendExit();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             new Thread() {
                 public void run() {
                     // Utils.exec("input keyevent 4");
@@ -51,11 +58,11 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
 
-                    if(!isForeground(context)){
+                   // if(!isForeground(context)){
                         Intent intent=new Intent(context, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(intent);
-                    };
+                    //};
 
 
                     //App.sendPlayBroadCast(-1,-1);
@@ -76,18 +83,5 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
         }
 
     }
-    private boolean isForeground(Context context) {
-        if (context != null) {
-            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningAppProcessInfo> processes = activityManager.getRunningAppProcesses();
-            for (ActivityManager.RunningAppProcessInfo processInfo : processes) {
-                if (processInfo.processName.equals(context.getPackageName())) {
-                    if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+
 }
