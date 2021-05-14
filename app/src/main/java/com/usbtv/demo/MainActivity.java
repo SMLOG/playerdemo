@@ -14,6 +14,7 @@
     import android.view.LayoutInflater;
     import android.view.View;
     import android.view.WindowManager;
+    import android.webkit.WebView;
     import android.widget.ImageButton;
     import android.widget.MediaController;
     import android.widget.RelativeLayout;
@@ -58,7 +59,7 @@
         ImageButton btnRestartPlay;
         @BindView(R.id.status)
         RelativeLayout status;
-
+        RelativeLayout mInView;
         private int key = 0;
         private Handler handler = new Handler();
         private MediaController mc;
@@ -72,7 +73,11 @@
                     reNewVideoUri(aIndex,bIndex);
                 }else if (intent.getAction().equals(App.exit)) {
                     //System.exit(0);
+                    WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
+                            Context.WINDOW_SERVICE);
+                    wm.removeView(mInView);
 
+                    setContentView(mInView);
                 }
             }
         };
@@ -141,7 +146,7 @@
 
             LayoutInflater inflater =LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
 
-            RelativeLayout mInView = (RelativeLayout)inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
+            mInView = (RelativeLayout)inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
             videoView = mInView.findViewById(R.id.video_view);
             timeSeekBar = mInView.findViewById(R.id.time_seekBar);
             tvPlayTime = mInView.findViewById(R.id.tv_play_time);
@@ -151,6 +156,7 @@
             btnRestartPlay = mInView.findViewById(R.id.btn_restart_play);
             status = mInView.findViewById(R.id.status);
             wm.addView(mInView, layoutParams);
+           // setContentView(mInView,layoutParams);
 
     /*
             Intent show = new Intent(this, TopWindowService.class);
