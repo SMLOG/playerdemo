@@ -7,17 +7,44 @@
     android:orientation="vertical"
     android:gravity="center"
     tools:context=".MainActivity">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
         <!--自定义的VideoView  做了绘制改变，和网络地址许可-->
-        <com.usbtv.demo.view.MyVideoView
-            android:id="@+id/video_view"
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:focusable="true" />
+            android:layout_height="match_parent">
+
+            <com.usbtv.demo.view.MyVideoView
+                android:id="@+id/video_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="true" />
+
+            <com.usbtv.demo.view.MyImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                 />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+
+                android:layout_alignParentRight="true"
+                android:layout_gravity="center"
+                android:background="@color/red"
+                android:padding="12dip"
+                android:text="TextView"
+                android:textColor="@color/white"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
 
     </LinearLayout>
     <!--底部控制栏  开始时间 进度条 结束时间-->

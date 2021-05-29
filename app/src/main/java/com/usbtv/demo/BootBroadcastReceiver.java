@@ -26,7 +26,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             //Utils.execLocalCmdByAdb("input keyevent 4");
            // execLocalCmdByAdb
 
-            App.sendExit();
+           // App.sendExit();
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

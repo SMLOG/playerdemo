@@ -1,12 +1,15 @@
 package com.usbtv.demo;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 
@@ -88,5 +91,22 @@ public class NetUtils {
             return NETWORK_NONE;
         }
         return NETWORK_NONE;
+    }
+
+    public static Drawable loadImageFromNetwork(String imageUrl)
+    {
+        Drawable drawable = null;
+        try {
+            // 可以在这里通过文件名来判断，是否本地有此图片
+            drawable = Drawable.createFromStream(
+                    new URL(imageUrl).openStream(), "image.jpg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (drawable == null) {
+        } else {
+        }
+
+        return drawable ;
     }
 }

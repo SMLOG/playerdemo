@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSON;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.usbtv.demo.data.DatabaseHelper;
+import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.view.MyVideoView;
 
 import org.json.JSONObject;
@@ -21,6 +22,7 @@ public class App extends Application {
     public static final String URLACTION = "urlaction";
     public static final String exit = "exit";
     public static final String TAG = "demo";
+    public static ResItem curResItem;
     private static DatabaseHelper databaseHelper = null;
 
     public static String host;
@@ -39,7 +41,7 @@ public class App extends Application {
         return self;
     }
 
-    private static HttpProxyCacheServer proxy;
+    public static HttpProxyCacheServer proxy;
 
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();
@@ -101,20 +103,20 @@ public class App extends Application {
         intent.setAction(App.URLACTION);
         intent.putExtra("aIndex", aIndex);
         intent.putExtra("bIndex", bIndex);
-
+        Log.d("deom",""+System.currentTimeMillis());
         App.getInstance().getApplicationContext().sendBroadcast(intent);
         return true;
     }
 
 
     public static String getProxyUrl(String url) {
-      /*  if (url.startsWith("http://") || url.startsWith("https://")) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
             if (App.proxy == null) {
                 proxy = getInstance().newProxy();
             }
             return App.proxy.getProxyUrl(url);
 
-        }*/
+        }
         return url;
 
     }
@@ -148,7 +150,7 @@ public class App extends Application {
     }
     private void createAndStartWebServer(Context context) {
 
-        mServer = new ServerManager();
+        mServer = new ServerManager(context);
         mServer.startServer();
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);

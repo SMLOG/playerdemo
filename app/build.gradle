@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'com.yanzhenjie.andserver'
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -35,9 +35,8 @@ dependencies {
     implementation 'com.jakewharton:butterknife:10.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
 
-    //implementation 'com.yanzhenjie:andserver:1.0.2'
-    implementation 'com.yanzhenjie.andserver:api:2.0.1'
-    annotationProcessor 'com.yanzhenjie.andserver:processor:2.0.1'
+    implementation 'com.yanzhenjie.andserver:api:2.1.9'
+    annotationProcessor 'com.yanzhenjie.andserver:processor:2.1.9'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
 
     implementation project(':AndroidVideoCache')
@@ -45,5 +44,6 @@ dependencies {
     implementation 'net.sourceforge.javacsv:javacsv:2.0'
     implementation 'com.alibaba:fastjson:1.2.3'
     implementation group: 'com.j256.ormlite', name: 'ormlite-android', version: '5.3'
+    implementation "com.squareup.retrofit2:converter-gson:2.5.0"
 
 }

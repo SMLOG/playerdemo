@@ -2,6 +2,7 @@ package com.usbtv.demo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.j256.ormlite.field.DatabaseField;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,8 +39,13 @@ class Item {
 }
 
 public class Aid {
-
+    @DatabaseField(generatedId = true)
+    private int id;
+    @DatabaseField
+    private String typeId;
+    @DatabaseField(unique = true)
     private String aid;
+
     private String coverUrl;
     private String title;
     private String  serverBase;

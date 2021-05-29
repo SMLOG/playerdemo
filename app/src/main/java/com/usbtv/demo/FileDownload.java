@@ -106,6 +106,11 @@ public class FileDownload implements ResponseBody {
     }
 
     @Override
+    public boolean isRepeatable() {
+        return false;
+    }
+
+    @Override
     public long contentLength() {
         return this.contentLength;
     }

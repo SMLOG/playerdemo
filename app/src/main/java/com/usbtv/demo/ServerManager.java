@@ -1,5 +1,8 @@
 package com.usbtv.demo;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.yanzhenjie.andserver.AndServer;
 import com.yanzhenjie.andserver.Server;
 
@@ -12,21 +15,24 @@ public class ServerManager {
     /**
      * Create server.
      */
-    public ServerManager() {
-        mServer = AndServer.serverBuilder()
+    public ServerManager(Context context) {
+        mServer = AndServer.webServer(context)
                 .port(8080)
                 .timeout(10, TimeUnit.SECONDS)
                 .listener(new Server.ServerListener() {
                     @Override
                     public void onStarted() {
+                        // TODO The server started successfully.
                     }
 
                     @Override
                     public void onStopped() {
+                        // TODO The server has stopped.
                     }
 
                     @Override
                     public void onException(Exception e) {
+                        // TODO An exception occurred while the server was starting.
                     }
                 })
                 .build();
@@ -36,13 +42,21 @@ public class ServerManager {
      * Start server.
      */
     public void startServer() {
-        mServer.startup();
+        if (mServer.isRunning()) {
+            // TODO The server is already up.
+        } else {
+            mServer.startup();
+        }
     }
 
     /**
      * Stop server.
      */
     public void stopServer() {
-        mServer.shutdown();
+        if (mServer.isRunning()) {
+            mServer.shutdown();
+        } else {
+            Log.w("AndServer", "The server has not started yet.");
+        }
     }
 }
