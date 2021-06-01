@@ -1,6 +1,5 @@
 package com.usbtv.demo;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -76,7 +75,7 @@ public class DowloadPlayList {
             Utils.exec("cd "+getDataFilesDir()+" && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
             reLoadPlayList();
         }
-        App.sendPlayBroadCast(-1,0);
+        App.schedule(-1,0);
 
     }
 

@@ -63,27 +63,35 @@ public class MyMediaPlayer extends MediaPlayer {
         if(curIndex == playSources.size()-1)return true;
         else {
             curIndex++;
-            super.reset();
-            try {
 
-                this.setDataSource(playSources.get(curIndex));
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            MyMediaPlayer.this.prepare();
-                            MyMediaPlayer.this.start();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }},2000);
+                        MyMediaPlayer.this.play();
 
-                return false;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return true;
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }},2000);
+
+            return false;
         }
+    }
+
+    private void play() {
+
+        try {
+            super.reset();
+            this.setDataSource(playSources.get(curIndex));
+            this.prepare();
+            this.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

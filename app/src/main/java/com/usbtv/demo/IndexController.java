@@ -1,15 +1,12 @@
 package com.usbtv.demo;
 
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.media.MediaPlayer;
 
 import com.alibaba.fastjson.JSON;
-import com.danikula.videocache.file.Md5FileNameGenerator;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.data.ResItem;
-import com.yanzhenjie.andserver.annotation.Controller;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
@@ -29,7 +26,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,25 +39,13 @@ import okhttp3.Request;
 public class IndexController {
     private static String TAG = "IndexController";
 
-
     @ResponseBody
     @GetMapping(path = "/api/status")
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("aIndex", App.playList.getaIndex());
-            jsonObject.put("bIndex", App.playList.getbIndex());
-            jsonObject.put("progress", (App.getVideoView().getCurrentPosition()));
-            jsonObject.put("curPosition", (App.getVideoView().getCurrentPosition()));
-            jsonObject.put("duration", App.getVideoView().getDuration());
-            jsonObject.put("isPlaying", App.getVideoView().isPlaying());
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return jsonObject.toString();
+        PlayerController.getInstance().setaIndex(App.playList.getaIndex());
+        PlayerController.getInstance().setbIndex(App.playList.getbIndex());PlayerController.getInstance().getDuration();
+        return JSON.toJSONString(PlayerController.getInstance());
     }
 
 
@@ -75,56 +59,91 @@ public class IndexController {
     }
 
     @ResponseBody
-    @PostMapping(path = "/api/play")
-    String play(RequestBody body) throws IOException {
-        String content = body.string();
-        try {
-            if (App.curResItem == null) App.curResItem = new ResItem();
-            App.curResItem.setTypeId(ResItem.VIDEO);
-            JSONObject params = new JSONObject(content);
+    @GetMapping(path = "/api/cmd")
+    String cmd(
 
-            int aIndex = params.getInt("aIndex");
-            int bIndex = params.getInt("bIndex");
-            boolean isPlaying = params.getBoolean("isPlaying");
-            double progress = params.getDouble("progress");
-            if (aIndex == App.playList.getaIndex() && bIndex == App.playList.getbIndex()) {
-                App.getVideoView().seekTo((int) (progress * App.getVideoView().getDuration()));
-            } else App.sendPlayBroadCast(aIndex, bIndex);
-            if (isPlaying != App.getVideoView().isPlaying()) {
-                if (isPlaying)
-                    App.getVideoView().start();
-                else App.getVideoView().pause();
+            @RequestParam(name = "cmd") String cmd,
+            @RequestParam(name = "val", required = false, defaultValue = "") String val,
+            @RequestParam(name = "id", required = false, defaultValue = "-1") int id,
+            @RequestParam(name = "typeId",required = false, defaultValue = "0") int typeId,
+            @RequestParam(name = "aIndex", required = false, defaultValue = "-1") int aIndex,
+            @RequestParam(name = "bIndex", required = false, defaultValue = "-1") int bIndex
+    ) {
+
+        if ("play".equals(cmd)) {
+
+            PlayerController.getInstance().getCurItem().setId(id);
+            PlayerController.getInstance().getCurItem().setTypeId(typeId);
+
+            if (typeId == ResItem.VIDEO) {
+                App.schedule(aIndex, bIndex);
+            } else {
+                App.schedule(-1, -1);
+
+            }
+        }     else   if ("next".equals(cmd)) {
+
+
+            if (typeId != ResItem.VIDEO) {
+                PlayerController.getInstance().getCurItem().setId(PlayerController.getInstance().getCurItem().getId()+1);
             }
 
+            App.schedule(-1, -1);
 
-            return "ok";
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } else if ("pause".equals(cmd)) {
+
+            if (PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().pause();
+
+
+        } else if ("resume".equals(cmd)) {
+
+            if (!PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().start();
+
+        } else if ("toggle".equals(cmd)) {
+
+            if (PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().pause();
+            else
+                PlayerController.getInstance().start();
+
+        } else if ("seekTo".equals(cmd)) {
+
+            int progress = Integer.parseInt(val);
+            if (progress < 0)
+                progress = 0;
+            else if (progress > PlayerController.getInstance().getDuration())
+                progress = (int) PlayerController.getInstance().getDuration();
+
+            PlayerController.getInstance().seekTo(progress);
+
         }
 
-        return "";
+        return "ok";
+
     }
+
 
     @GetMapping(path = "/api/schedule")
     @ResponseBody
     synchronized String schedule() throws IOException {
 
-        if (App.curResItem == null) App.curResItem = new ResItem();
 
-        if (App.curResItem.getTypeId() == 1) {
+        if (PlayerController.getInstance().getCurItem().getTypeId() != ResItem.VIDEO) {
             try {
                 QueryBuilder builder = App.getHelper().getDao().queryBuilder();
 
 
                 do {
-                    Where where = builder.where().eq("typeId", ResItem.IMAGE).and().ge("id", App.curResItem.getId());
+                    Where where = builder.where().eq("typeId", PlayerController.getInstance().getCurItem().getTypeId()).and().ge("id", PlayerController.getInstance().getCurItem().getId());
                     ResItem curResItem = (ResItem) where.queryForFirst();
                     if (curResItem == null) {
-                        App.curResItem.setId(0);
+                        PlayerController.getInstance().getCurItem().setId(0);
                         continue;
                     }
 
-                    App.curResItem.setId(curResItem.getId() + 1);
+                    PlayerController.getInstance().getCurItem().setId(curResItem.getId() + 1);
                     return JSON.toJSONString(curResItem);
 
                 } while (true);
@@ -135,21 +154,9 @@ public class IndexController {
         }
 
 
-        return JSON.toJSONString(App.curResItem);
+        return JSON.toJSONString(PlayerController.getInstance().getCurItem());
     }
 
-    @GetMapping(path = "/api/playres")
-    @ResponseBody
-    synchronized String playres(@RequestParam(name = "id") int id, @RequestParam(name = "typeId") int typeId) throws IOException {
-
-        if (App.curResItem == null)
-            App.curResItem = new ResItem();
-        ;
-        App.curResItem.setId(id);
-        App.curResItem.setTypeId(typeId);
-        App.sendPlayBroadCast(-1, -1);
-        return "OK";
-    }
 
     @GetMapping(path = "/api/proxy")
     com.yanzhenjie.andserver.http.ResponseBody proxy(HttpRequest req, HttpResponse response) throws IOException {
@@ -215,14 +222,57 @@ public class IndexController {
 
     }
 
+    @GetMapping(path = "/api/bgmedia")
+    @ResponseBody
+    int bgmedia(@RequestParam(name = "cmd") String cmd, @RequestParam(name = "val", required = false) String val) {
+        if (App.bgMedia == null) {
+            App.bgMedia = new MediaPlayer();
+        }
+        if ("start".equals(cmd)) {
+            App.bgMedia.start();
+
+        } else if ("pause".equals(cmd)) {
+            if (App.bgMedia.isPlaying()) App.bgMedia.pause();
+
+        } else if ("loop".equals(cmd)) {
+
+            App.bgMedia.setLooping(Boolean.parseBoolean(val));
+
+        } else if ("volume".equals(cmd)) {
+            App.bgMedia.setVolume(Float.parseFloat(val), Float.parseFloat(val));
+
+        } else if ("url".equals(cmd)) {
+            try {
+                if (val == null || val.trim().equals("")) {
+                    if (App.bgMedia.isPlaying()) App.bgMedia.pause();
+                    else App.bgMedia.start();
+
+                } else {
+                    App.bgMedia.reset();
+                    App.bgMedia.setDataSource(App.getProxyUrl(val));
+                    App.bgMedia.prepare();
+                    App.bgMedia.setLooping(true);
+                    App.bgMedia.start();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return 0;
+    }
+
     @GetMapping(path = "/api/manRes")
     @ResponseBody
-    String getResList(@RequestParam(name = "page") int page) {
+    String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId) {
 
         try {
             long pageSize = 20;
-            long total = App.getHelper().getDao().countOf();
+            long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
             List<ResItem> list = App.getHelper().getDao().queryBuilder()
+                    .where().eq("typeId", typeId).queryBuilder()
                     .offset((page - 1) * pageSize)
                     .limit(20l).query();
             Map<String, Object> result = new HashMap<String, Object>();
@@ -255,6 +305,29 @@ public class IndexController {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @GetMapping(path = "/api/manRes2")
+    StringBody manResContent(@RequestParam(name = "content") String content, HttpResponse response) {
+        try {
+
+            ResItem res = JSON.parseObject(content, ResItem.class);
+
+            List<ResItem> list = App.getHelper().getDao().queryForEq("enText", res.getEnText());
+            if (list.size() > 0) {
+                res.setId(list.get(0).getId());
+                App.getHelper().getDao().update(res);
+            } else
+                App.getHelper().getDao().create(res);
+
+            //return JSON.toJSONString(res);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        response.setHeader("Content-Type", "text/html;charset=utf-8");
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html><body><script>alert('ok');window.close();</script></body></html>");
+        return new StringBody(sb.toString());
     }
 
     @PostMapping(path = "/api/delRes")
@@ -295,35 +368,6 @@ public class IndexController {
 
         return "";
     }
-
-    //https://fanyi.baidu.com/gettts?lan=zh&text=%E4%BD%A0%E5%A5%BD&spd=5&source=web
-   /* @ResponseBody
-    @GetMapping("/api/get")
-    public String ib(HttpRequest req, HttpResponse resp)  {
-        try {
-            String uri = req.getURI();
-            Log.d(TAG, uri);
-            String rurl = uri.split("url=")[1];
-
-            JSONObject json =Bili.getParams(rurl);
-            if(json!=null){
-                String videoUrl = json.getString("url");
-                if(uri.indexOf("saveurlonly")>-1){
-                   VideoItem item = DbHelper.UpdateOrInsert(rurl,json.getString("title"));
-                    return "updateOrInsert ok id:"+item.id;
-                }
-                if(videoUrl!=null){
-                    resp.sendRedirect(videoUrl);
-                }
-
-            }
-
-        }catch (Throwable e){
-            e.printStackTrace();
-        }
-
-        return "ok";
-    }*/
 
 
     @GetMapping("/api/down")

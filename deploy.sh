@@ -1,5 +1,8 @@
 #!/bin/bash
 
+cd web && npm run build && npm run install
+cd ..
+
 adb disconnect 192.168.0.100
 adb connect 192.168.0.100
 #./gradlew assambleDebug

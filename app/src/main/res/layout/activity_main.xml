@@ -44,6 +44,17 @@
                 android:textColor="@color/white"
                 android:textSize="30sp"
                 android:textStyle="bold" />
+
+            <com.usbtv.demo.view.AudioWaveView
+                android:id="@+id/bgTextView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/common_black"
+                android:gravity="center_vertical|center"
+                android:text=""
+                tools:visibility="gone" />
+
+
         </RelativeLayout>
 
     </LinearLayout>
@@ -53,7 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/dp_100"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_gradual_change">
+        android:background="@drawable/shape_gradual_change"
+        tools:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"

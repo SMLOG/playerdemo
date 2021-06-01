@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @BindView(R.id.textView)
     TextView textView;
 
+    @BindView(R.id.bgTextView)
+    TextView bgTextView;
+
     private int key = 0;
     private Handler handler = new Handler();
     private MediaController mc;
@@ -87,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 int aIndex = intent.getIntExtra("aIndex", 0);
                 int bIndex = intent.getIntExtra("bIndex", 0);
                 int typeId = intent.getIntExtra("typeId", 0);
-                imageView.setVisibility(View.VISIBLE);
+               // imageView.setVisibility(View.VISIBLE);
                 HashMap<String, String> options = new HashMap<String, String>();
                 options.put("aIndex", "" + aIndex);
                 options.put("bIndex", "" + bIndex);
@@ -99,28 +102,44 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                         System.out.println(result);
                         try {
                             ResItem item = (ResItem) JSON.parseObject(result, ResItem.class);
-                            if (item.getTypeId() == ResItem.IMAGE) {
+                            if (item.getTypeId() == ResItem.IMAGE || item.getTypeId() == ResItem.AUDIO) {
 
+                                item.setId(item.getId()+1);
+                                PlayerController.getInstance().setCurItem(item);
 
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
                                             synchronized (mediaPlayer) {
+                                                PlayerController.getInstance().setMediaObj(mediaPlayer);
                                                 textView.setVisibility(View.VISIBLE);
                                                 videoView.pause();
                                                 videoView.setVisibility(View.GONE);
                                                 imageView.setVisibility(View.VISIBLE);
                                                 textView.setText(item.getEnText() + " " + item.getCnText());
                                                 imageView.setUrl(App.getProxyUrl(item.getImgUrl()));
-                                                String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
                                                 mediaPlayer.reset();
-                                                mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-                                                url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
-                                                mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
 
-                                                if (item.getSound() != null)
-                                                    mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10);
+                                                if(item.getTypeId() == ResItem.IMAGE ){
+                                                    bgTextView.setVisibility(View.GONE);
+                                                    String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
+                                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+
+                                                    url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
+                                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+                                                    if (item.getSound() != null){
+
+                                                        mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
+                                                    }
+                                                }else{
+                                                    bgTextView.setVisibility(View.VISIBLE);
+                                                    if (item.getSound() != null){
+
+                                                        mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
+                                                    }
+                                                }
+
 
                                                 mediaPlayer.prepare();
 
@@ -129,15 +148,17 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
 
                                         } catch (Throwable tt) {
-                                            App.sendPlayBroadCast(-1, -1);
+                                            App.schedule(-1, -1);
                                         }
                                     }
                                 }, 2 * 1000);
 
                             } else {
                                 synchronized (videoView) {
+
                                     textView.setVisibility(View.GONE);
                                     imageView.setVisibility(View.GONE);
+                                    bgTextView.setVisibility(View.GONE);
                                     if (mediaPlayer.isPlaying()) mediaPlayer.stop();
                                     videoView.setVisibility(View.VISIBLE);
                                     String url = null;
@@ -145,17 +166,20 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                                     url = App.playList.nextURL(bIndex);
                                     Log.d(TAG, "" + url);
                                     if (url == null) {
-                                        App.sendPlayBroadCast(-1, -1);
+                                        App.schedule(-1, -1);
                                         return;
+                                    }else{
+                                      //  PlayerController.getInstance().getCurItem().setEnText();
                                     }
                                     videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
                                     videoView.requestFocus();
                                     videoView.start();
+                                    PlayerController.getInstance().setMediaObj(videoView);
                                 }
                             }
                         } catch (Throwable e) {
                             e.printStackTrace();
-                            App.sendPlayBroadCast(-1, -1);
+                            App.schedule(-1, -1);
 
                         }
 
@@ -164,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     @Override
                     public void onError(String toString) {
                         System.out.println(toString);
-                        App.sendPlayBroadCast(-1, -1);
+                        App.schedule(-1, -1);
                     }
                 });
                 return;
@@ -255,6 +279,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         btnRestartPlay = mInView.findViewById(R.id.btn_restart_play);
         status = mInView.findViewById(R.id.status);
         textView = mInView.findViewById(R.id.textView);
+
+        bgTextView = mInView.findViewById(R.id.bgTextView);
         imageView = mInView.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
@@ -278,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnErrorListener(this);
-        App.sendPlayBroadCast(-1, 0);
+        App.schedule(-1, 0);
 
 
     }
@@ -340,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                App.sendPlayBroadCast(App.playList.getaIndex(), -1);
+                App.schedule(App.playList.getaIndex(), -1);
             }
         });
 
@@ -349,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                App.sendPlayBroadCast(App.playList.getaIndex(), -1);
+                App.schedule(App.playList.getaIndex(), -1);
                 return true;
             }
         });
@@ -537,12 +563,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     public void onCompletion(MediaPlayer mediaPlayer) {
         MyMediaPlayer mymediaPlayer = (MyMediaPlayer) mediaPlayer;
         if (mymediaPlayer.isAllCompletedOrContinuePlayNext())
-            App.sendPlayBroadCast(-1, -1);
+            App.schedule(-1, -1);
     }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        App.sendPlayBroadCast(-1, -1);
+        App.schedule(-1, -1);
         return false;
     }
 }

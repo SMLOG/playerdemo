@@ -63,6 +63,10 @@ public class PlayList {
         editor.putInt("bIndex",bIndex);
         this.aIndex = aIndex;
         this.bIndex = bIndex;
+
+        PlayerController.getInstance().getCurItem().setEnText(aidList.get(aIndex).getTitle());
+        PlayerController.getInstance().getCurItem().setImgUrl(aidList.get(aIndex).getCoverUrl());
+
         editor.commit();
 
         return  getUrl(aIndex,bIndex);

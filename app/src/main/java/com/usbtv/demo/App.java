@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -22,7 +23,7 @@ public class App extends Application {
     public static final String URLACTION = "urlaction";
     public static final String exit = "exit";
     public static final String TAG = "demo";
-    public static ResItem curResItem;
+    public static MediaPlayer bgMedia;
     private static DatabaseHelper databaseHelper = null;
 
     public static String host;
@@ -91,7 +92,7 @@ public class App extends Application {
                 .build();
     }
 
-    public static boolean  sendPlayBroadCast(int aIndex,int bIndex){
+    public static boolean schedule(int aIndex, int bIndex){
 
             if(aIndex<0){
                 SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
