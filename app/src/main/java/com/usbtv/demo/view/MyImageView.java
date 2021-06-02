@@ -8,8 +8,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
-import com.usbtv.demo.MainActivity;
-import com.usbtv.demo.NetUtils;
+import com.usbtv.demo.comm.NetUtils;
 
 public class MyImageView extends ImageView {
     public MyImageView(Context context, @Nullable AttributeSet attrs) {

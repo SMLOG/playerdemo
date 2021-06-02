@@ -32,10 +32,6 @@
                 <action android:name="android.intent.action.MEDIA_REMOVED" />
                 <action android:name="android.intent.action.MEDIA_EJECT" />
                 <data android:scheme="file" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".BootBroadcastReceiver2" >
-            <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>

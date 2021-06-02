@@ -7,14 +7,11 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.usbtv.demo.comm.NetUtils;
 import com.usbtv.demo.data.DatabaseHelper;
-import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.view.MyVideoView;
-
-import org.json.JSONObject;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -28,7 +25,6 @@ public class App extends Application {
 
     public static String host;
     protected static PlayList playList = new PlayList();
-    private static Status status;
 
     private Context mContext;
     private static App self;
@@ -154,12 +150,6 @@ public class App extends Application {
         mServer = new ServerManager(context);
         mServer.startServer();
 
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        String statusJsonstr = sp.getString("status",null);
-        if(statusJsonstr!=null&&!statusJsonstr.equals("")){
-            Status  status = JSON.parseObject(statusJsonstr,Status.class);
-            App.status = status;
-        }else App.status = new Status();
     }
 
 }

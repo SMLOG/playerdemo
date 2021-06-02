@@ -1,4 +1,4 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import android.app.Activity;
 import android.app.Instrumentation;

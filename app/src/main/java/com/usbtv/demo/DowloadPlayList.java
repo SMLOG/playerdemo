@@ -3,6 +3,7 @@ package com.usbtv.demo;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
+import com.usbtv.demo.comm.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
