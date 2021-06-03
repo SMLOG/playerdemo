@@ -89,17 +89,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             if (intent.getAction().equals(App.URLACTION)) {
                 int aIndex = intent.getIntExtra("aIndex", 0);
                 int bIndex = intent.getIntExtra("bIndex", 0);
-                int typeId = intent.getIntExtra("typeId", 0);
-               // imageView.setVisibility(View.VISIBLE);
                 HashMap<String, String> options = new HashMap<String, String>();
                 options.put("aIndex", "" + aIndex);
                 options.put("bIndex", "" + bIndex);
-                // options.put("id", "" + 0);
-                // options.put("typeId", "" + typeId);
                 RetrofitUtil.reqGetHttp(api, 0, "schedule", "api/schedule", options, new HttpCallback() {
                     @Override
                     public void onSuccess(int req_id, String method, String result) {
-                        System.out.println(result);
                         try {
                             ResItem item = (ResItem) JSON.parseObject(result, ResItem.class);
                             if (item.getTypeId() == ResItem.IMAGE || item.getTypeId() == ResItem.AUDIO) {
@@ -122,18 +117,17 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                                                 mediaPlayer.reset();
 
                                                 if(item.getTypeId() == ResItem.IMAGE ){
-                                                    bgTextView.setVisibility(View.GONE);
                                                     String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
                                                     mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
 
                                                     url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
                                                     mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
                                                     if (item.getSound() != null){
-
                                                         mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
                                                     }
                                                 }else{
-                                                    bgTextView.setVisibility(View.VISIBLE);
+
+                                                    PlayerController.getInstance().showMaskView();
                                                     if (item.getSound() != null){
 
                                                         mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
@@ -158,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
                                     textView.setVisibility(View.GONE);
                                     imageView.setVisibility(View.GONE);
-                                    bgTextView.setVisibility(View.GONE);
                                     if (mediaPlayer.isPlaying()) mediaPlayer.stop();
                                     videoView.setVisibility(View.VISIBLE);
                                     String url = null;
@@ -284,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         imageView = mInView.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
+        PlayerController.getInstance().setMastView(bgTextView);
         wm.addView(mInView, layoutParams);
         // setContentView(mInView,layoutParams);
 
@@ -294,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             startService(show);*/
 
 
-        App.setVideoView(videoView);
 
         timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
 

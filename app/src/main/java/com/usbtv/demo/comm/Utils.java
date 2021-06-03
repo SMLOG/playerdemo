@@ -2,9 +2,11 @@ package com.usbtv.demo.comm;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.os.storage.StorageManager;
 import android.util.Base64;
 
 import org.json.JSONObject;
@@ -16,6 +18,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class Utils {
     
@@ -212,6 +217,55 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         }finally {
             exec("adb disconnect 127.0.0.1");
         }
+    }
+
+    public static String getExtendedMemoryPath(Context mContext) {
+
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method getVolumeState = StorageManager.class.getMethod("getVolumeState", String.class);
+
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Object result = getVolumeList.invoke(mStorageManager);
+            final int length = Array.getLength(result);
+            for (int i = 0; i < length; i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                String path = (String) getPath.invoke(storageVolumeElement);
+                String state = (String) getVolumeState.invoke(mStorageManager, path);
+
+                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+                if (removable && "mounted".equals(state) ) {
+                    File[] firstList = new File(path).listFiles();
+
+                    for(File file:firstList){
+                        if(file.isDirectory() && file.getName().equalsIgnoreCase("bilibili")){
+                            return file.getAbsolutePath();
+                        }
+                        File[] secondList = file.listFiles();
+                        for(File file2:secondList){
+                            if(file2.isDirectory() && file2.getName().equalsIgnoreCase("bilibili")){
+                                return file2.getAbsolutePath();
+                            }
+                        }
+
+                    }
+                    return null;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

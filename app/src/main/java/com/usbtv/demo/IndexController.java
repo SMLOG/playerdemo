@@ -35,6 +35,7 @@ import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.internal.Util;
 
 @RestController
 public class IndexController {
@@ -45,7 +46,8 @@ public class IndexController {
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
         PlayerController.getInstance().setaIndex(App.playList.getaIndex());
-        PlayerController.getInstance().setbIndex(App.playList.getbIndex());PlayerController.getInstance().getDuration();
+        PlayerController.getInstance().setbIndex(App.playList.getbIndex());
+        PlayerController.getInstance().getDuration();
         return JSON.toJSONString(PlayerController.getInstance());
     }
 
@@ -66,7 +68,7 @@ public class IndexController {
             @RequestParam(name = "cmd") String cmd,
             @RequestParam(name = "val", required = false, defaultValue = "") String val,
             @RequestParam(name = "id", required = false, defaultValue = "-1") int id,
-            @RequestParam(name = "typeId",required = false, defaultValue = "0") int typeId,
+            @RequestParam(name = "typeId", required = false, defaultValue = "0") int typeId,
             @RequestParam(name = "aIndex", required = false, defaultValue = "-1") int aIndex,
             @RequestParam(name = "bIndex", required = false, defaultValue = "-1") int bIndex
     ) {
@@ -82,14 +84,14 @@ public class IndexController {
                 App.schedule(-1, -1);
 
             }
-        }     else   if ("next".equals(cmd)) {
+        } else if ("next".equals(cmd)) {
 
 
             if (typeId != ResItem.VIDEO) {
-                PlayerController.getInstance().getCurItem().setId(PlayerController.getInstance().getCurItem().getId()+1);
+                PlayerController.getInstance().getCurItem().setId(PlayerController.getInstance().getCurItem().getId() + 1);
             }
 
-            App.schedule(-1, -1);
+            App.schedule(PlayerController.getInstance().getaIndex(), -1);
 
         } else if ("pause".equals(cmd)) {
 
@@ -109,6 +111,7 @@ public class IndexController {
             else
                 PlayerController.getInstance().start();
 
+
         } else if ("seekTo".equals(cmd)) {
 
             int progress = Integer.parseInt(val);
@@ -119,6 +122,12 @@ public class IndexController {
 
             PlayerController.getInstance().seekTo(progress);
 
+        } else if ("showMask".equals(cmd)) {
+
+            if(Boolean.parseBoolean(val)){
+                PlayerController.getInstance().showMaskView();
+            }else
+                PlayerController.getInstance().hideMaskView();
         }
 
         return "ok";
@@ -270,17 +279,36 @@ public class IndexController {
     String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId) {
 
         try {
-            long pageSize = 20;
-            long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
-            List<ResItem> list = App.getHelper().getDao().queryBuilder()
-                    .where().eq("typeId", typeId).queryBuilder()
-                    .offset((page - 1) * pageSize)
-                    .limit(20l).query();
+            int pageSize = 20;
             Map<String, Object> result = new HashMap<String, Object>();
-            result.put("datas", list);
+
+            result.put("pageSize", pageSize);
             result.put("page", page);
-            result.put("total", total);
+
+
+            if (typeId == 0) {
+                result.put("total", App.playList.getAidList().size());
+                if (App.playList.getAidList().size() > 0) {
+                    int from = (page - 1) * pageSize;
+                    int to = Math.min(page * pageSize, App.playList.getAidList().size());
+
+                    result.put("datas", App.playList.getAidList().subList(from, to));
+                } else {
+                    result.put("datas", App.playList.getAidList());
+                }
+
+
+            } else {
+                long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
+                List<ResItem> list = App.getHelper().getDao().queryBuilder()
+                        .where().eq("typeId", typeId).queryBuilder()
+                        .offset((long) ((page - 1) * pageSize))
+                        .limit(20l).query();
+                result.put("datas", list);
+                result.put("total", total);
+            }
             return JSON.toJSONString(result);
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -334,8 +362,6 @@ public class IndexController {
     @PostMapping(path = "/api/delRes")
     String delRes(@RequestParam(name = "id") int id) {
         try {
-
-
             App.getHelper().getDao().deleteById(id);
 
         } catch (Throwable e) {
@@ -379,12 +405,6 @@ public class IndexController {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-    }
-
-    @ResponseBody
-    @GetMapping("/api/list.json")
-    public String getJsonList() {
-        return JSON.toJSONString(App.playList.getAidList());
     }
 
     /*@GetMapping("/")

@@ -3,39 +3,34 @@ package com.usbtv.demo.data;
 import com.j256.ormlite.field.DatabaseField;
 
 
-public class ResItem {
+public class Cat {
 
     public static final int IMAGE = 1;
     public static final int VIDEO = 0;
     public static final int AUDIO = 2;
 
     @DatabaseField(generatedId = true)
-    int id;
-    @DatabaseField
-    int typeId;
+    int catId;
 
-    @DatabaseField
+    @DatabaseField(uniqueCombo = true)
+    int typeId;
+    @DatabaseField(uniqueCombo = true)
     String cat;
     @DatabaseField
-    String cnText;
-    @DatabaseField(unique = true)
     String enText;
-
     @DatabaseField
     String imgUrl;
-    @DatabaseField
-    String sound;
 
-    public ResItem() {
+
+    public Cat() {
     }
 
-
-    public int getId() {
-        return id;
+    public int getCatId() {
+        return catId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCatId(int catId) {
+        this.catId = catId;
     }
 
     public int getTypeId() {
@@ -54,14 +49,6 @@ public class ResItem {
         this.cat = cat;
     }
 
-    public String getCnText() {
-        return cnText;
-    }
-
-    public void setCnText(String cnText) {
-        this.cnText = cnText;
-    }
-
     public String getEnText() {
         return enText;
     }
@@ -78,11 +65,4 @@ public class ResItem {
         this.imgUrl = imgUrl;
     }
 
-    public String getSound() {
-        return sound;
-    }
-
-    public void setSound(String sound) {
-        this.sound = sound;
-    }
 }

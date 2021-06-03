@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.usbtv.demo.comm.NetUtils;
 
@@ -33,16 +34,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             }
             new Thread() {
                 public void run() {
-                    // Utils.exec("input keyevent 4");
-                    //Utils.exec("input touchscreen tap 300 300");
 
-                   /* Instrumentation mInst = new Instrumentation();
-                    mInst.sendKeyDownUpSync(KeyEvent.KEYCODE_4);
-
-                    DUtils.reloadPlayList();
-                    //loopDisk(file);*/
-
-                    //Toast.makeText(context, "loading", Toast.LENGTH_SHORT).show();
                     Log.d(App.TAG,"load usb.........");
 
                     int i = 20;

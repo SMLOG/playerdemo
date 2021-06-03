@@ -60,23 +60,23 @@ public class DowloadPlayList {
 
     public static void loadPlayList(boolean isUsingThread) {
 
-        if(isUsingThread){
+        if (isUsingThread) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
 
                     reLoadPlayList();
-                    Utils.exec("cd "+getDataFilesDir()+" && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
+                    Utils.exec("cd " + getDataFilesDir() + " && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
                     reLoadPlayList();
                     //Utils.exec("cd "+getDataFilesDir()+" && wget -q -O - http://192.168.0.101/bilibili/index.cgi|sh");
                 }
 
             }).start();
-        }else{
-            Utils.exec("cd "+getDataFilesDir()+" && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
+        } else {
+            Utils.exec("cd " + getDataFilesDir() + " && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
             reLoadPlayList();
         }
-        App.schedule(-1,0);
+        App.schedule(-1, 0);
 
     }
 
@@ -85,15 +85,14 @@ public class DowloadPlayList {
         String s = getDataFilesDir();
 
         File localPlaylist = new File(s + "playlist.json");
-        if (s != null && localPlaylist.getParentFile().isDirectory() ) {
+        if (s != null && localPlaylist.getParentFile().isDirectory()) {
             Log.d(App.TAG, localPlaylist.getAbsolutePath() + " exists");
 
-            if(localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()){
+            if (localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()) {
                 try {
                     String content = Utils.getStringFromFile(localPlaylist.getAbsolutePath());
                     ArrayList<Aid> aidList = (ArrayList<Aid>) JSON.parseArray(content, Aid.class);
                     App.playList.addAll(aidList, "file://" + localPlaylist.getAbsolutePath());
-
 
 
                 } catch (Exception e) {
@@ -121,15 +120,13 @@ public class DowloadPlayList {
 
         }
 
-
     }
 
     private static String getDataFilesDir() {
-        File cachedir = new File( "/storage/udisk0/part1/bilibili");
-        if(cachedir.exists())return cachedir.getAbsolutePath()+"/";
+        String path = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+        if (path != null && new File(path).exists()) return path + "/";
         else {
-            cachedir = App.getInstance().getCacheDir();
-            return cachedir.getAbsolutePath()+"/";
+            return App.getInstance().getCacheDir() + "/";
 
         }
 

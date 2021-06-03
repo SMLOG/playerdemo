@@ -1,6 +1,9 @@
 package com.usbtv.demo;
 
 import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
 import android.widget.VideoView;
 
 import com.usbtv.demo.data.ResItem;
@@ -13,6 +16,8 @@ public final class PlayerController {
     private ResItem curItem;
     private Integer aIndex;
     private Integer bIndex;
+
+    private View maskView;
     private PlayerController(){
         curItem = new ResItem();
         curItem.setTypeId(ResItem.VIDEO);
@@ -121,5 +126,33 @@ public final class PlayerController {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void showMaskView(){
+         Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                PlayerController.this.maskView.bringToFront();
+                PlayerController.this.maskView.setVisibility(View.VISIBLE);
+            }
+        });
+
+    }
+    public void hideMaskView(){
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                PlayerController.this.maskView.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    public void setMastView(View view) {
+        this.maskView = view;
+    }
+    public boolean isShowMask(){
+        return this.maskView.getVisibility()==View.VISIBLE;
     }
 }

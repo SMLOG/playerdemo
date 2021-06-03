@@ -30,7 +30,6 @@ public class App extends Application {
     private static App self;
     private ServerManager mServer;
 
-    protected static MyVideoView videoView;
 
     private static boolean mediaMounted =false;
 
@@ -43,14 +42,6 @@ public class App extends Application {
     public static HttpProxyCacheServer getProxy(Context context) {
         App app = (App) context.getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
-    }
-
-    public static MyVideoView getVideoView() {
-        return videoView;
-    }
-
-    public static void setVideoView(MyVideoView videoView) {
-        App.videoView = videoView;
     }
 
     public synchronized static boolean isMediaMounted() {
@@ -100,7 +91,7 @@ public class App extends Application {
         intent.setAction(App.URLACTION);
         intent.putExtra("aIndex", aIndex);
         intent.putExtra("bIndex", bIndex);
-        Log.d("deom",""+System.currentTimeMillis());
+
         App.getInstance().getApplicationContext().sendBroadcast(intent);
         return true;
     }
