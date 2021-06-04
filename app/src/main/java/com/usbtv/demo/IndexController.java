@@ -128,6 +128,9 @@ public class IndexController {
                 PlayerController.getInstance().showMaskView();
             }else
                 PlayerController.getInstance().hideMaskView();
+        }else if ("mode".equals(cmd)) {
+
+            PlayerController.getInstance().setMode(Integer.parseInt(val));
         }
 
         return "ok";

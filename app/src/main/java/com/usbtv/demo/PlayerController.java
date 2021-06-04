@@ -11,11 +11,17 @@ import com.usbtv.demo.data.ResItem;
 import java.io.IOException;
 
 public final class PlayerController {
+
+    final static int MODE_RANDOM=1;
+    final static int MODE_SEQ=0;
+    final static int MODE_LOOP=2;
+
     private static PlayerController instance;
     private Object mediaObj;
     private ResItem curItem;
     private Integer aIndex;
     private Integer bIndex;
+    private int mode;
 
     private View maskView;
     private PlayerController(){
@@ -154,5 +160,13 @@ public final class PlayerController {
     }
     public boolean isShowMask(){
         return this.maskView.getVisibility()==View.VISIBLE;
+    }
+
+    public void setMode(int mode) {
+        this.mode=mode;
+    }
+
+    public int getMode() {
+        return mode;
     }
 }

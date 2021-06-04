@@ -242,12 +242,12 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                     File[] firstList = new File(path).listFiles();
 
                     for(File file:firstList){
-                        if(file.isDirectory() && file.getName().equalsIgnoreCase("bilibili")){
+                        if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
                             return file.getAbsolutePath();
                         }
                         File[] secondList = file.listFiles();
                         for(File file2:secondList){
-                            if(file2.isDirectory() && file2.getName().equalsIgnoreCase("bilibili")){
+                            if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
                                 return file2.getAbsolutePath();
                             }
                         }
