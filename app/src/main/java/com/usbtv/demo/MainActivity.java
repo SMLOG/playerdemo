@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -157,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                                     String url = null;
                                     App.playList.setAIndex(aIndex);
                                     url = App.playList.nextURL(bIndex);
-                                    Log.d(TAG, "" + url);
                                     if (url == null) {
                                         App.schedule(-1, -1);
                                         return;
@@ -187,13 +188,31 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 return;
 
 
-            } else if (intent.getAction().equals(App.exit)) {
-                //System.exit(0);
-                WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
-                        Context.WINDOW_SERVICE);
-                wm.removeView(mInView);
+            } else if (intent.getAction().equals(App.CMD)) {
 
-                setContentView(mInView);
+                //System.exit(0);
+                String cmd = intent.getExtras().getString("cmd");
+                String val = intent.getExtras().getString("val");
+
+                if("detach".equals(cmd) && Boolean.parseBoolean(val)){
+
+                    if(PlayerController.getInstance().isDetach())return;
+                    WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
+                            Context.WINDOW_SERVICE);
+                    wm.removeViewImmediate(mInView);
+                    setContentView(mInView);
+                    PlayerController.getInstance().setDetach(true);
+
+                }else if("attach".equals(cmd)){
+
+                    //setContentView(null);
+                    if(!PlayerController.getInstance().isDetach())return;
+
+                    setTopView();
+
+                }
+
+
             }
         }
     };
@@ -201,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
     private Runnable updateProgressBarThread = new Runnable() {
         public void run() {
-            //Utils.exec("input keyevent 4");
             if (videoView.isPlaying()) {
                 int current = videoView.getCurrentPosition();
                 timeSeekBar.setProgress(current);
@@ -226,19 +244,23 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
                     */
 
-
-        //setContentView(R.layout.activity_main);
-
-        //ButterKnife.bind(this);
-        //Utils.verifyStoragePermissions(this);
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
-        intentFilter.addAction(App.exit);
+        intentFilter.addAction(App.CMD);
         registerReceiver(receiver, intentFilter);
+        setTopView();
+        bindElementViews();
+        initViews();
+        App.schedule(-1, 0);
+    }
 
-        //WindowManager wm=(WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+    private void setTopView() {
 
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(this)) {
+
+            }
+        }
 
         WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
                 Context.WINDOW_SERVICE);
@@ -253,8 +275,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
 
 
-
-        layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+        //layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+        layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
 
 
         LayoutInflater inflater = LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
@@ -263,6 +285,26 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         //View view = LayoutInflater.from(this).inflate(R.layout.activity_main,null);
 
         mInView = (RelativeLayout) inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
+
+
+        wm.addView(mInView, layoutParams);
+        PlayerController.getInstance().setDetach(false);
+
+
+    }
+
+    private void initViews() {
+        timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
+
+        timer = new Timer();
+
+        initVideo();
+
+        mediaPlayer.setOnCompletionListener(this);
+        mediaPlayer.setOnErrorListener(this);
+    }
+
+    private void bindElementViews() {
         videoView = mInView.findViewById(R.id.video_view);
         timeSeekBar = mInView.findViewById(R.id.time_seekBar);
         tvPlayTime = mInView.findViewById(R.id.tv_play_time);
@@ -278,40 +320,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
         PlayerController.getInstance().setMastView(bgTextView);
-        wm.addView(mInView, layoutParams);
-        // setContentView(mInView,layoutParams);
-
-    /*
-            Intent show = new Intent(this, TopWindowService.class);
-            show.putExtra(TopWindowService.OPERATION,
-                    TopWindowService.OPERATION_SHOW);
-            startService(show);*/
-
-
-
-        timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
-
-        timer = new Timer();
-
-        initVideo();
-
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        App.schedule(-1, 0);
-
-
-    }
-
-    private void initDelayShutdown() {
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                isVideoPlay(true, 0);
-                startActivity(new Intent(MainActivity.this, SelectPicPopupWindow.class));
-            }
-        }, 30 * 60 * 1000);
-
     }
 
     @Override

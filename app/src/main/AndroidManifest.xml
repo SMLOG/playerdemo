@@ -43,7 +43,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
-        <service android:name=".TopWindowService" />
     </application>
 
 </manifest>

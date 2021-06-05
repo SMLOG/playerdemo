@@ -23,6 +23,16 @@ public final class PlayerController {
     private Integer bIndex;
     private int mode;
 
+    private boolean detach;
+
+    public boolean isDetach() {
+        return detach;
+    }
+
+    public void setDetach(boolean detach) {
+        this.detach = detach;
+    }
+
     private View maskView;
     private PlayerController(){
         curItem = new ResItem();
@@ -169,4 +179,6 @@ public final class PlayerController {
     public int getMode() {
         return mode;
     }
+
+
 }

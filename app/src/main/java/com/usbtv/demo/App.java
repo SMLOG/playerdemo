@@ -11,14 +11,13 @@ import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.usbtv.demo.comm.NetUtils;
 import com.usbtv.demo.data.DatabaseHelper;
-import com.usbtv.demo.view.MyVideoView;
 
 import java.io.File;
 import java.net.InetAddress;
 
 public class App extends Application {
     public static final String URLACTION = "urlaction";
-    public static final String exit = "exit";
+    public static final String CMD = "cmd";
     public static final String TAG = "demo";
     public static MediaPlayer bgMedia;
     private static DatabaseHelper databaseHelper = null;
@@ -65,11 +64,12 @@ public class App extends Application {
 
     }
 
-    public static void sendExit() {
+    public static void broadcastCMD(String cmd, String val) {
 
         Intent intent = new Intent();
-        intent.setAction(App.exit);
-
+        intent.setAction("cmd");
+        intent.putExtra("cmd", cmd);
+        intent.putExtra("val", val);
         App.getInstance().getApplicationContext().sendBroadcast(intent);
     }
 

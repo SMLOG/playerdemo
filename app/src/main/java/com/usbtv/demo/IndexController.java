@@ -35,7 +35,6 @@ import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.internal.Util;
 
 @RestController
 public class IndexController {
@@ -128,9 +127,12 @@ public class IndexController {
                 PlayerController.getInstance().showMaskView();
             }else
                 PlayerController.getInstance().hideMaskView();
-        }else if ("mode".equals(cmd)) {
+        }else if ("mode".equals(cmd) ) {
 
             PlayerController.getInstance().setMode(Integer.parseInt(val));
+        }else if("detach".equals(cmd)){
+
+            App.broadcastCMD(cmd,val);
         }
 
         return "ok";
@@ -387,9 +389,6 @@ public class IndexController {
         try {
             JSONObject params = new JSONObject(content);
             String str = params.getString("event");
-            if (App.exit.equals(str)) {
-                App.sendExit();
-            }
             Utils.exec(str);
             return "ok";
         } catch (JSONException e) {
