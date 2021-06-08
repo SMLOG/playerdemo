@@ -240,20 +240,21 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                 boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
                 if (removable && "mounted".equals(state) ) {
                     File[] firstList = new File(path).listFiles();
-
+                    if(firstList!=null)
                     for(File file:firstList){
                         if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
                             return file.getAbsolutePath();
                         }
                         File[] secondList = file.listFiles();
+                        if(secondList!=null)
                         for(File file2:secondList){
                             if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
                                 return file2.getAbsolutePath();
                             }
                         }
 
-                    }
-                    return null;
+                    }///storage/2067-B583/videos
+                    return "/storage/2067-B583/videos";
                 }
             }
         } catch (ClassNotFoundException e) {
@@ -267,5 +268,6 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         }
         return null;
     }
+
 
 }

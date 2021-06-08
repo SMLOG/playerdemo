@@ -14,19 +14,14 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
 
-            Intent mainActivityIntent = new Intent(context, MainActivity.class);  // 要启动的Activity
+            Intent mainActivityIntent = new Intent(context, MainActivity.class);
             mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(mainActivityIntent);
 
-        }else if (intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED))
-        {
+        } else if (intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED)) {
 
-           App.setMediaMounted(true);
-            //Utils.simulateKeystroke(4);
-            //Utils.execLocalCmdByAdb("input keyevent 4");
-           // execLocalCmdByAdb
+            App.setMediaMounted(true);
 
-           // App.sendExit();
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -35,13 +30,13 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             new Thread() {
                 public void run() {
 
-                    Log.d(App.TAG,"load usb.........");
+                    Log.d(App.TAG, "load usb.........");
 
                     int i = 20;
-                    for(;i>0&&App.isMediaMounted();i++){
+                    for (; i > 0 && App.isMediaMounted(); i++) {
                         DowloadPlayList.loadPlayList(true);
                         try {
-                            if(App.playList.getAidList().size()>0)break;
+                            if (App.playList.getAidList().size() > 0) break;
                             Thread.sleep(5000);
 
                         } catch (InterruptedException e) {
@@ -49,22 +44,17 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
 
-                   // if(!isForeground(context)){
-                        Intent intent=new Intent(context, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
-                    //};
-
-
-                    //App.sendPlayBroadCast(-1,-1);
+                    Intent intent = new Intent(context, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
 
 
                 }
             }.start();
-        }else if(intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)){
+        } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)) {
             App.setMediaMounted(false);
 
-        } else if(intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+        } else if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             final int netWorkState = NetUtils.getNetWorkState(context);
             if (netWorkState == 0) {
                 DowloadPlayList.loadPlayList(true);

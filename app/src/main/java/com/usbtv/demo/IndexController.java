@@ -19,15 +19,21 @@ import com.yanzhenjie.andserver.framework.body.StringBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
+import com.yanzhenjie.andserver.http.multipart.MultipartFile;
 import com.yanzhenjie.andserver.util.MediaType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +64,23 @@ public class IndexController {
         DowloadPlayList.loadPlayList(false);
 
         return "ok";
+    }
+
+    @ResponseBody
+    @GetMapping(path = "/play")
+    String play(
+            HttpRequest request
+    ) {
+
+    String  url = request.getParameter("url");
+    ResItem res = new ResItem();
+    res.setTypeId(0);
+    res.setSound(url);
+    PlayerController.getInstance().play(res);
+
+    App.broadcastCMD("play",null);
+
+        return "OK";
     }
 
     @ResponseBody
@@ -123,16 +146,18 @@ public class IndexController {
 
         } else if ("showMask".equals(cmd)) {
 
-            if(Boolean.parseBoolean(val)){
+            if (Boolean.parseBoolean(val)) {
                 PlayerController.getInstance().showMaskView();
-            }else
+            } else
                 PlayerController.getInstance().hideMaskView();
-        }else if ("mode".equals(cmd) ) {
+        } else if ("mode".equals(cmd)) {
 
             PlayerController.getInstance().setMode(Integer.parseInt(val));
-        }else if("detach".equals(cmd)){
+        } else if ("detach".equals(cmd)) {
 
-            App.broadcastCMD(cmd,val);
+            App.broadcastCMD(cmd, val);
+        } else if (cmd.startsWith("broadcast")) {
+            App.broadcastCMD(cmd, val);
         }
 
         return "ok";
@@ -409,6 +434,100 @@ public class IndexController {
         }
     }
 
+    @PostMapping(path = "/api/upload2")
+    String upload( HttpRequest request,@RequestParam(name = "file") MultipartFile[] files) throws IOException {
+
+        String rootDir = DowloadPlayList.getDataFilesDir();
+
+        for(MultipartFile file:files){
+            String to = rootDir+file.getFilename();
+            new File(to).getParentFile().mkdirs();
+            file.transferTo(new File(to));
+        }
+        return "OK";
+
+    }
+
+    @PostMapping(path="/api/upload")
+    String upload2(HttpRequest request,
+                   @RequestParam(name = "chunkNumber")  int chunkNumber,
+                   @RequestParam(name = "chunkSize")  int chunkSize,
+                   @RequestParam(name = "currentChunkSize")  int currentChunkSize,
+                   @RequestParam(name = "totalSize")  int totalSize,
+                   @RequestParam(name = "identifier")  String identifier,
+                   @RequestParam(name = "filename")  String filename,
+                   @RequestParam(name = "relativePath")  String relativePath,
+                   @RequestParam(name = "totalChunks")  int totalChunks,
+                   @RequestParam(name = "file") MultipartFile file
+            ){
+
+        String rootDir = DowloadPlayList.getDataFilesDir();
+
+        String to = rootDir+relativePath;
+        String chunkTo = to+"-"+chunkNumber;
+        new File(to).getParentFile().mkdirs();
+        try {
+
+            file.transferTo(new File(chunkTo));
+            if(chunkNumber==totalChunks){
+
+                if (new File(to).exists()){
+                    return "";
+                    //file.delete();
+                }
+                BufferedOutputStream destOutputStream = new BufferedOutputStream(new FileOutputStream(to));
+                for (int i = 1; i <= totalChunks ; i++) {
+                    byte[] fileBuffer = new byte[1024];
+                    int readBytesLength = 0;
+                    File sourceFile = new File(to+"-"+i);
+                    BufferedInputStream sourceInputStream = new BufferedInputStream(new FileInputStream(sourceFile));
+                    while ((readBytesLength = sourceInputStream.read(fileBuffer))!=-1){
+                        destOutputStream.write(fileBuffer, 0 , readBytesLength);
+                    }
+                    sourceInputStream.close();
+
+                }
+                destOutputStream.flush();
+                destOutputStream.close();
+                for (int i = 1; i <= totalChunks ; i++) {
+                    File sourceFile = new File(to+"-"+i);
+                    boolean delete = sourceFile.delete();
+                    if (delete){
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+    @ResponseBody
+    @GetMapping(path = "/api/listDisk")
+    String listDisk(@RequestParam(name="path",required = false,defaultValue = "") String path) throws IOException {
+
+        String rootDir = DowloadPlayList.getDataFilesDir();
+        File curFolder  = new File(rootDir+path);
+
+        ArrayList<Map<String,Object>> list = new ArrayList();
+
+
+        for(File f:curFolder.listFiles()){
+            Map<String,Object> info = new HashMap<>();
+            info.put("name",f.getName());
+            info.put("size",f.getTotalSpace());
+            info.put("isFile",f.isFile());
+            list.add(info);
+        }
+
+        Map<String,Object> ret = new HashMap<>();
+        ret.put("contents",list);
+        ret.put("path",path);
+
+        return JSON.toJSONString(ret);
+
+    }
     /*@GetMapping("/")
     public String index() {
         return "forward:/index.html";

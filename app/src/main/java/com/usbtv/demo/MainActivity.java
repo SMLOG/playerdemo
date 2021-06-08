@@ -1,9 +1,11 @@
 package com.usbtv.demo;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -36,6 +39,7 @@ import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SelectPicPopupWindow;
 
+import java.io.File;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -190,29 +194,33 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             } else if (intent.getAction().equals(App.CMD)) {
 
-                //System.exit(0);
                 String cmd = intent.getExtras().getString("cmd");
                 String val = intent.getExtras().getString("val");
 
-                if("detach".equals(cmd) && Boolean.parseBoolean(val)){
+                if("detach".equals(cmd) ){
 
-                    if(PlayerController.getInstance().isDetach())return;
-                    WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
-                            Context.WINDOW_SERVICE);
-                    wm.removeViewImmediate(mInView);
-                    setContentView(mInView);
-                    PlayerController.getInstance().setDetach(true);
+                    if(Boolean.parseBoolean(val)){
+                        if(PlayerController.getInstance().isDetach())return;
+                        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
+                                Context.WINDOW_SERVICE);
+                        wm.removeViewImmediate(mInView);
+                        setContentView(mInView);
+                        PlayerController.getInstance().setDetach(true);
+                    }else{
+                        //setContentView(null);
+                        if(!PlayerController.getInstance().isDetach())return;
 
-                }else if("attach".equals(cmd)){
-
-                    //setContentView(null);
-                    if(!PlayerController.getInstance().isDetach())return;
-
-                    setTopView();
-
+                        setTopView();
+                    }
+                }else if("play".equals(cmd)){
+                    ResItem item = PlayerController.getInstance().getCurItem();
+                    if(item.getTypeId()==ResItem.VIDEO){
+                        String url = item.getSound();
+                        videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
+                        videoView.requestFocus();
+                        videoView.start();
+                    }
                 }
-
-
             }
         }
     };
@@ -243,6 +251,21 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
                     */
+        System.out.println(new File("/storage/2067-B583").listFiles());
+        //申请权限
+        if (Build.VERSION.SDK_INT >= 23) {
+            int REQUEST_CODE_CONTACT = 101;
+            String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS};
+            //验证是否许可权限
+            for (String str : permissions) {
+                if (this.checkSelfPermission(str) != PackageManager.PERMISSION_GRANTED) {
+                    //申请权限
+                    this.requestPermissions(permissions, REQUEST_CODE_CONTACT);
+                }
+            }
+        }
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
@@ -284,8 +307,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         //View view = LayoutInflater.from(this).inflate(R.layout.activity_main,null);
 
-        mInView = (RelativeLayout) inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
+        if(mInView==null){
+            mInView = (RelativeLayout) inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
 
+        }else{
+            ViewGroup vg =  (ViewGroup) mInView.getParent();
+            if(vg!=null){
+                vg.removeAllViews();
+            }
+        }
 
         wm.addView(mInView, layoutParams);
         PlayerController.getInstance().setDetach(false);

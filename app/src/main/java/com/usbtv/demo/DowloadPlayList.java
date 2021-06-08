@@ -122,7 +122,7 @@ public class DowloadPlayList {
 
     }
 
-    private static String getDataFilesDir() {
+    public static String getDataFilesDir() {
         String path = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
         if (path != null && new File(path).exists()) return path + "/";
         else {

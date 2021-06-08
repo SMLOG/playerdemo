@@ -1,6 +1,7 @@
 package com.usbtv.demo;
 
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -181,4 +182,9 @@ public final class PlayerController {
     }
 
 
+    public void play(ResItem res) {
+        if(this.mediaObj instanceof  VideoView){
+            this.curItem = res;
+        }
+    }
 }

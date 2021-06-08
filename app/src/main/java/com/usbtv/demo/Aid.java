@@ -166,7 +166,7 @@ public class Aid {
         List<Aid> aidList = new ArrayList<Aid>();
 
         File dir = new File(root);
-
+dir.listFiles();
         File[] aidDirs = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
