@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class Utils {
     
@@ -219,7 +220,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         }
     }
 
-    public static String getExtendedMemoryPath(Context mContext) {
+    public static String[] getExtendedMemoryPath(Context mContext) {
 
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
         Class<?> storageVolumeClazz = null;
@@ -232,6 +233,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
             Object result = getVolumeList.invoke(mStorageManager);
             final int length = Array.getLength(result);
+            ArrayList<String> ret = new ArrayList<>();
             for (int i = 0; i < length; i++) {
                 Object storageVolumeElement = Array.get(result, i);
                 String path = (String) getPath.invoke(storageVolumeElement);
@@ -243,20 +245,26 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                     if(firstList!=null)
                     for(File file:firstList){
                         if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
-                            return file.getAbsolutePath();
+                            ret.add(file.getAbsolutePath());
+                            // return file.getAbsolutePath();
                         }
                         File[] secondList = file.listFiles();
                         if(secondList!=null)
                         for(File file2:secondList){
                             if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
-                                return file2.getAbsolutePath();
+                                ret.add(file2.getAbsolutePath());
+                                //  return file2.getAbsolutePath();
                             }
                         }
 
                     }///storage/2067-B583/videos
-                    return "/storage/2067-B583/videos";
+
+                    //return ret.toArray(new String[]);
                 }
+
             }
+            String[]  paths= ret.toArray(new String[0 ]);
+            return paths;
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {

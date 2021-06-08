@@ -82,6 +82,30 @@ public class DowloadPlayList {
 
 
     public static void reLoadPlayList() {
+
+        String dirs[] = getDataFilesDirs();
+        if(dirs!=null&&dirs.length>1){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    List<Aid> aidList = null;
+                    try {
+
+                        App.playList.clear();
+                        for(String s:dirs){
+                            aidList = Aid.scan(s);
+                            File localPlaylist = new File(s + "/playlist.json");
+                            App.playList.add(aidList, "file://" + localPlaylist.getAbsolutePath());
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            return;
+        }
+
         String s = getDataFilesDir();
 
         File localPlaylist = new File(s + "playlist.json");
@@ -122,9 +146,15 @@ public class DowloadPlayList {
 
     }
 
+    private static String[] getDataFilesDirs() {
+        String[] paths=  Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+        System.out.println(paths);
+        return paths;
+    }
+
     public static String getDataFilesDir() {
-        String path = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
-        if (path != null && new File(path).exists()) return path + "/";
+        String[] paths = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+        if (paths != null  && paths.length>0 && new File(paths[0]).exists()) return paths[0] + "/";
         else {
             return App.getInstance().getCacheDir() + "/";
 

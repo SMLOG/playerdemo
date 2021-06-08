@@ -80,6 +80,19 @@ public class PlayList {
     public String getAidUrl(int aIndex){
         return this.aidList.get(aIndex).getServerBase()+this.aidList.get(aIndex).getAid();
     }
+    public synchronized void  add(List<Aid> aidList, String host) {
+
+        for(int k =0;k<aidList.size();k++){
+            Aid o = aidList.get(k);
+            if(null== o.getServerBase()){
+                o.setServerBase( host.split("playlist")[0]);
+            }
+
+             this.aidList.add(o);
+        }
+
+        //App.sendPlayBroadCast(-1,-1);
+    }
     public synchronized void  addAll(List<Aid> aidList, String host) {
 
         this.aidList.clear();
@@ -122,5 +135,9 @@ public class PlayList {
             path = path.replace("file://","");
             new File(path).delete();
         }
+    }
+
+    public void clear() {
+        this.aidList.clear();
     }
 }
