@@ -329,4 +329,21 @@ public final class PlayerController {
         this.mediaPlayer = mediaPlayer;
         this.textView = textView;
     }
+
+    public String getCoverUrl(){
+        if(this.curItem == null) return "";
+        if(this.curItem instanceof ResItem){
+            return ((ResItem) this.curItem).getImgUrl();
+        }else if(this.curItem instanceof VFile)
+            return ((VFile)(this.curItem)).getFolder().getCoverUrl();
+        return "";
+    }
+    public String getName(){
+        if(this.curItem == null) return "";
+        if(this.curItem instanceof ResItem){
+            return ((ResItem) this.curItem).getEnText();
+        }else if(this.curItem instanceof VFile)
+            return ((VFile)(this.curItem)).getFolder().getName();
+        return "";
+    }
 }
