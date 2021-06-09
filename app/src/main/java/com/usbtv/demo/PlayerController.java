@@ -23,9 +23,9 @@ import java.sql.SQLException;
 
 public final class PlayerController {
 
-    final static int MODE_RANDOM=1;
-    final static int MODE_SEQ=0;
-    final static int MODE_LOOP=2;
+    final static int MODE_RANDOM = 1;
+    final static int MODE_SEQ = 0;
+    final static int MODE_LOOP = 2;
 
     private static PlayerController instance;
     private Object mediaObj;
@@ -49,7 +49,8 @@ public final class PlayerController {
     }
 
     private View maskView;
-    private PlayerController(){
+
+    private PlayerController() {
     }
 
     public Integer getaIndex() {
@@ -73,74 +74,77 @@ public final class PlayerController {
     }
 
 
-    public static PlayerController getInstance(){
-        if(instance==null)instance = new PlayerController();
-        return  instance;
+    public static PlayerController getInstance() {
+        if (instance == null) instance = new PlayerController();
+        return instance;
     }
 
-    public long getDuration(){
-        if(mediaObj instanceof MediaPlayer){
+    public long getDuration() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             return m.getDuration();
-        }else if(mediaObj instanceof VideoView){
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
             return v.getDuration();
         }
         return 0;
     }
-    public long getCurrentPosition(){
-        if(mediaObj instanceof MediaPlayer){
+
+    public long getCurrentPosition() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             return m.getCurrentPosition();
-        }else if(mediaObj instanceof VideoView){
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
             return v.getCurrentPosition();
         }
         return 0;
     }
 
-    public boolean isPlaying(){
-        if(mediaObj instanceof MediaPlayer){
+    public boolean isPlaying() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             return m.isPlaying();
-        }else if(mediaObj instanceof VideoView){
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
             return v.isPlaying();
         }
         return false;
     }
-    public void seekTo(int pos){
-        if(mediaObj instanceof MediaPlayer){
+
+    public void seekTo(int pos) {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
-             m.seekTo(pos);
-        }else if(mediaObj instanceof VideoView){
+            m.seekTo(pos);
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
-             v.seekTo(pos);
+            v.seekTo(pos);
         }
 
     }
-    public void pause(){
-        if(mediaObj instanceof MediaPlayer){
+
+    public void pause() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             m.pause();
-        }else if(mediaObj instanceof VideoView){
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
             v.pause();
         }
     }
 
-    public void start(){
-        if(mediaObj instanceof MediaPlayer){
+    public void start() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             m.start();
-        }else if(mediaObj instanceof VideoView){
+        } else if (mediaObj instanceof VideoView) {
             VideoView v = (VideoView) mediaObj;
             v.start();
         }
     }
 
-    public void prepare(){
-        if(mediaObj instanceof MediaPlayer){
+    public void prepare() {
+        if (mediaObj instanceof MediaPlayer) {
             MediaPlayer m = (MediaPlayer) mediaObj;
             try {
                 m.prepare();
@@ -150,8 +154,8 @@ public final class PlayerController {
         }
     }
 
-    public void showMaskView(){
-         Handler handler = new Handler(Looper.getMainLooper());
+    public void showMaskView() {
+        Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -161,7 +165,8 @@ public final class PlayerController {
         });
 
     }
-    public void hideMaskView(){
+
+    public void hideMaskView() {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
@@ -174,12 +179,13 @@ public final class PlayerController {
     public void setMastView(View view) {
         this.maskView = view;
     }
-    public boolean isShowMask(){
-        return this.maskView.getVisibility()==View.VISIBLE;
+
+    public boolean isShowMask() {
+        return this.maskView.getVisibility() == View.VISIBLE;
     }
 
     public void setMode(int mode) {
-        this.mode=mode;
+        this.mode = mode;
     }
 
     public int getMode() {
@@ -188,30 +194,30 @@ public final class PlayerController {
 
 
     public void play(Object res) {
+        this.curItem = res;
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
 
-        if(res instanceof VFile){
-            this.curItem = res;
-            VFile vf = (VFile) res;
-            synchronized (videoView) {
+            @Override
+            public void run() {
+                if (res instanceof VFile) {
+                    VFile vf = (VFile) res;
+                    synchronized (videoView) {
 
-                textView.setVisibility(View.GONE);
-                imageView.setVisibility(View.GONE);
-                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
+                        textView.setVisibility(View.GONE);
+                        imageView.setVisibility(View.GONE);
+                        if (mediaPlayer.isPlaying()) mediaPlayer.stop();
 
-                videoView.setVisibility(View.VISIBLE);
-                String url = "file://"+vf.getFolder().getRoot().getP()+"/"+vf.getFolder().getP()+"/"+vf.getP();
-                videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
-                videoView.requestFocus();
-                videoView.start();
-                PlayerController.getInstance().setMediaObj(videoView);
-            }
+                        videoView.setVisibility(View.VISIBLE);
+                        String url = "file://" + vf.getFolder().getRoot().getP() + "/" + vf.getFolder().getP() + "/" + vf.getP();
+                        videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
+                        videoView.requestFocus();
+                        videoView.start();
+                        PlayerController.getInstance().setMediaObj(videoView);
+                    }
 
-        }else if(res instanceof ResItem){
-            this.curItem = res;
-            ResItem item = (ResItem) res;
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
+                } else if (res instanceof ResItem) {
+                    ResItem item = (ResItem) res;
                     try {
                         synchronized (mediaPlayer) {
                             PlayerController.getInstance().setMediaObj(mediaPlayer);
@@ -223,19 +229,19 @@ public final class PlayerController {
                             imageView.setUrl(App.getProxyUrl(item.getImgUrl()));
                             mediaPlayer.reset();
 
-                            if(item.getTypeId() == ResItem.IMAGE ){
+                            if (item.getTypeId() == ResItem.IMAGE) {
                                 String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
                                 mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
 
                                 url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
                                 mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-                                if (item.getSound() != null){
+                                if (item.getSound() != null) {
                                     mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
                                 }
-                            }else{
+                            } else {
 
                                 PlayerController.getInstance().showMaskView();
-                                if (item.getSound() != null){
+                                if (item.getSound() != null) {
 
                                     mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
                                 }
@@ -252,30 +258,32 @@ public final class PlayerController {
                         PlayerController.getInstance().playNext();
                     }
                 }
-            }, 2 * 1000);
-        }
+            }
+        });
+
+
     }
 
 
     public void playNext() {
 
-        if(curItem == null ){
-           curItem = new VFile();
+        if (curItem == null) {
+            curItem = new VFile();
         }
-        if(curItem instanceof VFile){
+        if (curItem instanceof VFile) {
             try {
 
                 do {
-                    VFile vf = (VFile)curItem;
+                    VFile vf = (VFile) curItem;
                     VFile vfile = App.getHelper().getDao(VFile.class).
                             queryBuilder().where()
                             .gt("id", vf.getId()).queryForFirst();
                     if (vfile == null) {
-                        vfile = (VFile)  App.getHelper().getDao(VFile.class).
+                        vfile = (VFile) App.getHelper().getDao(VFile.class).
                                 queryBuilder().where()
                                 .gt("id", 0).queryForFirst();
                     }
-                    if(vfile!=null){
+                    if (vfile != null) {
                         play(vfile);
                         return;
                     }
@@ -287,11 +295,11 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        }else {
+        } else {
 
             try {
                 QueryBuilder builder = App.getHelper().getDao().queryBuilder();
-                ResItem vi =(ResItem) this.curItem;
+                ResItem vi = (ResItem) this.curItem;
 
                 do {
                     ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
@@ -300,7 +308,7 @@ public final class PlayerController {
                         curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
                                 .and().ge("id", 0).queryForFirst();
                     }
-                    if(curResItem!=null){
+                    if (curResItem != null) {
                         play(curResItem);
                         return;
                     }
@@ -315,10 +323,10 @@ public final class PlayerController {
 
     public void setUIs(TextView bgTextView, MyImageView imageView, TextView textView, MyVideoView videoView,
                        MyMediaPlayer mediaPlayer) {
-    this.maskView = bgTextView;
-    this.imageView=imageView;
-    this.videoView=videoView;
-    this.mediaPlayer=mediaPlayer;
-    this.textView=textView;
+        this.maskView = bgTextView;
+        this.imageView = imageView;
+        this.videoView = videoView;
+        this.mediaPlayer = mediaPlayer;
+        this.textView = textView;
     }
 }

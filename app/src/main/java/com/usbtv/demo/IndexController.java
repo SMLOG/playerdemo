@@ -72,13 +72,6 @@ public class IndexController {
             HttpRequest request
     ) {
 
-    String  url = request.getParameter("url");
-    ResItem res = new ResItem();
-    res.setTypeId(0);
-    res.setSound(url);
-    PlayerController.getInstance().play(res);
-
-    App.broadcastCMD("play",null);
 
         return "OK";
     }
@@ -97,15 +90,15 @@ public class IndexController {
 
         if ("play".equals(cmd)) {
             Object item = null;
-            if(typeId==3){
+            if (typeId == 3) {
                 try {
-                    item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id",id).queryForFirst();
+                    item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-            }else {
+            } else {
                 try {
-                    item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id",id).queryForFirst();
+                    item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id", id).queryForFirst();
 
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
@@ -203,7 +196,6 @@ public class IndexController {
     }
 
 
-
     @GetMapping(path = "/api/res")
     String res(@RequestParam(name = "typeId") int typeId, @RequestParam(name = "id") int id, HttpResponse response) {
 
@@ -275,7 +267,7 @@ public class IndexController {
             result.put("pageSize", pageSize);
             result.put("page", page);
 
-             if (typeId == 3) {
+            if (typeId == 3) {
 
                 long total = App.getHelper().getDao(Folder.class).countOf();
 
@@ -285,7 +277,7 @@ public class IndexController {
                         .limit(20l).query();
                 result.put("datas", list);
 
-            }  else {
+            } else {
                 long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
                 List<ResItem> list = App.getHelper().getDao().queryBuilder()
                         .where().eq("typeId", typeId).queryBuilder()
@@ -294,7 +286,6 @@ public class IndexController {
                 result.put("datas", list);
                 result.put("total", total);
             }
-
 
 
             return JSON.toJSONString(result);
@@ -394,12 +385,12 @@ public class IndexController {
     }
 
     @PostMapping(path = "/api/upload2")
-    String upload( HttpRequest request,@RequestParam(name = "file") MultipartFile[] files) throws IOException {
+    String upload(HttpRequest request, @RequestParam(name = "file") MultipartFile[] files) throws IOException {
 
         String rootDir = DowloadPlayList.getDataFilesDir();
 
-        for(MultipartFile file:files){
-            String to = rootDir+file.getFilename();
+        for (MultipartFile file : files) {
+            String to = rootDir + file.getFilename();
             new File(to).getParentFile().mkdirs();
             file.transferTo(new File(to));
         }
@@ -407,51 +398,51 @@ public class IndexController {
 
     }
 
-    @PostMapping(path="/api/upload")
+    @PostMapping(path = "/api/upload")
     String upload2(HttpRequest request,
-                   @RequestParam(name = "chunkNumber")  int chunkNumber,
-                   @RequestParam(name = "chunkSize")  int chunkSize,
-                   @RequestParam(name = "currentChunkSize")  int currentChunkSize,
-                   @RequestParam(name = "totalSize")  int totalSize,
-                   @RequestParam(name = "identifier")  String identifier,
-                   @RequestParam(name = "filename")  String filename,
-                   @RequestParam(name = "relativePath")  String relativePath,
-                   @RequestParam(name = "totalChunks")  int totalChunks,
+                   @RequestParam(name = "chunkNumber") int chunkNumber,
+                   @RequestParam(name = "chunkSize") int chunkSize,
+                   @RequestParam(name = "currentChunkSize") int currentChunkSize,
+                   @RequestParam(name = "totalSize") int totalSize,
+                   @RequestParam(name = "identifier") String identifier,
+                   @RequestParam(name = "filename") String filename,
+                   @RequestParam(name = "relativePath") String relativePath,
+                   @RequestParam(name = "totalChunks") int totalChunks,
                    @RequestParam(name = "file") MultipartFile file
-            ){
+    ) {
 
         String rootDir = DowloadPlayList.getDataFilesDir();
 
-        String to = rootDir+relativePath;
-        String chunkTo = to+"-"+chunkNumber;
+        String to = rootDir + relativePath;
+        String chunkTo = to + "-" + chunkNumber;
         new File(to).getParentFile().mkdirs();
         try {
 
             file.transferTo(new File(chunkTo));
-            if(chunkNumber==totalChunks){
+            if (chunkNumber == totalChunks) {
 
-                if (new File(to).exists()){
+                if (new File(to).exists()) {
                     return "";
                     //file.delete();
                 }
                 BufferedOutputStream destOutputStream = new BufferedOutputStream(new FileOutputStream(to));
-                for (int i = 1; i <= totalChunks ; i++) {
+                for (int i = 1; i <= totalChunks; i++) {
                     byte[] fileBuffer = new byte[1024];
                     int readBytesLength = 0;
-                    File sourceFile = new File(to+"-"+i);
+                    File sourceFile = new File(to + "-" + i);
                     BufferedInputStream sourceInputStream = new BufferedInputStream(new FileInputStream(sourceFile));
-                    while ((readBytesLength = sourceInputStream.read(fileBuffer))!=-1){
-                        destOutputStream.write(fileBuffer, 0 , readBytesLength);
+                    while ((readBytesLength = sourceInputStream.read(fileBuffer)) != -1) {
+                        destOutputStream.write(fileBuffer, 0, readBytesLength);
                     }
                     sourceInputStream.close();
 
                 }
                 destOutputStream.flush();
                 destOutputStream.close();
-                for (int i = 1; i <= totalChunks ; i++) {
-                    File sourceFile = new File(to+"-"+i);
+                for (int i = 1; i <= totalChunks; i++) {
+                    File sourceFile = new File(to + "-" + i);
                     boolean delete = sourceFile.delete();
-                    if (delete){
+                    if (delete) {
                     }
                 }
             }
@@ -462,27 +453,28 @@ public class IndexController {
 
         return "";
     }
+
     @ResponseBody
     @GetMapping(path = "/api/listDisk")
-    String listDisk(@RequestParam(name="path",required = false,defaultValue = "") String path) throws IOException {
+    String listDisk(@RequestParam(name = "path", required = false, defaultValue = "") String path) throws IOException {
 
         String rootDir = DowloadPlayList.getDataFilesDir();
-        File curFolder  = new File(rootDir+path);
+        File curFolder = new File(rootDir + path);
 
-        ArrayList<Map<String,Object>> list = new ArrayList();
+        ArrayList<Map<String, Object>> list = new ArrayList();
 
 
-        for(File f:curFolder.listFiles()){
-            Map<String,Object> info = new HashMap<>();
-            info.put("name",f.getName());
-            info.put("size",f.getTotalSpace());
-            info.put("isFile",f.isFile());
+        for (File f : curFolder.listFiles()) {
+            Map<String, Object> info = new HashMap<>();
+            info.put("name", f.getName());
+            info.put("size", f.getTotalSpace());
+            info.put("isFile", f.isFile());
             list.add(info);
         }
 
-        Map<String,Object> ret = new HashMap<>();
-        ret.put("contents",list);
-        ret.put("path",path);
+        Map<String, Object> ret = new HashMap<>();
+        ret.put("contents", list);
+        ret.put("path", path);
 
         return JSON.toJSONString(ret);
 
