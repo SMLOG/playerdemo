@@ -21,9 +21,9 @@ import com.usbtv.demo.R;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     // name of the database file for your application -- change to something appropriate for your app
-    private static final String DATABASE_NAME = "helloAndroid.db";
+    private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 7;
 
     // the DAO object we use to access the SimpleData table
     private Dao<ResItem, Integer> simpleDao = null;
@@ -42,6 +42,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         try {
             Log.i(DatabaseHelper.class.getName(), "onCreate");
             TableUtils.createTable(connectionSource, ResItem.class);
+            TableUtils.createTable(connectionSource, Drive.class);
+            TableUtils.createTable(connectionSource, Folder.class);
+            TableUtils.createTable(connectionSource, VFile.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);
@@ -67,6 +70,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         try {
             Log.i(DatabaseHelper.class.getName(), "onUpgrade");
             TableUtils.dropTable(connectionSource, ResItem.class, true);
+            TableUtils.dropTable(connectionSource, VFile.class, true);
+            TableUtils.dropTable(connectionSource, Folder.class, true);
+            TableUtils.dropTable(connectionSource, Drive.class, true);
             // after we drop the old databases, we create the new ones
             onCreate(db, connectionSource);
         } catch (SQLException e) {

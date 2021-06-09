@@ -30,19 +30,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
             new Thread() {
                 public void run() {
 
-                    Log.d(App.TAG, "load usb.........");
-
-                    int i = 20;
-                    for (; i > 0 && App.isMediaMounted(); i++) {
-                        DowloadPlayList.loadPlayList(true);
-                        try {
-                            if (App.playList.getAidList().size() > 0) break;
-                            Thread.sleep(5000);
-
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    DowloadPlayList.loadPlayList(true);
 
                     Intent intent = new Intent(context, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

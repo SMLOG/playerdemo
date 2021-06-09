@@ -92,107 +92,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if (intent.getAction().equals(App.URLACTION)) {
-                int aIndex = intent.getIntExtra("aIndex", 0);
-                int bIndex = intent.getIntExtra("bIndex", 0);
-                HashMap<String, String> options = new HashMap<String, String>();
-                options.put("aIndex", "" + aIndex);
-                options.put("bIndex", "" + bIndex);
-                RetrofitUtil.reqGetHttp(api, 0, "schedule", "api/schedule", options, new HttpCallback() {
-                    @Override
-                    public void onSuccess(int req_id, String method, String result) {
-                        try {
-                            ResItem item = (ResItem) JSON.parseObject(result, ResItem.class);
-                            if (item.getTypeId() == ResItem.IMAGE || item.getTypeId() == ResItem.AUDIO) {
-
-                                item.setId(item.getId()+1);
-                                PlayerController.getInstance().setCurItem(item);
-
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            synchronized (mediaPlayer) {
-                                                PlayerController.getInstance().setMediaObj(mediaPlayer);
-                                                textView.setVisibility(View.VISIBLE);
-                                                videoView.pause();
-                                                videoView.setVisibility(View.GONE);
-                                                imageView.setVisibility(View.VISIBLE);
-                                                textView.setText(item.getEnText() + " " + item.getCnText());
-                                                imageView.setUrl(App.getProxyUrl(item.getImgUrl()));
-                                                mediaPlayer.reset();
-
-                                                if(item.getTypeId() == ResItem.IMAGE ){
-                                                    String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
-                                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-
-                                                    url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
-                                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-                                                    if (item.getSound() != null){
-                                                        mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
-                                                    }
-                                                }else{
-
-                                                    PlayerController.getInstance().showMaskView();
-                                                    if (item.getSound() != null){
-
-                                                        mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
-                                                    }
-                                                }
-
-
-                                                mediaPlayer.prepare();
-
-                                                mediaPlayer.start();
-                                            }
-
-
-                                        } catch (Throwable tt) {
-                                            App.schedule(-1, -1);
-                                        }
-                                    }
-                                }, 2 * 1000);
-
-                            } else {
-                                synchronized (videoView) {
-
-                                    textView.setVisibility(View.GONE);
-                                    imageView.setVisibility(View.GONE);
-                                    if (mediaPlayer.isPlaying()) mediaPlayer.stop();
-                                    videoView.setVisibility(View.VISIBLE);
-                                    String url = null;
-                                    App.playList.setAIndex(aIndex);
-                                    url = App.playList.nextURL(bIndex);
-                                    if (url == null) {
-                                        App.schedule(-1, -1);
-                                        return;
-                                    }else{
-                                      //  PlayerController.getInstance().getCurItem().setEnText();
-                                    }
-                                    videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
-                                    videoView.requestFocus();
-                                    videoView.start();
-                                    PlayerController.getInstance().setMediaObj(videoView);
-                                }
-                            }
-                        } catch (Throwable e) {
-                            e.printStackTrace();
-                            App.schedule(-1, -1);
-
-                        }
-
-                    }
-
-                    @Override
-                    public void onError(String toString) {
-                        System.out.println(toString);
-                        App.schedule(-1, -1);
-                    }
-                });
-                return;
-
-
-            } else if (intent.getAction().equals(App.CMD)) {
+           if (intent.getAction().equals(App.CMD)) {
 
                 String cmd = intent.getExtras().getString("cmd");
                 String val = intent.getExtras().getString("val");
@@ -213,13 +113,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                         setTopView();
                     }
                 }else if("play".equals(cmd)){
-                    ResItem item = PlayerController.getInstance().getCurItem();
-                    if(item.getTypeId()==ResItem.VIDEO){
-                        String url = item.getSound();
-                        videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
-                        videoView.requestFocus();
-                        videoView.start();
-                    }
+                    PlayerController.getInstance().play(null);
+
                 }
             }
         }
@@ -251,7 +146,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
                     */
-        System.out.println(new File("/storage/2067-B583").listFiles());
         //申请权限
         if (Build.VERSION.SDK_INT >= 23) {
             int REQUEST_CODE_CONTACT = 101;
@@ -274,7 +168,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         setTopView();
         bindElementViews();
         initViews();
-        App.schedule(-1, 0);
+        PlayerController.getInstance().playNext();
+
     }
 
     private void setTopView() {
@@ -298,8 +193,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
 
 
-        //layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+        layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
         layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+        //layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
 
         LayoutInflater inflater = LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
@@ -349,7 +245,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         imageView = mInView.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
-        PlayerController.getInstance().setMastView(bgTextView);
+        PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer);
+
+
     }
 
     @Override
@@ -397,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                App.schedule(App.playList.getaIndex(), -1);
+                PlayerController.getInstance().playNext();
             }
         });
 
@@ -406,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                App.schedule(App.playList.getaIndex(), -1);
+                PlayerController.getInstance().playNext();
                 return true;
             }
         });
@@ -594,12 +492,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     public void onCompletion(MediaPlayer mediaPlayer) {
         MyMediaPlayer mymediaPlayer = (MyMediaPlayer) mediaPlayer;
         if (mymediaPlayer.isAllCompletedOrContinuePlayNext())
-            App.schedule(-1, -1);
+            PlayerController.getInstance().playNext();
     }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        App.schedule(-1, -1);
+        PlayerController.getInstance().playNext();
         return false;
     }
 }

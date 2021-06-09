@@ -5,11 +5,21 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.VideoView;
 
+import com.alibaba.fastjson.JSON;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.data.ResItem;
+import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.view.MyImageView;
+import com.usbtv.demo.view.MyMediaPlayer;
+import com.usbtv.demo.view.MyVideoView;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.sql.SQLException;
 
 public final class PlayerController {
 
@@ -19,12 +29,16 @@ public final class PlayerController {
 
     private static PlayerController instance;
     private Object mediaObj;
-    private ResItem curItem;
+    private Object curItem;
     private Integer aIndex;
     private Integer bIndex;
     private int mode;
 
     private boolean detach;
+    private MyImageView imageView;
+    private MyVideoView videoView;
+    private MyMediaPlayer mediaPlayer;
+    private TextView textView;
 
     public boolean isDetach() {
         return detach;
@@ -36,8 +50,6 @@ public final class PlayerController {
 
     private View maskView;
     private PlayerController(){
-        curItem = new ResItem();
-        curItem.setTypeId(ResItem.VIDEO);
     }
 
     public Integer getaIndex() {
@@ -60,13 +72,6 @@ public final class PlayerController {
         this.mediaObj = mediaObj;
     }
 
-    public void setCurItem(ResItem curItem) {
-        this.curItem = curItem;
-    }
-
-    public ResItem getCurItem() {
-        return curItem;
-    }
 
     public static PlayerController getInstance(){
         if(instance==null)instance = new PlayerController();
@@ -182,9 +187,138 @@ public final class PlayerController {
     }
 
 
-    public void play(ResItem res) {
-        if(this.mediaObj instanceof  VideoView){
+    public void play(Object res) {
+
+        if(res instanceof VFile){
             this.curItem = res;
+            VFile vf = (VFile) res;
+            synchronized (videoView) {
+
+                textView.setVisibility(View.GONE);
+                imageView.setVisibility(View.GONE);
+                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
+
+                videoView.setVisibility(View.VISIBLE);
+                String url = "file://"+vf.getFolder().getRoot().getP()+"/"+vf.getFolder().getP()+"/"+vf.getP();
+                videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
+                videoView.requestFocus();
+                videoView.start();
+                PlayerController.getInstance().setMediaObj(videoView);
+            }
+
+        }else if(res instanceof ResItem){
+            this.curItem = res;
+            ResItem item = (ResItem) res;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        synchronized (mediaPlayer) {
+                            PlayerController.getInstance().setMediaObj(mediaPlayer);
+                            textView.setVisibility(View.VISIBLE);
+                            videoView.pause();
+                            videoView.setVisibility(View.GONE);
+                            imageView.setVisibility(View.VISIBLE);
+                            textView.setText(item.getEnText() + " " + item.getCnText());
+                            imageView.setUrl(App.getProxyUrl(item.getImgUrl()));
+                            mediaPlayer.reset();
+
+                            if(item.getTypeId() == ResItem.IMAGE ){
+                                String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
+                                mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+
+                                url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
+                                mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+                                if (item.getSound() != null){
+                                    mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
+                                }
+                            }else{
+
+                                PlayerController.getInstance().showMaskView();
+                                if (item.getSound() != null){
+
+                                    mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
+                                }
+                            }
+
+
+                            mediaPlayer.prepare();
+
+                            mediaPlayer.start();
+                        }
+
+
+                    } catch (Throwable tt) {
+                        PlayerController.getInstance().playNext();
+                    }
+                }
+            }, 2 * 1000);
         }
+    }
+
+
+    public void playNext() {
+
+        if(curItem == null ){
+           curItem = new VFile();
+        }
+        if(curItem instanceof VFile){
+            try {
+
+                do {
+                    VFile vf = (VFile)curItem;
+                    VFile vfile = App.getHelper().getDao(VFile.class).
+                            queryBuilder().where()
+                            .gt("id", vf.getId()).queryForFirst();
+                    if (vfile == null) {
+                        vfile = (VFile)  App.getHelper().getDao(VFile.class).
+                                queryBuilder().where()
+                                .gt("id", 0).queryForFirst();
+                    }
+                    if(vfile!=null){
+                        play(vfile);
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else {
+
+            try {
+                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
+                ResItem vi =(ResItem) this.curItem;
+
+                do {
+                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                            .and().ge("id", vi.getId()).queryForFirst();
+                    if (curResItem == null) {
+                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                                .and().ge("id", 0).queryForFirst();
+                    }
+                    if(curResItem!=null){
+                        play(curResItem);
+                        return;
+                    }
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+
+    }
+
+    public void setUIs(TextView bgTextView, MyImageView imageView, TextView textView, MyVideoView videoView,
+                       MyMediaPlayer mediaPlayer) {
+    this.maskView = bgTextView;
+    this.imageView=imageView;
+    this.videoView=videoView;
+    this.mediaPlayer=mediaPlayer;
+    this.textView=textView;
     }
 }

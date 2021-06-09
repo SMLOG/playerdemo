@@ -23,7 +23,6 @@ public class App extends Application {
     private static DatabaseHelper databaseHelper = null;
 
     public static String host;
-    protected static PlayList playList = new PlayList();
 
     private Context mContext;
     private static App self;

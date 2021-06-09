@@ -1,7 +1,5 @@
 package com.usbtv.demo;
 
-import android.util.Log;
-
 import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.comm.Utils;
 
@@ -10,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -45,7 +42,6 @@ public class DowloadPlayList {
                         }
 
                         ArrayList<Aid> aidList = (ArrayList<Aid>) JSON.parseArray(fos.toString(), Aid.class);
-                        App.playList.addAll(aidList, url);
                         //System.out.println(aidList);
 
                     } catch (Exception e) {
@@ -66,14 +62,10 @@ public class DowloadPlayList {
                 public void run() {
 
                     reLoadPlayList();
-                    Utils.exec("cd " + getDataFilesDir() + " && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
-                    reLoadPlayList();
-                    //Utils.exec("cd "+getDataFilesDir()+" && wget -q -O - http://192.168.0.101/bilibili/index.cgi|sh");
                 }
 
             }).start();
         } else {
-            Utils.exec("cd " + getDataFilesDir() + " && wget -O - http://192.168.0.101/bilibili/index.cgi|sh - ");
             reLoadPlayList();
         }
         App.schedule(-1, 0);
@@ -81,21 +73,18 @@ public class DowloadPlayList {
     }
 
 
-    public static void reLoadPlayList() {
+    public static void scanToDB() {
 
         String dirs[] = getDataFilesDirs();
-        if(dirs!=null&&dirs.length>1){
+
+        if (dirs != null && dirs.length > 1) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    List<Aid> aidList = null;
                     try {
 
-                        App.playList.clear();
-                        for(String s:dirs){
-                            aidList = Aid.scan(s);
-                            File localPlaylist = new File(s + "/playlist.json");
-                            App.playList.add(aidList, "file://" + localPlaylist.getAbsolutePath());
+                        for(int i=0;i<dirs.length;i++){
+                            Aid.scanFolder(i,dirs[i]);
                         }
 
                     } catch (Exception e) {
@@ -105,44 +94,11 @@ public class DowloadPlayList {
             }).start();
             return;
         }
+    }
 
-        String s = getDataFilesDir();
+    public static void reLoadPlayList() {
 
-        File localPlaylist = new File(s + "playlist.json");
-        if (s != null && localPlaylist.getParentFile().isDirectory()) {
-            Log.d(App.TAG, localPlaylist.getAbsolutePath() + " exists");
-
-            if (localPlaylist.exists() && localPlaylist.isFile() && localPlaylist.canRead()) {
-                try {
-                    String content = Utils.getStringFromFile(localPlaylist.getAbsolutePath());
-                    ArrayList<Aid> aidList = (ArrayList<Aid>) JSON.parseArray(content, Aid.class);
-                    App.playList.addAll(aidList, "file://" + localPlaylist.getAbsolutePath());
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Log.d(App.TAG, e.getMessage());
-
-                }
-            }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    List<Aid> aidList = null;
-                    try {
-                        aidList = Aid.scan(s);
-                        App.playList.addAll(aidList, "file://" + localPlaylist.getAbsolutePath());
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-        } else {
-            Log.d(App.TAG, localPlaylist.getAbsolutePath() + " not exists");
-
-        }
+        scanToDB();
 
     }
 

@@ -7,7 +7,9 @@ import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.ResItem;
+import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
@@ -50,9 +52,7 @@ public class IndexController {
     @GetMapping(path = "/api/status")
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-        PlayerController.getInstance().setaIndex(App.playList.getaIndex());
-        PlayerController.getInstance().setbIndex(App.playList.getbIndex());
-        PlayerController.getInstance().getDuration();
+
         return JSON.toJSONString(PlayerController.getInstance());
     }
 
@@ -96,24 +96,26 @@ public class IndexController {
     ) {
 
         if ("play".equals(cmd)) {
+            Object item = null;
+            if(typeId==3){
+                try {
+                    item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id",id).queryForFirst();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+            }else {
+                try {
+                    item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id",id).queryForFirst();
 
-            PlayerController.getInstance().getCurItem().setId(id);
-            PlayerController.getInstance().getCurItem().setTypeId(typeId);
-
-            if (typeId == ResItem.VIDEO) {
-                App.schedule(aIndex, bIndex);
-            } else {
-                App.schedule(-1, -1);
-
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             }
+            PlayerController.getInstance().play(item);
+
         } else if ("next".equals(cmd)) {
 
-
-            if (typeId != ResItem.VIDEO) {
-                PlayerController.getInstance().getCurItem().setId(PlayerController.getInstance().getCurItem().getId() + 1);
-            }
-
-            App.schedule(PlayerController.getInstance().getaIndex(), -1);
+            PlayerController.getInstance().playNext();
 
         } else if ("pause".equals(cmd)) {
 
@@ -165,39 +167,6 @@ public class IndexController {
     }
 
 
-    @GetMapping(path = "/api/schedule")
-    @ResponseBody
-    synchronized String schedule() throws IOException {
-
-
-        if (PlayerController.getInstance().getCurItem().getTypeId() != ResItem.VIDEO) {
-            try {
-                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
-
-
-                do {
-                    Where where = builder.where().eq("typeId", PlayerController.getInstance().getCurItem().getTypeId()).and().ge("id", PlayerController.getInstance().getCurItem().getId());
-                    ResItem curResItem = (ResItem) where.queryForFirst();
-                    if (curResItem == null) {
-                        PlayerController.getInstance().getCurItem().setId(0);
-                        continue;
-                    }
-
-                    PlayerController.getInstance().getCurItem().setId(curResItem.getId() + 1);
-                    return JSON.toJSONString(curResItem);
-
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        }
-
-
-        return JSON.toJSONString(PlayerController.getInstance().getCurItem());
-    }
-
-
     @GetMapping(path = "/api/proxy")
     com.yanzhenjie.andserver.http.ResponseBody proxy(HttpRequest req, HttpResponse response) throws IOException {
 
@@ -233,16 +202,7 @@ public class IndexController {
         return null;
     }
 
-    @GetMapping(path = "/api/url")
-    String url(@RequestParam(name = "aIndex") int aIndex, @RequestParam(name = "bIndex") int bIndex, HttpResponse response) throws IOException {
-        String link = App.playList.getUrl(aIndex, bIndex);
-        if (link.matches("http[s]://.*"))
-            response.sendRedirect(link);
-        else if (link.startsWith("file://")) {
-            response.sendRedirect("/api/down?path=" + link.substring(7));
-        }
-        return null;
-    }
+
 
     @GetMapping(path = "/api/res")
     String res(@RequestParam(name = "typeId") int typeId, @RequestParam(name = "id") int id, HttpResponse response) {
@@ -315,20 +275,17 @@ public class IndexController {
             result.put("pageSize", pageSize);
             result.put("page", page);
 
+             if (typeId == 3) {
 
-            if (typeId == 0) {
-                result.put("total", App.playList.getAidList().size());
-                if (App.playList.getAidList().size() > 0) {
-                    int from = (page - 1) * pageSize;
-                    int to = Math.min(page * pageSize, App.playList.getAidList().size());
+                long total = App.getHelper().getDao(Folder.class).countOf();
 
-                    result.put("datas", App.playList.getAidList().subList(from, to));
-                } else {
-                    result.put("datas", App.playList.getAidList());
-                }
+                result.put("total", total);
+                List<Folder> list = App.getHelper().getDao(Folder.class).queryBuilder()
+                        .offset((long) ((page - 1) * pageSize))
+                        .limit(20l).query();
+                result.put("datas", list);
 
-
-            } else {
+            }  else {
                 long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
                 List<ResItem> list = App.getHelper().getDao().queryBuilder()
                         .where().eq("typeId", typeId).queryBuilder()
@@ -337,6 +294,9 @@ public class IndexController {
                 result.put("datas", list);
                 result.put("total", total);
             }
+
+
+
             return JSON.toJSONString(result);
 
         } catch (Throwable e) {
@@ -402,7 +362,6 @@ public class IndexController {
 
     @GetMapping(path = "/api/delete")
     String delete(@RequestParam(name = "aIndex") int aIndex, @RequestParam(name = "bIndex") int bIndex, HttpResponse response) throws IOException {
-        App.playList.delete(aIndex, bIndex);
 
         return null;
     }

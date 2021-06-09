@@ -3,6 +3,9 @@ package com.usbtv.demo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.field.DatabaseField;
+import com.usbtv.demo.data.Drive;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,27 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class Item {
-    private String path;
-    private String title;
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-}
 
 public class Aid {
     @DatabaseField(generatedId = true)
@@ -50,12 +33,6 @@ public class Aid {
     private String title;
     private String  serverBase;
 
-    private List<Item> items;
-
-    public Aid() {
-        super();
-        this.items = new ArrayList<Item>();
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -70,9 +47,6 @@ public class Aid {
         return Objects.hash(aid);
     }
 
-    public List<Item> getItems() {
-        return items;
-    }
 
     public String getAid() {
         return aid;
@@ -158,12 +132,14 @@ public class Aid {
 
     public static void main(String[] args) throws Exception {
 
-        scan("/Users/alexwang/www/bilibili/");
     }
 
-    public static List<Aid> scan(String root) throws Exception {
+    public static List<VFile> scanFolder(int i, String root) throws Exception {
 
-        List<Aid> aidList = new ArrayList<Aid>();
+        List<VFile> files = new ArrayList<VFile>();
+
+        Drive rootDriv = new Drive();
+        rootDriv.setP(root);
 
         File dir = new File(root);
 
@@ -174,13 +150,16 @@ public class Aid {
             }
         });
 
+        System.out.println(rootDriv);
+        App.getHelper().getDao(Drive.class).createIfNotExists(rootDriv);
+
         for (File aidDir : aidDirs) {
 
             String divfile = aidDir.getAbsolutePath() + File.separator + aidDir.getName() + ".dvi";
 
             List<File> matchFiles = searchFiles(aidDir, ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
 
-            String title = null;
+            String title = aidDir.getName();
             String coverURL = null;
             if (matchFiles.size() > 0) {
                 if (new File(divfile).exists()) {
@@ -191,37 +170,37 @@ public class Aid {
                 }
             }else continue;
 
-            Aid aidItem = new Aid();
-            aidItem.setAid(aidDir.getName());
-            aidItem.setCoverUrl(coverURL);
-            aidItem.setTitle(title);
 
-            aidList.add(aidItem);
+            Folder folder = new Folder();
+            folder.setName(title);
 
+            folder.setRoot(rootDriv);
+
+            folder.setP(aidDir.getName());
+
+            folder.setCoverUrl(coverURL);
+
+            App.getHelper().getDao(Folder.class).createIfNotExists(folder);
+
+            //folderList.add(folder);
             for (File file : matchFiles) {
-
-                Item item = new Item();
-                item.setPath(file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1));
-                item.setTitle(file.getName());
-                aidItem.getItems().add(item);
+                VFile vfile = new VFile();
+                vfile.setP(file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1));
+                vfile.setName(file.getName());
+                vfile.setFolder(folder);
+                //folder.getFiles().add(vfile);
+               // files.add(vfile);
+                App.getHelper().getDao(VFile.class).createIfNotExists(vfile);
 
             }
 
+
         }
 
-        String jsonOutput = JSON.toJSONString(aidList, true);
-        System.out.println(jsonOutput);
-
-        FileWriter fw = new FileWriter(new File(dir + File.separator + "playlist.json"));
-        fw.write(jsonOutput);
-        fw.close();
-
-        return aidList;
+        return files;
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
+
 
     public static String exec(String cmd) {
         try {
