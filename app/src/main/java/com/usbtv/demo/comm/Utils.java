@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -309,12 +310,30 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+
+
         return ret;
     }
 
 
     public static List<Drive> getSysAllDriveList() {
-        return Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+        ArrayList<Drive> driveList = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+        ArrayList<Drive> ret = new ArrayList<>();
+        for(Drive d:driveList){
+            try {
+                Drive d2=(Drive)App.getHelper().getDao(Drive.class).queryBuilder().where().eq("p",d.getP()).queryForFirst();
+                if(d2!=null){
+                    ret.add(d2);
+                }else{
+                    App.getHelper().getDao(Drive.class).create(d);
+                    ret.add(d);
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }
+        return ret;
     }
 
 }

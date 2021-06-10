@@ -2,6 +2,7 @@ package com.usbtv.demo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.field.DatabaseField;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
@@ -75,65 +76,74 @@ public class Aid {
     }
 
 
-    public static void scanFolder() throws Exception {
+    public static void scanAllDrive() throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
-            File dir = new File(root.getP());
+            File rootDir = new File(root.getP());
 
-            File[] aidDirs = dir.listFiles(new FileFilter() {
+            File[] aidDirs = rootDir.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File pathname) {
                     return pathname.isDirectory();
                 }
             });
 
-            App.getHelper().getDao(Drive.class).createIfNotExists(root);
+            App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
             for (File aidDir : aidDirs) {
-
-                String divfile = aidDir.getAbsolutePath() + File.separator + aidDir.getName() + ".dvi";
-
-                List<File> matchFiles = searchFiles(aidDir, ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
-
-                String title = aidDir.getName();
-                String coverURL = null;
-                if (matchFiles.size() > 0) {
-                    if (new File(divfile).exists()) {
-                        String content = getStringFromFile(divfile);
-                        JSONObject jsonObj = JSON.parseObject(content);
-                        title = (String) jsonObj.get("Title");
-                        coverURL = (String) jsonObj.get("CoverURL");
-                    }
-                } else continue;
-
-
-                Folder folder = new Folder();
-                folder.setName(title);
-
-                folder.setRoot(root);
-
-                folder.setP(aidDir.getName());
-
-                folder.setCoverUrl(coverURL);
-
-                App.getHelper().getDao(Folder.class).createIfNotExists(folder);
-
-                for (File file : matchFiles) {
-                    VFile vfile = new VFile();
-                    vfile.setP(file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1));
-                    vfile.setName(file.getName());
-                    vfile.setFolder(folder);
-                    App.getHelper().getDao(VFile.class).createIfNotExists(vfile);
-                }
-
-
+                scanFolder(root, aidDir);
             }
         }
 
 
     }
 
+    public static void scanFolder(Drive root, File aidDir) throws Exception {
+        String divfile = aidDir.getAbsolutePath() + File.separator + aidDir.getName() + ".dvi";
+
+        List<File> matchFiles = searchFiles(aidDir, ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
+
+        String title = aidDir.getName();
+        String coverURL = null;
+        if (matchFiles.size() > 0) {
+            if (new File(divfile).exists()) {
+                String content = getStringFromFile(divfile);
+                JSONObject jsonObj = JSON.parseObject(content);
+                title = (String) jsonObj.get("Title");
+                coverURL = (String) jsonObj.get("CoverURL");
+            }
+        } else return;
+
+        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+        Folder folder =  folderDao.queryBuilder().where().eq("p",aidDir.getName()).and().eq("root_id",root.getId()).queryForFirst();
+
+        if(folder==null){
+
+            folder = new Folder();
+            folder.setName(title);
+            folder.setRoot(root);
+            folder.setP(aidDir.getName());
+            folder.setCoverUrl(coverURL);
+            folderDao.createOrUpdate(folder);
+
+        }
+
+        for (File file : matchFiles) {
+            VFile vfile = new VFile();
+            vfile.setP(file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1));
+            vfile.setName(file.getName());
+            vfile.setFolder(folder);
+            try{
+
+                App.getHelper().getDao(VFile.class).createOrUpdate(vfile);
+
+            }catch (Throwable e){
+                e.printStackTrace();
+            }
+        }
+    }
 
 
 }

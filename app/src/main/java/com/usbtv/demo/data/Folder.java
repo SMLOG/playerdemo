@@ -15,14 +15,10 @@ public class Folder {
     @DatabaseField(generatedId = true)
     int id;
 
-
-    @DatabaseField(uniqueCombo = true)
-    int typeId;
-    @DatabaseField(uniqueCombo = true)
     String cat;
     @DatabaseField
     String name;
-    @DatabaseField(unique = true)
+    @DatabaseField(uniqueCombo = true)
     String p;
     @DatabaseField
     String coverUrl;
@@ -31,7 +27,8 @@ public class Folder {
     private ForeignCollection<VFile> files;
 
     @JSONField(serialize=false)
-    @DatabaseField(foreign = true,foreignAutoRefresh = true)
+
+    @DatabaseField(foreign = true,foreignAutoRefresh = true,uniqueCombo = true)
     private Drive root;
 
     private Integer rootId;
@@ -42,14 +39,6 @@ public class Folder {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getTypeId() {
-        return typeId;
-    }
-
-    public void setTypeId(int typeId) {
-        this.typeId = typeId;
     }
 
     public String getCat() {

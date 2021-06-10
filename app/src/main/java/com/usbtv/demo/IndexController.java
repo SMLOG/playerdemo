@@ -388,7 +388,7 @@ public class IndexController {
 
         List<Drive> drives = Utils.getSysAllDriveList();
 
-        String rootDir = drives.get(drives.size()-1).getP();
+        String rootDir = drives.get(drives.size() - 1).getP();
 
         for (MultipartFile file : files) {
             String to = rootDir + file.getFilename();
@@ -397,6 +397,59 @@ public class IndexController {
         }
         return "OK";
 
+    }
+
+    @PostMapping(path = "/api/uploadInfo")
+    String upload2(HttpRequest request,
+                   @RequestParam(name = "path") String path
+
+    ) {
+
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        Drive drive = drives.get(drives.size() - 1);
+
+        try {
+
+            Folder folder = new Folder();
+            folder.setRoot(drive);
+            Aid.scanFolder(drive, new File(drive.getP() + "/" + path));
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "OK";
+    }
+
+    @GetMapping(path = "/api/upload")
+    String upload2(HttpRequest request,
+                   @RequestParam(name = "chunkNumber") int chunkNumber,
+                   @RequestParam(name = "chunkSize") int chunkSize,
+                   @RequestParam(name = "currentChunkSize") int currentChunkSize,
+                   @RequestParam(name = "totalSize") int totalSize,
+                   @RequestParam(name = "identifier") String identifier,
+                   @RequestParam(name = "filename") String filename,
+                   @RequestParam(name = "relativePath") String relativePath,
+                   @RequestParam(name = "totalChunks") int totalChunks
+    ) {
+        Map<String, Object> res = new HashMap<>();
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        Drive drive = drives.get(drives.size() - 1);
+        String rootDir = drive.getP();
+
+        String to = rootDir + "/" + relativePath;
+        if (new File(to).exists()) {
+
+
+            res.put("skipUpload", true);
+        }
+
+
+        return JSON.toJSONString(res);
     }
 
     @PostMapping(path = "/api/upload")
@@ -414,11 +467,18 @@ public class IndexController {
 
         List<Drive> drives = Utils.getSysAllDriveList();
 
-        String rootDir = drives.get(drives.size()-1).getP();
+        String rootDir = drives.get(drives.size() - 1).getP();
 
-        String to = rootDir + relativePath;
+        String to = rootDir + "/" + relativePath;
         String chunkTo = to + "-" + chunkNumber;
+
+        if (new File(to).exists()) {
+            return "";
+            //file.delete();
+        }
+
         new File(to).getParentFile().mkdirs();
+
         try {
 
             file.transferTo(new File(chunkTo));
@@ -451,6 +511,7 @@ public class IndexController {
             }
 
         } catch (IOException e) {
+
             e.printStackTrace();
         }
 
@@ -463,7 +524,7 @@ public class IndexController {
 
         List<Drive> drives = Utils.getSysAllDriveList();
 
-        String rootDir = drives.get(drives.size()-1).getP();
+        String rootDir = drives.get(drives.size() - 1).getP();
 
         File curFolder = new File(rootDir + path);
 

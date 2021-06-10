@@ -1,15 +1,11 @@
 package com.usbtv.demo;
 
 import com.alibaba.fastjson.JSON;
-import com.usbtv.demo.comm.Utils;
-import com.usbtv.demo.data.Drive;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -84,7 +80,7 @@ public class DowloadPlayList {
                 public void run() {
                     try {
 
-                            Aid.scanFolder();
+                            Aid.scanAllDrive();
 
                     } catch (Exception e) {
                         e.printStackTrace();

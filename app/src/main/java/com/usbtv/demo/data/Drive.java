@@ -13,6 +13,11 @@ public class Drive {
     @DatabaseField(unique = true)
     String p;
 
+    @DatabaseField
+    long totalSize;
+    @DatabaseField
+    long usedSize;
+
     public Drive() {
     }
 
@@ -34,5 +39,21 @@ public class Drive {
 
     public void setP(String p) {
         this.p = p;
+    }
+
+    public long getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    public long getUsedSize() {
+        return usedSize;
+    }
+
+    public void setUsedSize(long usedSize) {
+        this.usedSize = usedSize;
     }
 }
