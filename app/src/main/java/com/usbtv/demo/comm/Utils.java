@@ -2,12 +2,19 @@ package com.usbtv.demo.comm;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.usage.StorageStatsManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
+import android.os.Build;
 import android.os.storage.StorageManager;
 import android.util.Base64;
+
+import androidx.annotation.RequiresApi;
+
+import com.usbtv.demo.App;
+import com.usbtv.demo.data.Drive;
 
 import org.json.JSONObject;
 
@@ -22,6 +29,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class Utils {
     
@@ -220,9 +229,35 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         }
     }
 
-    public static String[] getExtendedMemoryPath(Context mContext) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public long getFreeBytes(Context mContext,String fsUuid) {
+        try {
+            UUID id;
+            if (fsUuid == null) {
+                id = StorageManager.UUID_DEFAULT;
+            } else {
+                id = UUID.fromString(fsUuid);
+            }
+            StorageStatsManager stats = mContext.getSystemService(StorageStatsManager.class);
+            return stats.getFreeBytes(id);
+        } catch (NoSuchFieldError | NoClassDefFoundError | NullPointerException | IOException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+
+
+    public static ArrayList<Drive> getExtendedMemoryPath(Context mContext) {
+
+
+        ArrayList<Drive> ret = new ArrayList<>();
+
+        Drive drive = new Drive(App.getInstance().getCacheDir().getAbsolutePath());
+        ret.add(drive);
 
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+
         Class<?> storageVolumeClazz = null;
         try {
             storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
@@ -233,7 +268,8 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
             Object result = getVolumeList.invoke(mStorageManager);
             final int length = Array.getLength(result);
-            ArrayList<String> ret = new ArrayList<>();
+
+
             for (int i = 0; i < length; i++) {
                 Object storageVolumeElement = Array.get(result, i);
                 String path = (String) getPath.invoke(storageVolumeElement);
@@ -245,15 +281,16 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                     if(firstList!=null)
                     for(File file:firstList){
                         if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
-                            ret.add(file.getAbsolutePath());
+                            drive = new Drive(file.getAbsolutePath());
+                            ret.add(drive);
                             // return file.getAbsolutePath();
                         }
                         File[] secondList = file.listFiles();
                         if(secondList!=null)
                         for(File file2:secondList){
                             if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
-                                ret.add(file2.getAbsolutePath());
-                                //  return file2.getAbsolutePath();
+                                drive = new Drive(file.getAbsolutePath());
+                                ret.add(drive);
                             }
                         }
 
@@ -263,8 +300,6 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                 }
 
             }
-            String[]  paths= ret.toArray(new String[0 ]);
-            return paths;
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -274,8 +309,12 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        return null;
+        return ret;
     }
 
+
+    public static List<Drive> getSysAllDriveList() {
+        return Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
+    }
 
 }

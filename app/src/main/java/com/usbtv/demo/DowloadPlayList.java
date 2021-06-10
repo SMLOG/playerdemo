@@ -2,12 +2,14 @@ package com.usbtv.demo;
 
 import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.Drive;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -75,17 +77,14 @@ public class DowloadPlayList {
 
     public static void scanToDB() {
 
-        String dirs[] = getDataFilesDirs();
 
-        if (dirs != null && dirs.length > 1) {
+
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
 
-                        for(int i=0;i<dirs.length;i++){
-                            Aid.scanFolder(i,dirs[i]);
-                        }
+                            Aid.scanFolder();
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -94,7 +93,7 @@ public class DowloadPlayList {
             }).start();
             return;
         }
-    }
+
 
     public static void reLoadPlayList() {
 
@@ -102,21 +101,6 @@ public class DowloadPlayList {
 
     }
 
-    private static String[] getDataFilesDirs() {
-        String[] paths=  Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
-        System.out.println(paths);
-        return paths;
-    }
-
-    public static String getDataFilesDir() {
-        String[] paths = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
-        if (paths != null  && paths.length>0 && new File(paths[0]).exists()) return paths[0] + "/";
-        else {
-            return App.getInstance().getCacheDir() + "/";
-
-        }
-
-    }
 
 
 }

@@ -20,13 +20,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
         } else if (intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED)) {
 
-            App.setMediaMounted(true);
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             new Thread() {
                 public void run() {
 
@@ -40,12 +34,11 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
                 }
             }.start();
         } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)) {
-            App.setMediaMounted(false);
+            DowloadPlayList.loadPlayList(true);
 
         } else if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             final int netWorkState = NetUtils.getNetWorkState(context);
             if (netWorkState == 0) {
-                DowloadPlayList.loadPlayList(true);
             } else if (netWorkState == 1) {
             } else {
             }

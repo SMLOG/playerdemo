@@ -13,6 +13,13 @@ public class Drive {
     @DatabaseField(unique = true)
     String p;
 
+    public Drive() {
+    }
+
+    public Drive(String absolutePath) {
+        this.p = absolutePath;
+    }
+
     public int getId() {
         return id;
     }

@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 
 import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
@@ -385,7 +386,9 @@ public class IndexController {
     @PostMapping(path = "/api/upload2")
     String upload(HttpRequest request, @RequestParam(name = "file") MultipartFile[] files) throws IOException {
 
-        String rootDir = DowloadPlayList.getDataFilesDir();
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        String rootDir = drives.get(drives.size()-1).getP();
 
         for (MultipartFile file : files) {
             String to = rootDir + file.getFilename();
@@ -409,7 +412,9 @@ public class IndexController {
                    @RequestParam(name = "file") MultipartFile file
     ) {
 
-        String rootDir = DowloadPlayList.getDataFilesDir();
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        String rootDir = drives.get(drives.size()-1).getP();
 
         String to = rootDir + relativePath;
         String chunkTo = to + "-" + chunkNumber;
@@ -456,7 +461,10 @@ public class IndexController {
     @GetMapping(path = "/api/listDisk")
     String listDisk(@RequestParam(name = "path", required = false, defaultValue = "") String path) throws IOException {
 
-        String rootDir = DowloadPlayList.getDataFilesDir();
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        String rootDir = drives.get(drives.size()-1).getP();
+
         File curFolder = new File(rootDir + path);
 
         ArrayList<Map<String, Object>> list = new ArrayList();
@@ -470,6 +478,7 @@ public class IndexController {
             list.add(info);
         }
 
+        String df = Utils.exec("df -kh |grep /storage/");
         Map<String, Object> ret = new HashMap<>();
         ret.put("contents", list);
         ret.put("path", path);
