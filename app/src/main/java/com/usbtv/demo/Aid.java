@@ -117,9 +117,9 @@ public class Aid {
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
-        Folder folder =  folderDao.queryBuilder().where().eq("p",aidDir.getName()).and().eq("root_id",root.getId()).queryForFirst();
+        Folder folder = folderDao.queryBuilder().where().eq("p", aidDir.getName()).and().eq("root_id", root.getId()).queryForFirst();
 
-        if(folder==null){
+        if (folder == null) {
 
             folder = new Folder();
             folder.setName(title);
@@ -129,19 +129,33 @@ public class Aid {
             folderDao.createOrUpdate(folder);
 
         }
+        Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
         for (File file : matchFiles) {
-            VFile vfile = new VFile();
-            vfile.setP(file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1));
-            vfile.setName(file.getName());
-            vfile.setFolder(folder);
-            try{
 
-                App.getHelper().getDao(VFile.class).createOrUpdate(vfile);
+            String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
 
-            }catch (Throwable e){
-                e.printStackTrace();
+            VFile vfile = vFileDao.queryBuilder().where().eq("p", path).and()
+                    .eq("folder_id", folder.getId()).queryForFirst();
+
+            if (vfile == null) {
+
+                try {
+
+                    vfile = new VFile();
+                    vfile.setP(path);
+                    vfile.setName(file.getName());
+                    vfile.setFolder(folder);
+                    vFileDao.create(vfile);
+
+
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
             }
+
+
         }
     }
 
