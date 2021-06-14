@@ -4,6 +4,8 @@ package com.usbtv.demo;
 import android.media.MediaPlayer;
 
 import com.alibaba.fastjson.JSON;
+import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -40,12 +42,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.script.ScriptException;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
 @RestController
 public class IndexController {
     private static String TAG = "IndexController";
+    HttpGet oInstance = new HttpGet();
 
     @ResponseBody
     @GetMapping(path = "/api/status")
@@ -386,9 +391,7 @@ public class IndexController {
     @PostMapping(path = "/api/upload2")
     String upload(HttpRequest request, @RequestParam(name = "file") MultipartFile[] files) throws IOException {
 
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        String rootDir = drives.get(drives.size() - 1).getP();
+        String rootDir = App.getDefaultRootDrive().getP();
 
         for (MultipartFile file : files) {
             String to = rootDir + file.getFilename();
@@ -547,6 +550,46 @@ public class IndexController {
         return JSON.toJSONString(ret);
 
     }
+
+    @ResponseBody
+    @GetMapping(path = "/api/mybi")
+    String mybi() throws IOException, ScriptException, SQLException {
+
+        DownloadMP.process();
+
+        return "";
+    }
+    @GetMapping(path = "/api/vfile")
+    void vfile(@RequestParam(name = "id") int id,HttpResponse response) throws SQLException {
+
+        Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
+        VFile vfile = dao.queryForId(id);
+        String path = vfile.getAbsPath();
+        if(new File(path).exists()){
+
+            System.out.println(path+" file exists" );
+        }else{
+
+            String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
+
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
+                    new File(path).getParentFile().mkdirs();
+                    oInstance.addItem(proxyUrl,path);
+                    oInstance.downLoadByList();
+                }
+            }).start();
+
+
+            System.out.println(url);
+            response.sendRedirect(url);
+        }
+
+    }
+
     /*@GetMapping("/")
     public String index() {
         return "forward:/index.html";

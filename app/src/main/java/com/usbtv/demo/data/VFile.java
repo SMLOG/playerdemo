@@ -3,6 +3,8 @@ package com.usbtv.demo.data;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
 
+import java.io.File;
+
 
 public class VFile {
 
@@ -24,6 +26,10 @@ public class VFile {
     Folder folder;
     @DatabaseField
     String p;
+
+    @DatabaseField
+    Integer page;
+
 
     public VFile() {
     }
@@ -82,5 +88,25 @@ public class VFile {
 
     public void setP(String p) {
         this.p = p;
+    }
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    @JSONField(serialize = false)
+    public String getAbsPath() {
+        if(folder!=null){
+            if(folder.getRoot()!=null){
+                if(p!=null)
+                return folder.getRoot().getP()+ File.separator+folder.getP()+File.separator+p;
+                else return folder.getRoot().getP()+ File.separator+folder.getAid()+File.separator+page+File.separator+folder.getAid()+".mp4";
+            }
+        }
+        return null;
     }
 }

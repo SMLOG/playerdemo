@@ -106,18 +106,20 @@ public class Aid {
 
         String title = aidDir.getName();
         String coverURL = null;
+        String bvid = null;
         if (matchFiles.size() > 0) {
             if (new File(divfile).exists()) {
                 String content = getStringFromFile(divfile);
                 JSONObject jsonObj = JSON.parseObject(content);
                 title = (String) jsonObj.get("Title");
                 coverURL = (String) jsonObj.get("CoverURL");
+                bvid = (String) jsonObj.get("Bid");
             }
         } else return;
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
-        Folder folder = folderDao.queryBuilder().where().eq("p", aidDir.getName()).and().eq("root_id", root.getId()).queryForFirst();
+        Folder folder = folderDao.queryBuilder().where().eq("aid", aidDir.getName()).and().eq("root_id", root.getId()).queryForFirst();
 
         if (folder == null) {
 
@@ -126,7 +128,10 @@ public class Aid {
             folder.setRoot(root);
             folder.setP(aidDir.getName());
             folder.setCoverUrl(coverURL);
+            folder.setAid(aidDir.getName());
+            folder.setBvid(bvid);
             folderDao.createOrUpdate(folder);
+
 
         }
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
@@ -141,11 +146,18 @@ public class Aid {
             if (vfile == null) {
 
                 try {
-
                     vfile = new VFile();
                     vfile.setP(path);
                     vfile.setName(file.getName());
                     vfile.setFolder(folder);
+
+                    try{
+                        String num = path.split(File.separator)[0];
+                        vfile.setPage(Integer.parseInt(num));
+                    }catch (Exception e){
+
+                    }
+
                     vFileDao.create(vfile);
 
 

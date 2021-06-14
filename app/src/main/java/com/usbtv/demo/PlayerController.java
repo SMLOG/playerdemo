@@ -9,17 +9,22 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.alibaba.fastjson.JSON;
+import com.danikula.videocache.CacheListener;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
+import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.MyImageView;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.Map;
 
 public final class PlayerController {
 
@@ -40,6 +45,7 @@ public final class PlayerController {
     private MyMediaPlayer mediaPlayer;
     private TextView textView;
 
+    private Map<String,VFile> mapFiles;
     public boolean isDetach() {
         return detach;
     }
@@ -209,8 +215,8 @@ public final class PlayerController {
                         if (mediaPlayer.isPlaying()) mediaPlayer.stop();
 
                         videoView.setVisibility(View.VISIBLE);
-                        String url = "file://" + vf.getFolder().getRoot().getP() + "/" + vf.getFolder().getP() + "/" + vf.getP();
-                        videoView.setVideoURI(Uri.parse(App.getProxyUrl(url)));
+
+                        videoView.setVideoURI(getUri(vf));
                         videoView.requestFocus();
                         videoView.start();
                         PlayerController.getInstance().setMediaObj(videoView);
@@ -262,6 +268,21 @@ public final class PlayerController {
         });
 
 
+    }
+
+    private Uri getUri(VFile vf) {
+
+        String path = vf.getFolder().getRoot().getP() + "/" + vf.getFolder().getP() + "/" + vf.getP();
+        String url="";
+        if(new File(path).exists()){
+            url = "file://" + path;
+        }else{
+            if(vf.getFolder().getBvid()!=null){
+                String vremote = "http://127.0.0.1:8080/api/vfile?id="+vf.getId();
+              return Uri.parse(App.getProxyUrl(vremote));
+            }
+        }
+       return Uri.parse(App.getProxyUrl(url));
     }
 
 
@@ -346,4 +367,6 @@ public final class PlayerController {
             return ((VFile)(this.curItem)).getFolder().getName();
         return "";
     }
+
+
 }

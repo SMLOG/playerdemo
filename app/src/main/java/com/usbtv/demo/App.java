@@ -7,15 +7,19 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.util.Log;
 
+import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.usbtv.demo.comm.NetUtils;
+import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.DatabaseHelper;
+import com.usbtv.demo.data.Drive;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.util.List;
 
-public class App extends Application {
+public class App extends Application implements CacheListener {
     public static final String URLACTION = "urlaction";
     public static final String CMD = "cmd";
     public static final String TAG = "demo";
@@ -37,8 +41,8 @@ public class App extends Application {
 
     public static HttpProxyCacheServer proxy;
 
-    public static HttpProxyCacheServer getProxy(Context context) {
-        App app = (App) context.getApplicationContext();
+    public static HttpProxyCacheServer getProxy() {
+        App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
     }
 
@@ -101,7 +105,7 @@ public class App extends Application {
             if (App.proxy == null) {
                 proxy = getInstance().newProxy();
             }
-            return App.proxy.getProxyUrl(url);
+            proxy.getProxyUrl(url);
 
         }
         return url;
@@ -142,4 +146,15 @@ public class App extends Application {
 
     }
 
+    public static Drive getDefaultRootDrive(){
+
+        List<Drive> drives = Utils.getSysAllDriveList();
+
+        return drives.get(drives.size() - 1);
+    }
+
+    @Override
+    public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
+
+    }
 }

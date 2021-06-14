@@ -18,10 +18,15 @@ public class Folder {
     String cat;
     @DatabaseField
     String name;
-    @DatabaseField(uniqueCombo = true)
+    @DatabaseField
     String p;
     @DatabaseField
     String coverUrl;
+
+    @DatabaseField
+    String bvid;
+    @DatabaseField(uniqueCombo = true)
+    String aid;
 
     @ForeignCollectionField
     private ForeignCollection<VFile> files;
@@ -95,5 +100,21 @@ public class Folder {
 
     public void setRootId(Integer rootId) {
         this.rootId = rootId;
+    }
+
+    public String getBvid() {
+        return bvid;
+    }
+
+    public void setBvid(String bvid) {
+        this.bvid = bvid;
+    }
+
+    public String getAid() {
+        return aid;
+    }
+
+    public void setAid(String aid) {
+        this.aid = aid;
     }
 }

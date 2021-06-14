@@ -45,5 +45,6 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.3'
     implementation group: 'com.j256.ormlite', name: 'ormlite-android', version: '5.3'
     implementation "com.squareup.retrofit2:converter-gson:2.5.0"
+    implementation 'io.apisense:rhino-android:1.0'
 
 }
