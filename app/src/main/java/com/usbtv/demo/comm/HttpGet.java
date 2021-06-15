@@ -64,7 +64,7 @@ public class HttpGet {
         }
 
         if (DEBUG) {
-            System.out.println("下载完成!!!");
+            System.out.println("下载完成!!!"+url+":"+filename);
         }
     }
 
@@ -86,6 +86,9 @@ public class HttpGet {
         //建立链接
         url = new URL(destUrl);
         httpUrl = (HttpURLConnection) url.openConnection();
+        httpUrl.setFollowRedirects(true);
+        httpUrl.setInstanceFollowRedirects(true);
+
         //连接指定的资源
         httpUrl.connect();
         //获取网络输入流
@@ -124,15 +127,7 @@ public class HttpGet {
     public static void main(String argv[]) {
         HttpGet oInstance = new HttpGet();
         try {
-            //增加下载列表（此处用户可以写入自己代码来增加下载列表）
-            oInstance.addItem("http://www.ebook.com/java/网络编程001.zip", "./网络编程1.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程002.zip", "./网络编程2.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程003.zip", "./网络编程3.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程004.zip", "./网络编程4.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程005.zip", "./网络编程5.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程006.zip", "./网络编程6.zip");
-            oInstance.addItem("http://www.ebook.com/java/网络编程007.zip", "./网络编程7.zip");
-            //开始下载
+
             oInstance.downLoadByList();
         } catch (Exception err) {
             System.out.println(err.getMessage());

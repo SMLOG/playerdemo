@@ -560,33 +560,45 @@ public class IndexController {
         return "";
     }
     @GetMapping(path = "/api/vfile")
-    void vfile(@RequestParam(name = "id") int id,HttpResponse response) throws SQLException {
+    com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
         String path = vfile.getAbsPath();
-        if(new File(path).exists()){
+        final File file = new File(path);
+        if(file.exists() && file.length()>0){
 
             System.out.println(path+" file exists" );
+            return new FileBody(file);
+
         }else{
 
             String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
 
 
+            if(url!=null)
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
-                    new File(path).getParentFile().mkdirs();
-                    oInstance.addItem(proxyUrl,path);
-                    oInstance.downLoadByList();
+                    try{
+                        Thread.sleep(10000);
+                        String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
+                        file.getParentFile().mkdirs();
+                        oInstance.addItem(proxyUrl,path);
+                        oInstance.downLoadByList();
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+
                 }
             }).start();
 
 
             System.out.println(url);
             response.sendRedirect(url);
+
         }
+        return null;
 
     }
 

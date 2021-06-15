@@ -66,7 +66,6 @@ public class DowloadPlayList {
         } else {
             reLoadPlayList();
         }
-        App.schedule(-1, 0);
 
     }
 

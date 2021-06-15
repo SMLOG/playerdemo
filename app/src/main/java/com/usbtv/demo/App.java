@@ -82,30 +82,13 @@ public class App extends Application implements CacheListener {
                 .build();
     }
 
-    public static boolean schedule(int aIndex, int bIndex){
-
-            if(aIndex<0){
-                SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-                aIndex  = sp.getInt("aIndex",0);
-                bIndex = sp.getInt("bIndex",0);
-            }
-
-        Intent intent = new Intent();
-        intent.setAction(App.URLACTION);
-        intent.putExtra("aIndex", aIndex);
-        intent.putExtra("bIndex", bIndex);
-
-        App.getInstance().getApplicationContext().sendBroadcast(intent);
-        return true;
-    }
-
 
     public static String getProxyUrl(String url) {
         if (url.startsWith("http://") || url.startsWith("https://")) {
             if (App.proxy == null) {
                 proxy = getInstance().newProxy();
             }
-            proxy.getProxyUrl(url);
+            return proxy.getProxyUrl(url);
 
         }
         return url;
