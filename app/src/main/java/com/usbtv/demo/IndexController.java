@@ -551,14 +551,7 @@ public class IndexController {
 
     }
 
-    @ResponseBody
-    @GetMapping(path = "/api/mybi")
-    String mybi() throws IOException, ScriptException, SQLException {
 
-        DownloadMP.process();
-
-        return "";
-    }
     @GetMapping(path = "/api/vfile")
     com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException {
 
@@ -567,6 +560,11 @@ public class IndexController {
         String path = vfile.getAbsPath();
         final File file = new File(path);
         if(file.exists() && file.length()>0){
+
+            if(vfile.getP()==null){
+                vfile.setP(vfile.getRelativePath());
+                dao.update(vfile);
+            }
 
             System.out.println(path+" file exists" );
             return new FileBody(file);
@@ -583,9 +581,9 @@ public class IndexController {
                     try{
                         Thread.sleep(10000);
                         String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
-                        file.getParentFile().mkdirs();
-                        oInstance.addItem(proxyUrl,path);
+                        oInstance.addItem(vfile,proxyUrl, path);
                         oInstance.downLoadByList();
+
                     }catch (InterruptedException e){
                         e.printStackTrace();
                     }
@@ -601,7 +599,38 @@ public class IndexController {
         return null;
 
     }
+    @ResponseBody
+    @GetMapping(path = "/api/syncache")
+    String mybi(@RequestParam(name="download",required = false,defaultValue = "false") boolean download) throws SQLException, IOException {
 
+        DownloadMP.process();
+
+        if(download){
+            Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
+            List<VFile> vfiles = dao.queryBuilder()
+                    .where().isNull("p").query();
+
+            for(VFile vfile:vfiles){
+
+                try{
+                     File file = new File(vfile.getAbsPath());
+                    if(!file.exists() || file.length()==0){
+                        String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
+                        oInstance.saveToFile(url,vfile.getAbsPath());
+                    }
+                    vfile.setP(vfile.getRelativePath());
+                    dao.update(vfile);
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+
+        return "ok";
+    }
     /*@GetMapping("/")
     public String index() {
         return "forward:/index.html";

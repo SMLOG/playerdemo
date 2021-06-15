@@ -104,9 +104,14 @@ public class VFile {
             if(folder.getRoot()!=null){
                 if(p!=null)
                 return folder.getRoot().getP()+ File.separator+folder.getP()+File.separator+p;
-                else return folder.getRoot().getP()+ File.separator+folder.getAid()+File.separator+page+File.separator+folder.getAid()+".mp4";
+                else return folder.getRoot().getP() + File.separator + folder.getAid() + File.separator + getRelativePath();
             }
         }
         return null;
+    }
+
+    @JSONField(serialize = false)
+    public String getRelativePath() {
+        return page + File.separator + folder.getAid() + ".mp4";
     }
 }

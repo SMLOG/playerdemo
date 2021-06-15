@@ -49,7 +49,7 @@ public class DownloadMP {
             return info.getString("video");
         } catch (ScriptException e) {
             e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -149,7 +149,7 @@ public class DownloadMP {
         process();
     }
 
-    public static void process() throws ScriptException, IOException, SQLException {
+    public static void process() throws  IOException, SQLException {
         String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
