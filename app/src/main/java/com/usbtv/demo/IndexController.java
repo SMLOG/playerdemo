@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.HttpGet;
+import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -578,15 +579,9 @@ public class IndexController {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try{
-                        Thread.sleep(10000);
-                        String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
-                        oInstance.addItem(vfile,proxyUrl, path);
-                        oInstance.downLoadByList();
-
-                    }catch (InterruptedException e){
-                        e.printStackTrace();
-                    }
+                    String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
+                    oInstance.addItem(vfile,proxyUrl, path);
+                    oInstance.downLoadByList();
 
                 }
             }).start();
@@ -616,7 +611,7 @@ public class IndexController {
                      File file = new File(vfile.getAbsPath());
                     if(!file.exists() || file.length()==0){
                         String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
-                        oInstance.saveToFile(url,vfile.getAbsPath());
+                        if(url!=null)oInstance.saveToFile(url,vfile.getAbsPath());
                     }
                     vfile.setP(vfile.getRelativePath());
                     dao.update(vfile);
@@ -631,6 +626,14 @@ public class IndexController {
 
         return "ok";
     }
+
+    @ResponseBody
+    @GetMapping("/api/ts")
+    public String speakText(@RequestParam(name="t") String t) {
+        SpeechUtils.getInstance(App.getInstance().getApplicationContext()).speakText(t);
+        return "OK";
+    }
+
     /*@GetMapping("/")
     public String index() {
         return "forward:/index.html";

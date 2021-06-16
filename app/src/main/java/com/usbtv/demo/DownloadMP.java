@@ -16,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -77,6 +78,8 @@ public class DownloadMP {
 
         OkHttpClient okHttpClient = new OkHttpClient()
                 .newBuilder()
+                .connectTimeout(10, TimeUnit.SECONDS)//设置连接超时时间
+                .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
                 .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())//配置
                 .hostnameVerifier(SSLSocketClient.getHostnameVerifier()).build();
 
@@ -132,6 +135,7 @@ public class DownloadMP {
                 .addHeader("User-Agent", AGENT)
                 .addHeader("Cookie", join(";", cookies))
                 .addHeader("X-Client-Data", xclientdata)
+
                 .post(requestBody).build();
         call = okHttpClient.newCall(request);
         response = call.execute();
