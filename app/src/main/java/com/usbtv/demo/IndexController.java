@@ -307,7 +307,7 @@ public class IndexController {
             String content = body.string();
 
             ResItem res = JSON.parseObject(content, ResItem.class);
-
+            App.getHelper().getDao().queryForAll();
             List<ResItem> list = App.getHelper().getDao().queryForEq("enText", res.getEnText());
             if (list.size() > 0) {
                 res.setId(list.get(0).getId());
@@ -571,6 +571,8 @@ public class IndexController {
             return new FileBody(file);
 
         }else{
+
+            if(!new File(vfile.getFolder().getRoot().getP()).exists())return null;
 
             String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
 

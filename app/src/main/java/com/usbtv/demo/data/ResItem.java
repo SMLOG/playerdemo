@@ -26,6 +26,10 @@ public class ResItem {
     @DatabaseField
     String sound;
 
+    @DatabaseField
+    private int rTimes;
+
+
     public ResItem() {
     }
 
@@ -84,5 +88,13 @@ public class ResItem {
 
     public void setSound(String sound) {
         this.sound = sound;
+    }
+
+    public int getrTimes() {
+        return rTimes;
+    }
+
+    public void setrTimes(int rTimes) {
+        this.rTimes = rTimes;
     }
 }

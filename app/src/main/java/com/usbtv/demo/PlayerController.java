@@ -35,8 +35,7 @@ public final class PlayerController {
     private static PlayerController instance;
     private Object mediaObj;
     private Object curItem;
-    private Integer aIndex;
-    private Integer bIndex;
+
     private int mode;
 
     private boolean detach;
@@ -59,21 +58,7 @@ public final class PlayerController {
     private PlayerController() {
     }
 
-    public Integer getaIndex() {
-        return aIndex;
-    }
 
-    public void setaIndex(Integer aIndex) {
-        this.aIndex = aIndex;
-    }
-
-    public Integer getbIndex() {
-        return bIndex;
-    }
-
-    public void setbIndex(Integer bIndex) {
-        this.bIndex = bIndex;
-    }
 
     public void setMediaObj(Object mediaObj) {
         this.mediaObj = mediaObj;
