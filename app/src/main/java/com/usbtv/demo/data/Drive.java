@@ -18,6 +18,8 @@ public class Drive {
     @DatabaseField
     long usedSize;
 
+    private boolean isRemoveable;
+
     public Drive() {
     }
 
@@ -55,5 +57,13 @@ public class Drive {
 
     public void setUsedSize(long usedSize) {
         this.usedSize = usedSize;
+    }
+
+    public boolean isRemoveable() {
+        return isRemoveable;
+    }
+
+    public void setRemoveable(boolean removeable) {
+        isRemoveable = removeable;
     }
 }

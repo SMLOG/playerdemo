@@ -17,6 +17,7 @@ import com.usbtv.demo.data.Drive;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 public class App extends Application implements CacheListener {
@@ -31,6 +32,8 @@ public class App extends Application implements CacheListener {
     private Context mContext;
     private static App self;
     private ServerManager mServer;
+
+    private static List<Drive> diskList = new ArrayList<Drive>();
 
 
     private static boolean mediaMounted =false;
@@ -131,13 +134,25 @@ public class App extends Application implements CacheListener {
 
     public static Drive getDefaultRootDrive(){
 
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        return drives.get(drives.size() - 1);
+        if(diskList.size()==0 ) initDisks();
+        return diskList.get(diskList.size() - 1);
     }
 
     @Override
     public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
 
+    }
+
+    public static synchronized void initDisks(){
+        diskList.clear();
+        List<Drive> drives = Utils.getSysAllDriveList();
+        diskList.addAll(drives);
+    }
+
+    public static synchronized Drive getDefaultRemoveableDrive(){
+        for (Drive drive:diskList){
+            if(drive.isRemoveable())return drive;
+        }
+        return null;
     }
 }

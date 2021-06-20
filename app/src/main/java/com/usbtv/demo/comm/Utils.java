@@ -257,6 +257,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         ArrayList<Drive> ret = new ArrayList<>();
 
         Drive drive = new Drive(App.getInstance().getCacheDir().getAbsolutePath());
+        drive.setRemoveable(false);
         ret.add(drive);
 
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
@@ -285,6 +286,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                     for(File file:firstList){
                         if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
                             drive = new Drive(file.getAbsolutePath());
+                            drive.setRemoveable(true);
                             ret.add(drive);
                             // return file.getAbsolutePath();
                         }
@@ -293,6 +295,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                         for(File file2:secondList){
                             if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
                                 drive = new Drive(file.getAbsolutePath());
+                                drive.setRemoveable(true);
                                 ret.add(drive);
                             }
                         }
@@ -325,7 +328,8 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             try {
                 Drive d2=(Drive)App.getHelper().getDao(Drive.class).queryBuilder().where().eq("p",d.getP()).queryForFirst();
                 if(d2!=null){
-                    ret.add(d2);
+                    d.setId(d2.getId());
+                    ret.add(d);
                 }else{
                     App.getHelper().getDao(Drive.class).create(d);
                     ret.add(d);

@@ -572,9 +572,19 @@ public class IndexController {
 
         }else{
 
-            if(!new File(vfile.getFolder().getRoot().getP()).exists())return null;
+            if(vfile.getFolder().getRoot()==null){
+                vfile.getFolder().setRoot(App.getDefaultRootDrive());
+                Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+                folderDao.update(vfile.getFolder());
+            }
 
             String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
+
+            if(!new File(vfile.getFolder().getRoot().getP()).exists()){
+                response.sendRedirect(url);
+                return null;
+            };
+
 
 
             if(url!=null)
@@ -610,6 +620,14 @@ public class IndexController {
             for(VFile vfile:vfiles){
 
                 try{
+                    if(vfile.getFolder().getRoot()==null){
+                        vfile.getFolder().setRoot(App.getDefaultRootDrive());
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+                        folderDao.update(vfile.getFolder());
+                    }
+
+                    if(vfile.getFolder().getRoot()==null)continue;
+
                      File file = new File(vfile.getAbsPath());
                     if(!file.exists() || file.length()==0){
                         String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());

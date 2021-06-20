@@ -159,7 +159,7 @@ public class DownloadMP {
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
-        Drive rootDriv = App.getDefaultRootDrive();
+        //Drive rootDriv = App.getDefaultRootDrive();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
@@ -185,7 +185,7 @@ public class DownloadMP {
 
                     folder = new Folder();
                     folder.setName(title);
-                    folder.setRoot(rootDriv);
+                    //folder.setRoot(rootDriv);
                     folder.setAid("" + aid);
                     folder.setBvid(bvid);
                     folder.setCoverUrl(cover);

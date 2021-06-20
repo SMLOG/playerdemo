@@ -20,6 +20,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
         } else if (intent.getAction().equals(Intent.ACTION_MEDIA_MOUNTED)) {
 
+            App.initDisks();
 
             new Thread() {
                 public void run() {
@@ -29,12 +30,11 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
                     Intent intent = new Intent(context, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent);
-
-
                 }
             }.start();
         } else if (intent.getAction().equals(Intent.ACTION_MEDIA_REMOVED)) {
-            DowloadPlayList.loadPlayList(true);
+            App.initDisks();
+           // DowloadPlayList.loadPlayList(true);
 
         } else if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
             final int netWorkState = NetUtils.getNetWorkState(context);
