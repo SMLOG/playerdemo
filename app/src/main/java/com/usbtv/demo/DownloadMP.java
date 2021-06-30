@@ -189,10 +189,17 @@ public class DownloadMP {
                     folder.setAid("" + aid);
                     folder.setBvid(bvid);
                     folder.setCoverUrl(cover);
-
+                    folder.setTypeId(1);
                     folderDao.create(folder);
 
+                }else{
+                    folder.setTypeId(1);
+                    folderDao.update(folder);
                 }
+
+
+
+
 
                 for (int k = 1; k <= pages; k++) {
 

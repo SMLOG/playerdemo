@@ -22,6 +22,9 @@ public class ResItem {
     String enText;
 
     @DatabaseField
+    String jpText;
+
+    @DatabaseField
     String imgUrl;
     @DatabaseField
     String sound;
@@ -96,5 +99,13 @@ public class ResItem {
 
     public void setrTimes(int rTimes) {
         this.rTimes = rTimes;
+    }
+
+    public String getJpText() {
+        return jpText;
+    }
+
+    public void setJpText(String jpText) {
+        this.jpText = jpText;
     }
 }

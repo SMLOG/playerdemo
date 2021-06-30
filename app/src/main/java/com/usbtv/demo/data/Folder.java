@@ -8,12 +8,13 @@ import com.j256.ormlite.field.ForeignCollectionField;
 
 public class Folder {
 
-    public static final int IMAGE = 1;
-    public static final int VIDEO = 0;
-    public static final int AUDIO = 2;
+
 
     @DatabaseField(generatedId = true)
     int id;
+
+    @DatabaseField
+    int typeId;
 
     String cat;
     @DatabaseField
@@ -24,6 +25,11 @@ public class Folder {
     String coverUrl;
 
     @DatabaseField
+    String link;
+    @DatabaseField
+
+    String score;
+    @DatabaseField
     String bvid;
     @DatabaseField(uniqueCombo = true)
     String aid;
@@ -31,9 +37,9 @@ public class Folder {
     @ForeignCollectionField
     private ForeignCollection<VFile> files;
 
-    @JSONField(serialize=false)
+    @JSONField(serialize = false)
 
-    @DatabaseField(foreign = true,foreignAutoRefresh = true,uniqueCombo = true)
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, uniqueCombo = true)
     private Drive root;
 
     private Integer rootId;
@@ -116,5 +122,29 @@ public class Folder {
 
     public void setAid(String aid) {
         this.aid = aid;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getScore() {
+        return score;
+    }
+
+    public void setScore(String score) {
+        this.score = score;
+    }
+
+    public int getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(int typeId) {
+        this.typeId = typeId;
     }
 }

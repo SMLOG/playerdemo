@@ -257,6 +257,14 @@ public final class PlayerController {
 
     private Uri getUri(VFile vf) {
 
+        if(vf.getFolder().getRoot()==null){
+
+            String vremote = "http://127.0.0.1:8080/api/vfile?id="+vf.getId();
+            if(vf.getdLink()!=null)return  Uri.parse(vremote);
+            else
+            return Uri.parse(App.getProxyUrl(vremote));
+
+        }
         String path = vf.getFolder().getRoot().getP() + "/" + vf.getFolder().getP() + "/" + vf.getP();
         String url="";
         if(new File(path).exists()){
@@ -270,8 +278,7 @@ public final class PlayerController {
        return Uri.parse(App.getProxyUrl(url));
     }
 
-
-    public void playNext() {
+    public void next() {
 
         if (curItem == null) {
             curItem = new VFile();
@@ -324,6 +331,14 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
         }
+    }
+    public void playNext() {
+
+        if(mode==MODE_LOOP && curItem!=null){
+            play(curItem);
+            return;
+        }
+            next();
 
     }
 
@@ -352,6 +367,7 @@ public final class PlayerController {
             return ((VFile)(this.curItem)).getFolder().getName();
         return "";
     }
+
 
 
 }

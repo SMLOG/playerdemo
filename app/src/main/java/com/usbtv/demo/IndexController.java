@@ -5,6 +5,8 @@ import android.media.MediaPlayer;
 
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
@@ -113,7 +115,7 @@ public class IndexController {
 
         } else if ("next".equals(cmd)) {
 
-            PlayerController.getInstance().playNext();
+            PlayerController.getInstance().next();
 
         } else if ("pause".equals(cmd)) {
 
@@ -263,7 +265,7 @@ public class IndexController {
 
     @GetMapping(path = "/api/manRes")
     @ResponseBody
-    String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId) {
+    String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId ,@RequestParam(name = "searchValue",required = false,defaultValue = "") String searchValue) {
 
         try {
             int pageSize = 20;
@@ -274,10 +276,15 @@ public class IndexController {
 
             if (typeId == 3) {
 
-                long total = App.getHelper().getDao(Folder.class).countOf();
+                QueryBuilder<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder();
+
+                if(searchValue!=null&&!searchValue.trim().equals("")){
+                   where =  where.where().like("name","%"+searchValue+"%").queryBuilder();
+                }
+                long total = where.countOf();
 
                 result.put("total", total);
-                List<Folder> list = App.getHelper().getDao(Folder.class).queryBuilder()
+                List<Folder> list = where
                         .offset((long) ((page - 1) * pageSize))
                         .limit(20l).query();
                 result.put("datas", list);
@@ -554,49 +561,54 @@ public class IndexController {
 
 
     @GetMapping(path = "/api/vfile")
-    com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException {
+    com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
         String path = vfile.getAbsPath();
-        final File file = new File(path);
-        if(file.exists() && file.length()>0){
+        if (path != null) {
+            final File file = new File(path);
+            if (file.exists() && file.length() > 0) {
 
-            if(vfile.getP()==null){
-                vfile.setP(vfile.getRelativePath());
-                dao.update(vfile);
+                if (vfile.getP() == null) {
+                    vfile.setP(vfile.getRelativePath());
+                    dao.update(vfile);
+                }
+
+                System.out.println(path + " file exists");
+                return new FileBody(file);
+
             }
+        }
+        {
 
-            System.out.println(path+" file exists" );
-            return new FileBody(file);
-
-        }else{
-
-            if(vfile.getFolder().getRoot()==null){
-                vfile.getFolder().setRoot(App.getDefaultRootDrive());
+            if (vfile.getFolder().getRoot() == null) {
+                vfile.getFolder().setRoot(App.getDefaultRemoveableDrive());
                 Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
                 folderDao.update(vfile.getFolder());
             }
 
-            String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
-
-            if(!new File(vfile.getFolder().getRoot().getP()).exists()){
-                response.sendRedirect(url);
-                return null;
-            };
-
-
-
-            if(url!=null)
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id="+id);
-                    oInstance.addItem(vfile,proxyUrl, path);
-                    oInstance.downLoadByList();
-
+            String url = null;
+            if (vfile.getdLink() == null) {
+                url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(), vfile.getPage());
+                if (vfile.getFolder().getRoot() == null || !new File(vfile.getFolder().getRoot().getP()).exists()) {
+                    response.sendRedirect(url);
+                    return null;
                 }
-            }).start();
+                ;
+                if (url != null)
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id=" + id);
+                            oInstance.addItem(vfile, proxyUrl, path);
+                            oInstance.downLoadByList();
+
+                        }
+                    }).start();
+            } else {
+                url = DLVideo.getM3U8(vfile.getdLink());
+            }
 
 
             System.out.println(url);
@@ -606,37 +618,40 @@ public class IndexController {
         return null;
 
     }
+
     @ResponseBody
     @GetMapping(path = "/api/syncache")
-    String mybi(@RequestParam(name="download",required = false,defaultValue = "false") boolean download) throws SQLException, IOException {
+    String mybi(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) throws SQLException, IOException {
 
         DownloadMP.process();
 
-        if(download){
+        DLVideo.getList();
+
+        if (download) {
             Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
             List<VFile> vfiles = dao.queryBuilder()
                     .where().isNull("p").query();
 
-            for(VFile vfile:vfiles){
+            for (VFile vfile : vfiles) {
 
-                try{
-                    if(vfile.getFolder().getRoot()==null){
+                try {
+                    if (vfile.getFolder().getRoot() == null) {
                         vfile.getFolder().setRoot(App.getDefaultRootDrive());
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
                         folderDao.update(vfile.getFolder());
                     }
 
-                    if(vfile.getFolder().getRoot()==null)continue;
+                    if (vfile.getFolder().getRoot() == null) continue;
 
-                     File file = new File(vfile.getAbsPath());
-                    if(!file.exists() || file.length()==0){
-                        String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(),vfile.getPage());
-                        if(url!=null)oInstance.saveToFile(url,vfile.getAbsPath());
+                    File file = new File(vfile.getAbsPath());
+                    if (!file.exists() || file.length() == 0) {
+                        String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(), vfile.getPage());
+                        if (url != null) oInstance.saveToFile(url, vfile.getAbsPath());
                     }
                     vfile.setP(vfile.getRelativePath());
                     dao.update(vfile);
 
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -649,7 +664,7 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping("/api/ts")
-    public String speakText(@RequestParam(name="t") String t) {
+    public String speakText(@RequestParam(name = "t") String t) {
         SpeechUtils.getInstance(App.getInstance().getApplicationContext()).speakText(t);
         return "OK";
     }

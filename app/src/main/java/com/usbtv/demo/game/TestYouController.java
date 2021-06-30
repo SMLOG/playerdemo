@@ -9,6 +9,7 @@ import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.ResItem;
+import com.usbtv.demo.translate.TransApi;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
@@ -74,12 +75,13 @@ public class TestYouController {
         Set<Integer> set = new HashSet();
         while (true) {
             int nextId = (int) (Math.random() * maxId);
-            if (set.contains(nextId))
+            if (set.contains(new Integer(nextId)))
                 continue;
             //Optional<Subject> subject = subjectsRepository.findById(nextId);
             ResItem subject = subjectDao.queryBuilder().where().eq("typeId", ResItem.IMAGE).and().ge("id", nextId)
                     .and().isNotNull("imgUrl")
-                    .and().lt("rTimes", 5).queryForFirst();
+                   // .and().lt("rTimes", 5)
+                    .queryForFirst();
 
 
             set.add(nextId);
@@ -96,15 +98,38 @@ public class TestYouController {
     }
 
 
+    private boolean isBlank(String str){
+        return str==null||str.trim().equals("");
+    }
     @com.yanzhenjie.andserver.annotation.ResponseBody
     @PostMapping(value = "/api2/save")
     public String save(com.yanzhenjie.andserver.http.RequestBody content) throws Exception {
         ResItem subject = JSON.parseObject(content.string(), ResItem.class);
-        subject.setEnText(subject.getEnText().toLowerCase().trim());
-        if(subject.getEnText().equals(""))return null;
         Dao<ResItem, Integer> subjectDao = App.getHelper().getDao(ResItem.class);
 
         subject.setTypeId(ResItem.IMAGE);
+
+        TransApi api = new TransApi();
+
+        if( isBlank(subject.getEnText()) &&isBlank(subject.getCnText())){
+            return "error";
+        }
+
+        if(! isBlank(subject.getEnText()) &&isBlank(subject.getCnText())){
+            String transResult = api.getTransResult(subject.getEnText().trim(), "en", "zh");
+            subject.setCnText(transResult);
+        }
+        if(! isBlank(subject.getCnText()) &&isBlank(subject.getEnText())){
+            String transResult = api.getTransResult(subject.getCnText(), "zh", "en");
+            subject.setEnText(transResult);
+        }
+
+        String transResult = api.getTransResult(subject.getCnText(), "zh", "jp");
+        subject.setJpText(transResult);
+
+        subject.setEnText(subject.getEnText().toLowerCase().trim());
+        subject.setCnText(subject.getCnText().toLowerCase().trim());
+
         if (subject.getId() != 0) {
             subjectDao.update(subject);
 

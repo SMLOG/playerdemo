@@ -20,6 +20,8 @@ public class VFile {
 
     @DatabaseField
     String coverUrl;
+    @DatabaseField
+    String dLink;
 
     @JSONField(serialize=false)
     @DatabaseField(foreign = true,foreignAutoRefresh = true)
@@ -96,6 +98,14 @@ public class VFile {
 
     public void setPage(Integer page) {
         this.page = page;
+    }
+
+    public String getdLink() {
+        return dLink;
+    }
+
+    public void setdLink(String dLink) {
+        this.dLink = dLink;
     }
 
     @JSONField(serialize = false)
