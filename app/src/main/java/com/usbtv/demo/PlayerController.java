@@ -1,5 +1,7 @@
 package com.usbtv.demo;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -13,6 +15,7 @@ import com.danikula.videocache.CacheListener;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.His;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.MyImageView;
@@ -248,6 +251,36 @@ public final class PlayerController {
                     } catch (Throwable tt) {
                         PlayerController.getInstance().playNext();
                     }
+                }else if (res instanceof His) {
+                    His item = (His) res;
+                    try {
+                        synchronized (mediaPlayer) {
+                            PlayerController.getInstance().setMediaObj(mediaPlayer);
+                            textView.setVisibility(View.VISIBLE);
+                            videoView.pause();
+                            videoView.setVisibility(View.GONE);
+                            imageView.setVisibility(View.VISIBLE);
+                            textView.setText(item.getLangText() + " " + item.getCn().getCnText());
+                            imageView.setUrl(App.getProxyUrl(item.getCn().getImgUrl()));
+                            mediaPlayer.reset();
+
+                            String url = "https://fanyi.baidu.com/gettts?lan="+item.getLang()+"&text=" + URLEncoder.encode(item.getLangText()) + "&spd=5&source=web";
+                            System.out.println(url);
+                            mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+
+                            url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCn().getCnText()) + "&spd=5&source=web";
+                            mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
+
+
+                            mediaPlayer.prepare();
+
+                            mediaPlayer.start();
+                        }
+
+
+                    } catch (Throwable tt) {
+                        PlayerController.getInstance().playNext();
+                    }
                 }
             }
         });
@@ -278,10 +311,194 @@ public final class PlayerController {
        return Uri.parse(App.getProxyUrl(url));
     }
 
+    public void prev() {
+
+        if (curItem == null) {
+            curItem = new VFile();
+            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            int id  = sp.getInt("id",0);
+            VFile  vf = (VFile) curItem;
+            vf.setId(id);
+        }
+        if (curItem instanceof VFile) {
+            try {
+
+                do {
+                    VFile vf = (VFile) curItem;
+                    VFile vfile = App.getHelper().getDao(VFile.class).
+                            queryBuilder().where()
+                            .lt("id", vf.getId()).queryForFirst();
+
+                    if (vfile != null) {
+                        play(vfile);
+                        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putInt("id", vf.getId()); //sp.getInt("id",0);
+                        editor.apply();
+                        //editor.apply();
+
+                        sp.edit().commit();
+
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else  if (curItem instanceof His) {
+            try {
+
+                do {
+                    His vf = (His) curItem;
+                    His vfile = App.getHelper().getDao(His.class).
+                            queryBuilder().where()
+                            .lt("id", vf.getId()).queryForFirst();
+
+                    if (vfile != null) {
+                        play(vfile);
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else {
+
+            try {
+                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
+                ResItem vi = (ResItem) this.curItem;
+
+                do {
+                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                            .and().ge("id", vi.getId()).queryForFirst();
+                    if (curResItem == null) {
+                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                                .and().lt("id", 0).queryForFirst();
+                    }
+                    if (curResItem != null) {
+                        play(curResItem);
+                        return;
+                    }
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+
+    public void next2() {
+
+        if (curItem == null) {
+            curItem = new VFile();
+            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            int id  = sp.getInt("id",0);
+            VFile  vf = (VFile) curItem;
+            vf.setId(id);
+        }
+        if (curItem instanceof VFile) {
+            try {
+
+                do {
+                    VFile vf = (VFile) curItem;
+                    VFile vfile = App.getHelper().getDao(VFile.class).
+                            queryBuilder().where()
+                            .gt("folder_id", vf.getFolder().getId()).queryForFirst();
+                    if (vfile == null) {
+                        vfile = (VFile) App.getHelper().getDao(VFile.class).
+                                queryBuilder().where()
+                                .gt("id", 0).queryForFirst();
+                    }
+                    if (vfile != null) {
+                        play(vfile);
+                        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putInt("id", vf.getId()); //sp.getInt("id",0);
+                        editor.apply();
+                        //editor.apply();
+
+                        sp.edit().commit();
+
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else  if (curItem instanceof His) {
+            try {
+
+                do {
+                    His vf = (His) curItem;
+                    His vfile = App.getHelper().getDao(His.class).
+                            queryBuilder().where()
+                            .gt("id", vf.getId()).queryForFirst();
+                    if (vfile == null) {
+                        vfile = (His) App.getHelper().getDao(His.class).
+                                queryBuilder().where()
+                                .gt("id", 0).queryForFirst();
+                    }
+                    if (vfile != null) {
+                        vf.setId(vf.getId()+1);
+                        play(vfile);
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else {
+
+            try {
+                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
+                ResItem vi = (ResItem) this.curItem;
+
+                do {
+                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                            .and().ge("id", vi.getId()).queryForFirst();
+                    if (curResItem == null) {
+                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
+                                .and().ge("id", 0).queryForFirst();
+                    }
+                    if (curResItem != null) {
+                        curResItem.setId(curResItem.getId()+1);
+                        play(curResItem);
+                        return;
+                    }
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+
     public void next() {
 
         if (curItem == null) {
             curItem = new VFile();
+            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            int id  = sp.getInt("id",0);
+            VFile  vf = (VFile) curItem;
+            vf.setId(id);
         }
         if (curItem instanceof VFile) {
             try {
@@ -297,6 +514,42 @@ public final class PlayerController {
                                 .gt("id", 0).queryForFirst();
                     }
                     if (vfile != null) {
+                        //vf.setId(vf.getId()+1);
+                        play(vfile);
+                        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putInt("id", vf.getId()); //sp.getInt("id",0);
+                        editor.apply();
+                        //editor.apply();
+
+                        sp.edit().commit();
+
+                        return;
+                    }
+
+
+                } while (true);
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+
+        }else  if (curItem instanceof His) {
+            try {
+
+                do {
+                    His vf = (His) curItem;
+                    His vfile = App.getHelper().getDao(His.class).
+                            queryBuilder().where()
+                            .gt("id", vf.getId()).queryForFirst();
+                    if (vfile == null) {
+                        vfile = (His) App.getHelper().getDao(His.class).
+                                queryBuilder().where()
+                                .gt("id", 0).queryForFirst();
+                    }
+                    if (vfile != null) {
+                        vf.setId(vf.getId()+1);
                         play(vfile);
                         return;
                     }
@@ -308,7 +561,7 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        } else {
+        }else {
 
             try {
                 QueryBuilder builder = App.getHelper().getDao().queryBuilder();
@@ -322,6 +575,7 @@ public final class PlayerController {
                                 .and().ge("id", 0).queryForFirst();
                     }
                     if (curResItem != null) {
+                        curResItem.setId(curResItem.getId()+1);
                         play(curResItem);
                         return;
                     }

@@ -1,5 +1,6 @@
 package com.usbtv.demo.view;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -13,9 +14,9 @@ public class MyMediaPlayer extends MediaPlayer {
     private Handler handler = new Handler();
     private int curIndex;
     private CountDownTimer cntr_aCounter;
-    public void addPlaySource(String proxyUrl, int i) throws IOException {
+    public void addPlaySource(String proxyUrl, int wait) throws IOException {
         playSources.add(proxyUrl);
-        durations.add(i);
+        durations.add(wait);
         if(playSources.size()==1)
         {
             this.setDataSource(playSources.get(0));
@@ -85,6 +86,7 @@ public class MyMediaPlayer extends MediaPlayer {
 
         try {
             super.reset();
+
             this.setDataSource(playSources.get(curIndex));
             this.prepare();
             this.start();

@@ -52,6 +52,7 @@
                 android:background="@color/common_black"
                 android:gravity="center_vertical|center"
                 android:text=""
+                android:visibility="gone"
                 tools:visibility="gone" />
 
 

@@ -15,7 +15,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
@@ -42,12 +44,12 @@ public class DownloadMP {
 
     private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
-    public static String getVidoUrl(String bvid, Integer p) {
+    public static JSONObject getVidoInfo(String bvid, Integer p) {
 
         try {
             JSONObject info = getVideoInfo(getJsEngine(), "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
             info = info.getJSONObject("data");
-            return info.getString("video");
+            return info;
         } catch (ScriptException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -98,6 +100,7 @@ public class DownloadMP {
             cookies.add(cookie.split(";")[0]);
 
         cookies.add("ppp0609=1");
+        cookies.add("ppp0627=1");
 
         String url = "https://service0.iiilab.com/sponsor/getByPage";
 
@@ -192,9 +195,18 @@ public class DownloadMP {
                     folder.setTypeId(1);
                     folderDao.create(folder);
 
+                    Map<String,Object> infoMap = new HashMap<String,Object>();
+                    infoMap.put("Aid",""+aid);
+                    infoMap.put("Bid",""+bvid);
+                    infoMap.put("Title",""+title);
+                    infoMap.put("CoverURL",""+cover);
+
                 }else{
                     folder.setTypeId(1);
+                    folder.setName(title);
+                    folder.setCoverUrl(cover);
                     folderDao.update(folder);
+
                 }
 
 

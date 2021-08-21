@@ -6,12 +6,12 @@ import android.media.MediaPlayer;
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.His;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;
@@ -44,8 +44,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.script.ScriptException;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -90,9 +88,7 @@ public class IndexController {
             @RequestParam(name = "cmd") String cmd,
             @RequestParam(name = "val", required = false, defaultValue = "") String val,
             @RequestParam(name = "id", required = false, defaultValue = "-1") int id,
-            @RequestParam(name = "typeId", required = false, defaultValue = "0") int typeId,
-            @RequestParam(name = "aIndex", required = false, defaultValue = "-1") int aIndex,
-            @RequestParam(name = "bIndex", required = false, defaultValue = "-1") int bIndex
+            @RequestParam(name = "typeId", required = false, defaultValue = "0") int typeId
     ) {
 
         if ("play".equals(cmd)) {
@@ -103,7 +99,14 @@ public class IndexController {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-            } else {
+            }  else if(typeId==4)  {
+                try {
+                    item = App.getHelper().getDao(His.class).queryBuilder().where().eq("id", id).queryForFirst();
+
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+            } else  {
                 try {
                     item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id", id).queryForFirst();
 
@@ -248,7 +251,8 @@ public class IndexController {
 
                 } else {
                     App.bgMedia.reset();
-                    App.bgMedia.setDataSource(App.getProxyUrl(val));
+                    App.bgMedia.setDataSource(val);
+                   // App.bgMedia.setDataSource(Uri.parse(val));
                     App.bgMedia.prepare();
                     App.bgMedia.setLooping(true);
                     App.bgMedia.start();
@@ -590,9 +594,11 @@ public class IndexController {
 
             String url = null;
             if (vfile.getdLink() == null) {
-                url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(), vfile.getPage());
+                com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
                 if (vfile.getFolder().getRoot() == null || !new File(vfile.getFolder().getRoot().getP()).exists()) {
-                    response.sendRedirect(url);
+                    if(vidoInfo!=null&&null!=vidoInfo.getString("video"))
+                        url = vidoInfo.getString("video");
+                    response.sendRedirect(vidoInfo.getString("video"));
                     return null;
                 }
                 ;
@@ -625,7 +631,7 @@ public class IndexController {
 
         DownloadMP.process();
 
-        DLVideo.getList();
+        //DLVideo.getList();
 
         if (download) {
             Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
@@ -645,8 +651,8 @@ public class IndexController {
 
                     File file = new File(vfile.getAbsPath());
                     if (!file.exists() || file.length() == 0) {
-                        String url = DownloadMP.getVidoUrl(vfile.getFolder().getBvid(), vfile.getPage());
-                        if (url != null) oInstance.saveToFile(url, vfile.getAbsPath());
+                        com.alibaba.fastjson.JSONObject info = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+                        if (info != null&&info.getString("video")!=null) oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
                     }
                     vfile.setP(vfile.getRelativePath());
                     dao.update(vfile);

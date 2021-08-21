@@ -87,6 +87,7 @@ public class App extends Application implements CacheListener {
 
 
     public static String getProxyUrl(String url) {
+        if(true)return url;
         if (url.startsWith("http://") || url.startsWith("https://")) {
             if (App.proxy == null) {
                 proxy = getInstance().newProxy();

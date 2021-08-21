@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 }
             }
         }
-
+//new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
         intentFilter.addAction(App.CMD);
@@ -213,7 +213,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             }
         }
 
-        wm.addView(mInView, layoutParams);
+        //wm.addView(mInView, layoutParams);
+        setContentView(mInView);
         PlayerController.getInstance().setDetach(false);
 
 
@@ -247,6 +248,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer);
 
+
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+       // System.out.println("grant");android.os.Environment.getExternalStorageDirectory();
+      //  new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
 
     }
 
@@ -447,13 +455,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
+                    PlayerController.getInstance().next2();
                 }
 
                 break;
 
             case KeyEvent.KEYCODE_DPAD_UP:   //向上键
                 Log.d(TAG, "up--->");
-
+                PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键

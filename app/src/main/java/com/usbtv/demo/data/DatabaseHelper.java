@@ -13,7 +13,6 @@ import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.usbtv.demo.R;
-import com.usbtv.demo.game.Subject;
 
 /**
  * Database helper class used to manage the creation and upgrading of your database. This class also usually provides
@@ -24,7 +23,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 21;
+    private static final int DATABASE_VERSION = 26;
 
     // the DAO object we use to access the SimpleData table
     private Dao<ResItem, Integer> simpleDao = null;
@@ -42,9 +41,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase db, ConnectionSource connectionSource) {
         try {
             Log.i(DatabaseHelper.class.getName(), "onCreate");
-            //TableUtils.createTable(connectionSource, ResItem.class);
-            //TableUtils.createTable(connectionSource, Drive.class);
-           // TableUtils.createTable(connectionSource, Folder.class);
+            TableUtils.createTable(connectionSource, ResItem.class);
+            TableUtils.createTable(connectionSource, Drive.class);
+            TableUtils.createTable(connectionSource, Folder.class);
+            TableUtils.createTable(connectionSource, VFile.class);
+            TableUtils.createTable(connectionSource, CnDict.class);
+            TableUtils.createTable(connectionSource, His.class);
            if(false) TableUtils.createTable(connectionSource, VFile.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
@@ -70,10 +72,15 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
         try {
             Log.i(DatabaseHelper.class.getName(), "onUpgrade");
-               // TableUtils.dropTable(connectionSource, VFile.class, true);
-               // TableUtils.dropTable(connectionSource, Folder.class, true);
-               if(false) TableUtils.dropTable(connectionSource, Drive.class, true);
-               getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");
+                TableUtils.dropTable(connectionSource, VFile.class, true);
+                TableUtils.dropTable(connectionSource, Folder.class, true);
+            TableUtils.dropTable(connectionSource, ResItem.class, true);
+            TableUtils.dropTable(connectionSource, CnDict.class, true);
+            TableUtils.dropTable(connectionSource, His.class, true);
+            TableUtils.dropTable(connectionSource, Drive.class, true);
+               //getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");
+
+            //getDao(His.class).executeRaw("ALTER TABLE `His` ADD COLUMN orderN NUMBER default 0;");
             //TableUtils.dropTable(connectionSource, ResItem.class, true);
 
             // after we drop the old databases, we create the new ones
