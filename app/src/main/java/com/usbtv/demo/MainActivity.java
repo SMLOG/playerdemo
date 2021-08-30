@@ -40,7 +40,9 @@ import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SelectPicPopupWindow;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
@@ -168,6 +170,23 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         setTopView();
         bindElementViews();
         initViews();
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    DownloadMP.process();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+            }
+        }).start();
+
         PlayerController.getInstance().playNext();
 
     }

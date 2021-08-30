@@ -27,6 +27,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/networksecurityconfig"
         android:theme="@style/AppTheme2">
         <receiver android:name=".BootBroadcastReceiver" >
             <intent-filter>

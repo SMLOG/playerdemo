@@ -6,6 +6,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -27,6 +30,7 @@ import javax.script.ScriptException;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -99,8 +103,29 @@ public class DownloadMP {
                 response.headers().values("Set-Cookie"))
             cookies.add(cookie.split(";")[0]);
 
-        cookies.add("ppp0609=1");
-        cookies.add("ppp0627=1");
+        //cookies.add("ppp0609=1");
+        //cookies.add("ppp0627=1");
+       // cookies.add("zzz0821=1");
+
+        request = new Request
+                .Builder()
+                .url("https://wx.iiilab.com/static/js/human.min.js?v21")
+                .addHeader("User-Agent", AGENT)
+                .build();
+
+        call = okHttpClient.newCall(request);
+        response = call.execute();
+        String body = response.body().string();
+
+        Pattern p = Pattern.compile("setCookie\\(\"(.*?)\",(.*?),.*?\\)");
+        Matcher matcher = p.matcher(body);
+        while(matcher.find()) {
+            String name = matcher.group(1);
+            String value = matcher.group(2);
+            if(value.equals("new Date().getTime()"))value = ""+System.currentTimeMillis();
+            cookies.add(name+"="+value);
+
+        }
 
         String url = "https://service0.iiilab.com/sponsor/getByPage";
 
@@ -163,70 +188,94 @@ public class DownloadMP {
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         //Drive rootDriv = App.getDefaultRootDrive();
+
+        DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
+        deleteBuilder.where().isNull("p");
+        deleteBuilder.delete();
+
+        List<Folder> folders = folderDao.queryForAll();
+        for(Folder folder:folders){
+            if(folder.getRoot()==null ||!new File(folder.getRoot().getP()+folder.getP()).exists()){
+                vFileDao.delete(folder.getFiles());
+                folderDao.delete(folder);
+
+            }else
+            if(folder.getFiles().size()==0){
+                folderDao.delete(folder);
+            }
+        }
+
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer id = (Integer) item.get("id");
+            Integer media_count = (Integer) item.get("media_count");
 
-            resp = get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + id + "&pn=1&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
-            jsonObj = JSONObject.parseObject(resp);
-            JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
+            System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
 
-            for (int j = 0; j < medias.size(); j++) {
-                JSONObject media = ((JSONObject) medias.get(j));
-                String title = media.getString("title");
-                Integer aid = media.getInteger("id");
-                String bvid = media.getString("bvid");
-                String cover = media.getString("cover");
-                int pages = media.getInteger("page");
-                System.out.println(title);
+            int pn=1;
 
-                if (title == null || title.indexOf("失效") > -1) continue;
+            do {
+                resp = get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + id + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
+                jsonObj = JSONObject.parseObject(resp);
+                JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
-                Folder folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
-                if (folder == null) {
+                for (int j = 0; j < medias.size(); j++) {
+                    JSONObject media = ((JSONObject) medias.get(j));
+                    String title = media.getString("title");
+                    Integer aid = media.getInteger("id");
+                    String bvid = media.getString("bvid");
+                    String cover = media.getString("cover");
+                    int pages = media.getInteger("page");
+                    System.out.println(title);
 
-                    folder = new Folder();
-                    folder.setName(title);
-                    //folder.setRoot(rootDriv);
-                    folder.setAid("" + aid);
-                    folder.setBvid(bvid);
-                    folder.setCoverUrl(cover);
-                    folder.setTypeId(1);
-                    folderDao.create(folder);
+                    if (title == null || title.indexOf("失效") > -1) continue;
 
-                    Map<String,Object> infoMap = new HashMap<String,Object>();
-                    infoMap.put("Aid",""+aid);
-                    infoMap.put("Bid",""+bvid);
-                    infoMap.put("Title",""+title);
-                    infoMap.put("CoverURL",""+cover);
+                    Folder folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    if (folder == null) {
 
-                }else{
-                    folder.setTypeId(1);
-                    folder.setName(title);
-                    folder.setCoverUrl(cover);
-                    folderDao.update(folder);
+                        folder = new Folder();
+                        folder.setName(title);
+                        //folder.setRoot(rootDriv);
+                        folder.setAid("" + aid);
+                        folder.setBvid(bvid);
+                        folder.setCoverUrl(cover);
+                        folder.setTypeId(1);
+                        folderDao.create(folder);
 
-                }
+                        Map<String, Object> infoMap = new HashMap<String, Object>();
+                        infoMap.put("Aid", "" + aid);
+                        infoMap.put("Bid", "" + bvid);
+                        infoMap.put("Title", "" + title);
+                        infoMap.put("CoverURL", "" + cover);
 
+                    } else {
+                        folder.setTypeId(1);
+                        folder.setName(title);
+                        folder.setCoverUrl(cover);
+                        folderDao.update(folder);
 
-
-
-
-                for (int k = 1; k <= pages; k++) {
-
-                    VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
-                            .and().eq("page", k).queryForFirst();
-                    if (vfile == null) {
-                        vfile = new VFile();
-                        vfile.setFolder(folder);
-                        vfile.setPage(k);
-                        vFileDao.create(vfile);
                     }
+
+                    for (int k = 1; k <= pages; k++) {
+
+                        VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
+                                .and().eq("page", k).queryForFirst();
+                        if (vfile == null) {
+                            vfile = new VFile();
+                            vfile.setFolder(folder);
+                            vfile.setPage(k);
+                            vFileDao.create(vfile);
+                        }
+                    }
+
+
                 }
 
+                if(pn*20>media_count)break;
+                pn++;
 
-            }
+            }while (true);
         }
 
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");

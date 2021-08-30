@@ -9,10 +9,14 @@ import android.widget.Toast;
 
 import com.usbtv.demo.comm.NetUtils;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 public class BootBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+
 
             Intent mainActivityIntent = new Intent(context, MainActivity.class);
             mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -24,6 +28,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
             new Thread() {
                 public void run() {
+
 
                     DowloadPlayList.loadPlayList(true);
 

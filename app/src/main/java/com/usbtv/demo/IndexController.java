@@ -4,6 +4,7 @@ package com.usbtv.demo;
 import android.media.MediaPlayer;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.comm.HttpGet;
@@ -30,6 +31,8 @@ import com.yanzhenjie.andserver.util.MediaType;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -52,6 +55,11 @@ import okhttp3.Request;
 public class IndexController {
     private static String TAG = "IndexController";
     HttpGet oInstance = new HttpGet();
+    private int searchPage;
+    private int curP;
+    private int playIndex;
+    private String searchKeyword;
+    private JSONArray searchResult;
 
     @ResponseBody
     @GetMapping(path = "/api/status")
@@ -563,6 +571,66 @@ public class IndexController {
 
     }
 
+    private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+
+    @GetMapping(path = "/api/searchplay")
+    com.yanzhenjie.andserver.http.ResponseBody searchplay(
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "research",required = false,defaultValue = "true"
+            ) boolean research,
+
+            HttpResponse response) throws SQLException, IOException {
+
+        while(true){
+
+
+        if(research || searchResult == null){
+            this.searchPage=1;
+            this.curP = 1;
+            this.playIndex = -1 ;
+            this.searchKeyword = keyword;
+
+        }
+        if(this.playIndex>20){
+            this.searchPage++;
+            this.playIndex=-1;
+        }
+
+        if(this.playIndex==-1){
+            Document doc = Jsoup.connect("https://api.bilibili.com/x/web-interface/search/type?context=&order=&"
+                    + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
+                    .ignoreContentType(true)
+                    .data("page", ""+this.searchPage)
+                    .data("keyword", this.searchKeyword)
+                    .userAgent(AGENT).get();
+
+            System.out.println(doc.body().text());
+            com.alibaba.fastjson.JSONObject json = JSON.parseObject(doc.body().text());
+
+            json= (com.alibaba.fastjson.JSONObject) json.get("data");
+            this.searchResult  = json.getJSONArray("result");
+            this.playIndex=0;
+        }
+
+        com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
+        com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(data.getString("bvid"), this.curP);
+        if(vidoInfo==null || null==vidoInfo.getString("video")){
+            this.curP = 1;
+            this.playIndex++;
+            continue;
+        }else {
+            this.curP++;
+
+            if(vidoInfo!=null&&null!=vidoInfo.getString("video"))
+                response.sendRedirect(vidoInfo.getString("video"));
+
+        }
+
+        break;
+        }
+        return null;
+
+    }
 
     @GetMapping(path = "/api/vfile")
     com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
