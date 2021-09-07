@@ -189,22 +189,9 @@ public class DownloadMP {
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         //Drive rootDriv = App.getDefaultRootDrive();
 
-        DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
-        deleteBuilder.where().isNull("p");
-        deleteBuilder.delete();
 
-        List<Folder> folders = folderDao.queryForAll();
-        for(Folder folder:folders){
-            if(folder.getRoot()==null ||!new File(folder.getRoot().getP()+folder.getP()).exists()){
-                vFileDao.delete(folder.getFiles());
-                folderDao.delete(folder);
 
-            }else
-            if(folder.getFiles().size()==0){
-                folderDao.delete(folder);
-            }
-        }
-
+        Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
@@ -257,6 +244,8 @@ public class DownloadMP {
 
                     }
 
+                    validFoldersMap.put(folder.getId(),true);
+
                     for (int k = 1; k <= pages; k++) {
 
                         VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
@@ -276,6 +265,23 @@ public class DownloadMP {
                 pn++;
 
             }while (true);
+        }
+
+       // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
+       // deleteBuilder.where().isNull("p");
+       // deleteBuilder.delete();
+
+        List<Folder> folders = folderDao.queryForAll();
+        for(Folder folder:folders){
+            if(folder.getRoot()==null ||!new File(folder.getRoot().getP()+folder.getP()).exists()){
+                if(validFoldersMap.get(folder.getId())==null){
+                    vFileDao.delete(folder.getFiles());
+                    folderDao.delete(folder);
+                }
+            }else
+            if(folder.getFiles().size()==0){
+                folderDao.delete(folder);
+            }
         }
 
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");

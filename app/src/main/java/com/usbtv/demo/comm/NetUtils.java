@@ -1,11 +1,18 @@
 package com.usbtv.demo.comm;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -108,5 +115,50 @@ public class NetUtils {
         }
 
         return drawable ;
+    }
+
+    public static Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Bitmap loadBitmap(String url) {
+        Bitmap bitmap = null;
+        InputStream in = null;
+        BufferedOutputStream out = null;
+
+        try {
+            in = new BufferedInputStream(new URL(url).openStream(), 1024*1024*2);
+
+            final ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+
+
+            final byte[] data = dataStream.toByteArray();
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            //options.inSampleSize = 1;
+
+            bitmap = BitmapFactory.decodeByteArray(data, 0, data.length,options);
+
+        } catch (IOException e) {
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return bitmap;
     }
 }

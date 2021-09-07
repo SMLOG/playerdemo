@@ -27,7 +27,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:networkSecurityConfig="@xml/networksecurityconfig"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme2">
         <receiver android:name=".BootBroadcastReceiver" >
             <intent-filter>
@@ -47,6 +47,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
+        <activity android:name=".RegularVerticalActivity" />
+
     </application>
 
 </manifest>

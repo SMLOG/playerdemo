@@ -49,4 +49,6 @@ dependencies {
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
     //implementation 'org.jsoup:jsoup:1.12.1'
 
+    implementation 'com.henryblue.library:tvrecyclerview:1.2.4'
+
 }

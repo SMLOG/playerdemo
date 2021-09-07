@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -30,14 +31,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
+import com.usbtv.demo.RegularVerticalActivity.SpaceItemDecoration;
 import com.usbtv.demo.comm.HttpCallback;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
+import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.view.MyImageView;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SelectPicPopupWindow;
+
+import org.mozilla.javascript.tools.jsc.Main;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,9 +52,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 
+import app.com.tvrecyclerview.FocusHighlightHelper;
+import app.com.tvrecyclerview.GridObjectAdapter;
+import app.com.tvrecyclerview.VerticalGridView;
 import butterknife.BindView;
 
 public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
@@ -81,6 +90,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
     @BindView(R.id.bgTextView)
     TextView bgTextView;
+
+    @BindView(R.id.home)
+    View home;
 
     private int key = 0;
     private Handler handler = new Handler();
@@ -137,6 +149,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }
     };
     private Timer timer;
+    private View showList=null;
+    private VerticalGridView gridView;
+    private GridObjectAdapter adapter;
 
 
     @Override
@@ -170,6 +185,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         setTopView();
         bindElementViews();
         initViews();
+         gridView = findViewById(R.id.id_grid_vertical2);
+
+        gridView.addItemDecoration(new SpaceItemDecoration());
+        gridView.setNumColumns(3);
+         adapter = new GridObjectAdapter(new RegularVerticalPresenter(this));
+        gridView.setFocusZoomFactor(FocusHighlightHelper.ZOOM_FACTOR_SMALL);
+
+        gridView.setAdapter(adapter);
 
 
         new Thread(new Runnable() {
@@ -178,6 +201,17 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
                 try {
                     DownloadMP.process();
+                    try {
+                        List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
+                        for (int i = 0; i < list.size(); i++) {
+
+                            adapter.add(list.get(i));
+                        }
+
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (SQLException throwables) {
@@ -263,6 +297,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         bgTextView = mInView.findViewById(R.id.bgTextView);
         imageView = mInView.findViewById(R.id.imageView);
+        home = mInView.findViewById(R.id.home);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
         PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer);
@@ -446,11 +481,17 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
+        boolean isShowHome = home.getVisibility()==View.VISIBLE;
         switch (keyCode) {
 
             case KeyEvent.KEYCODE_ENTER:     //确定键enter
             case KeyEvent.KEYCODE_DPAD_CENTER:
                 Log.d(TAG, "enter--->");
+                if(isShowHome){
+                    home.setVisibility(View.GONE);
+                    return false;
+                }
+
                 //如果是播放中则暂停、如果是暂停则继续播放
                 isVideoPlay(videoView.isPlaying(), key);
                 status.setVisibility(View.VISIBLE);
@@ -458,7 +499,85 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
+                home.bringToFront();
+                home.setVisibility(home.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
+
                 //startRun();
+
+                //Intent intent = new Intent(MainActivity.this, RegularVerticalActivity.class);
+                //startActivity(intent);
+
+                /*if(this.showList==null){
+
+
+                WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
+                        Context.WINDOW_SERVICE);
+
+                WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+
+                layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+                layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+                layoutParams.type = WindowManager.LayoutParams.LAST_APPLICATION_WINDOW;
+                layoutParams.flags = WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+                layoutParams.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+
+
+                //layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
+                layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
+                //layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+
+
+                LayoutInflater inflater = LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
+                    FrameLayout mInView = (FrameLayout)inflater.inflate(R.layout.activity_regular_vertical, null, false);
+
+                VerticalGridView gridView = mInView.findViewById(R.id.id_grid_vertical);
+
+
+
+                gridView.addItemDecoration(new SpaceItemDecoration());
+                gridView.setNumColumns(3);
+                GridObjectAdapter adapter = new GridObjectAdapter(new RegularVerticalPresenter(this));
+                gridView.setFocusZoomFactor(FocusHighlightHelper.ZOOM_FACTOR_SMALL);
+
+                try {
+                    List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
+
+                    gridView.setAdapter(adapter);
+                    for (int i = 0; i < list.size(); i++) {
+
+                        adapter.add(list.get(i));
+                    }
+
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+                    mInView.setOnKeyListener(new View.OnKeyListener() {
+                        @Override
+                        public boolean onKey(View view, int keycode, KeyEvent keyEvent) {
+                            if(keycode==KeyEvent.KEYCODE_BACK&&keyEvent.getAction()==KeyEvent.ACTION_UP){
+
+                                getWindowManager().removeViewImmediate(MainActivity.this.showList);
+                                MainActivity.this.showList = null;
+
+                                return true;
+                            }
+                            return false;
+                        }
+                    });
+                wm.addView(mInView, layoutParams);
+                this.showList = mInView;
+                mInView.setFocusable(true);
+                mInView.setFocusableInTouchMode(true);
+                mInView.requestFocus();
+
+
+                }else {
+                    getWindowManager().removeViewImmediate(this.showList);
+                    this.showList = null;
+                }*/
+
                 return false;   //这里由于break会退出，所以我们自己要处理掉 不返回上一层
 
             case KeyEvent.KEYCODE_SETTINGS: //设置键
@@ -468,6 +587,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             case KeyEvent.KEYCODE_DPAD_DOWN:   //向下键
 
+                if(isShowHome)return false;
                 /*    实际开发中有时候会触发两次，所以要判断一下按下时触发 ，松开按键时不触发
                  *    exp:KeyEvent.ACTION_UP
                  */
@@ -480,11 +600,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 break;
 
             case KeyEvent.KEYCODE_DPAD_UP:   //向上键
+                if(isShowHome)return false;
+
                 Log.d(TAG, "up--->");
                 PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键
+                if(isShowHome)return false;
+
                 Log.d(TAG, "left--->");
                 if (videoView.getCurrentPosition() > 4) {
                     videoView.seekTo(videoView.getCurrentPosition() - 5 * 1000);
@@ -492,6 +616,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 break;
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
+                if(isShowHome)return false;
+
                 Log.d(TAG, "right--->");
                 videoView.seekTo(videoView.getCurrentPosition() + 5 * 1000);
                 break;

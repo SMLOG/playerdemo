@@ -27,8 +27,7 @@
             <com.usbtv.demo.view.MyImageView
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                 />
+                android:layout_height="match_parent" />
 
             <TextView
                 android:id="@+id/textView"
@@ -54,6 +53,15 @@
                 android:text=""
                 android:visibility="gone"
                 tools:visibility="gone" />
+
+            <app.com.tvrecyclerview.VerticalGridView
+                android:id="@+id/id_grid_vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:gravity="center_horizontal"
+                android:paddingTop="30dp" />
 
 
         </RelativeLayout>
@@ -134,4 +142,23 @@
         android:background="@mipmap/icon_restart_play"
         android:layout_width="@dimen/dp_100"
         android:layout_height="@dimen/dp_100"/>
+
+    <FrameLayout
+        android:id="@+id/home"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary"
+        android:clipChildren="false"
+        android:visibility="gone"
+        tools:visibility="gone">
+        <app.com.tvrecyclerview.VerticalGridView
+            android:id="@+id/id_grid_vertical2"
+            android:layout_width="match_parent"
+            android:gravity="center_horizontal"
+            android:paddingTop="30dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
 </RelativeLayout>
