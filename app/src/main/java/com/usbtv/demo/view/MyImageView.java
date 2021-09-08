@@ -43,4 +43,8 @@ public class MyImageView extends ImageView {
         new MyTask(this,null).execute();
 
     }
+
+    public String getUrl() {
+        return url;
+    }
 }

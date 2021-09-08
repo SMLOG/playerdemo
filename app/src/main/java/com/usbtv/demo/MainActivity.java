@@ -192,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
          adapter = new GridObjectAdapter(new RegularVerticalPresenter(this));
         gridView.setFocusZoomFactor(FocusHighlightHelper.ZOOM_FACTOR_SMALL);
 
-        gridView.setAdapter(adapter);
 
 
         new Thread(new Runnable() {
@@ -211,6 +210,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     } catch (SQLException throwables) {
                         throwables.printStackTrace();
                     }
+
+                    gridView.setAdapter(adapter);
+
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -300,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         home = mInView.findViewById(R.id.home);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
-        PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer);
+        PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer,home);
 
 
     }

@@ -147,18 +147,18 @@
         android:id="@+id/home"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary"
         android:clipChildren="false"
         android:visibility="gone"
         tools:visibility="gone">
+
         <app.com.tvrecyclerview.VerticalGridView
             android:id="@+id/id_grid_vertical2"
             android:layout_width="match_parent"
-            android:gravity="center_horizontal"
-            android:paddingTop="30dp"
+            android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:layout_height="match_parent" />
+            android:gravity="center_horizontal"
+            android:paddingTop="30dp" />
 
     </FrameLayout>
 </RelativeLayout>

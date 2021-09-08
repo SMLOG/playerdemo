@@ -35,15 +35,16 @@ public class RegularVerticalPresenter extends Presenter {
         Folder folder = (Folder) item;
         MyImageView imageView = (MyImageView) viewHolder.view;
         if(folder.getCoverUrl()!=null){
+            if(imageView.getUrl()==null)
             imageView.setUrl(App.getProxyUrl(folder.getCoverUrl()));
         }
 
 
-        viewHolder.view.setOnLongClickListener(new View.OnLongClickListener() {
+        viewHolder.view.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onClick(View v) {
+                PlayerController.getInstance().hideMenu();
                 PlayerController.getInstance().play(folder.getFiles().iterator().next());
-                return true;
             }
         });
     }

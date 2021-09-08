@@ -49,6 +49,7 @@ public final class PlayerController {
 
     private Map<String, VFile> mapFiles;
     private Uri videoUrl;
+    private View girdView;
 
     public boolean isDetach() {
         return detach;
@@ -603,12 +604,13 @@ public final class PlayerController {
     }
 
     public void setUIs(TextView bgTextView, MyImageView imageView, TextView textView, MyVideoView videoView,
-                       MyMediaPlayer mediaPlayer) {
+                       MyMediaPlayer mediaPlayer, View gridView) {
         this.maskView = bgTextView;
         this.imageView = imageView;
         this.videoView = videoView;
         this.mediaPlayer = mediaPlayer;
         this.textView = textView;
+        this.girdView = gridView;
     }
 
     public String getCoverUrl() {
@@ -630,4 +632,7 @@ public final class PlayerController {
     }
 
 
+    public void hideMenu() {
+        this.girdView.setVisibility(View.GONE);
+    }
 }
