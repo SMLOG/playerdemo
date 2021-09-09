@@ -48,6 +48,7 @@
         </activity>
         <activity android:name=".view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
         <activity android:name=".RegularVerticalActivity" />
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
     </application>
 

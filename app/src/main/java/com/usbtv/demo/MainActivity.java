@@ -200,18 +200,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
                 try {
                     DownloadMP.process();
-                    try {
-                        List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
-                        for (int i = 0; i < list.size(); i++) {
 
-                            adapter.add(list.get(i));
-                        }
-
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-
-                    gridView.setAdapter(adapter);
 
 
                 } catch (IOException e) {
@@ -219,7 +208,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
+                try {
+                    List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
+                    for (int i = 0; i < list.size(); i++) {
 
+                        adapter.add(list.get(i));
+                    }
+
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+                gridView.setAdapter(adapter);
             }
         }).start();
 

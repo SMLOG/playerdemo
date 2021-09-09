@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.MyImageView;
 
@@ -35,8 +36,11 @@ public class RegularVerticalPresenter extends Presenter {
         Folder folder = (Folder) item;
         MyImageView imageView = (MyImageView) viewHolder.view;
         if(folder.getCoverUrl()!=null){
-            if(imageView.getUrl()==null)
-            imageView.setUrl(App.getProxyUrl(folder.getCoverUrl()));
+            //ImageUtil.displayImg(imageView,folder.getCoverUrl());
+            Glide.with(App.getInstance().getApplicationContext()).load(folder.getCoverUrl()).into(imageView);
+           // ImageUtil.displayImg(imageView,App.getProxyUrl(folder.getCoverUrl()));
+           // if(imageView.getUrl()==null)
+            //imageView.setUrl(App.getProxyUrl(folder.getCoverUrl()));
         }
 
 
