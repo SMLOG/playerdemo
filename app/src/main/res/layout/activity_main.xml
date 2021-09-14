@@ -142,7 +142,9 @@
         android:background="@mipmap/icon_restart_play"
         android:layout_width="@dimen/dp_100"
         android:layout_height="@dimen/dp_100"/>
-
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
     <FrameLayout
         android:id="@+id/home"
         android:layout_width="match_parent"
@@ -150,6 +152,8 @@
         android:clipChildren="false"
         android:visibility="gone"
         tools:visibility="gone">
+
+
 
         <app.com.tvrecyclerview.VerticalGridView
             android:id="@+id/id_grid_vertical2"

@@ -207,6 +207,7 @@ public class DownloadMP {
                 jsonObj = JSONObject.parseObject(resp);
                 JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
+                if(medias==null)break;
                 for (int j = 0; j < medias.size(); j++) {
                     JSONObject media = ((JSONObject) medias.get(j));
                     String title = media.getString("title");
