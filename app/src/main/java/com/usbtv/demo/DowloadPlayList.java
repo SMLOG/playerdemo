@@ -1,11 +1,17 @@
 package com.usbtv.demo;
 
 import com.alibaba.fastjson.JSON;
+import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.data.Drive;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -79,7 +85,23 @@ public class DowloadPlayList {
                 public void run() {
                     try {
 
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+                        Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
+                        // if the path changed,clean all data and re-scan again
+                        Folder testFolder = folderDao.queryBuilder().where().isNotNull("root_id").queryForFirst();
+                        if(! testFolder.exists()){
+                            Dao<Drive, Integer> driveDao = App.getHelper().getDao(Drive.class);
+
+                            List<Folder> folders = folderDao.queryBuilder().where().isNotNull("root_id").query();
+                            for(Folder f:folders){
+                                vfDao.delete(f.getFiles());
+                                folderDao.delete(f);
+                            }
+                            driveDao.deleteBuilder().delete();
                             Aid.scanAllDrive();
+
+                        }
+
 
                     } catch (Exception e) {
                         e.printStackTrace();

@@ -124,4 +124,9 @@ public class VFile {
     public String getRelativePath() {
         return page + File.separator + folder.getAid() + ".mp4";
     }
+
+    public boolean exists() {
+
+       return this.getAbsPath()!=null && new File(this.getAbsPath()).exists();
+    }
 }

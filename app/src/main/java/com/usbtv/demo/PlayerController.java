@@ -300,15 +300,16 @@ public final class PlayerController {
 
         String vremote = "http://127.0.0.1:8080/api/vfile?id=" + vf.getId();
 
-        if (vf.getFolder().getRoot() == null || !new File(vf.getFolder().getRoot().getP()).exists()) {
+        if (!vf.exists()) {
 
             com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 vremote = vidoInfo.getString("video");
+                App.cache2Disk(vf, vremote);
             }
 
         } else {
-            String path = vf.getFolder().getRoot().getP() + "/" + vf.getFolder().getP() + "/" + vf.getP();
+            String path = vf.getAbsPath();
             if (new File(path).exists()) {
                 vremote = "file://" + path;
             }

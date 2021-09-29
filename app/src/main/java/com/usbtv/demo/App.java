@@ -10,13 +10,18 @@ import android.util.Log;
 import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.NetUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,11 +156,46 @@ public class App extends Application implements CacheListener {
 
     public static synchronized Drive getDefaultRemoveableDrive(){
         for (Drive drive:diskList){
-            if(drive.isRemoveable())return drive;
+            if(drive.isRemoveable() && isWritableDirectory(drive.getP()))return drive;
         }
         return null;
     }
 
+    public static boolean isWritableDirectory(String dir) {
+        boolean isWrite = new File(dir+"/testtmp").mkdirs();
+        new File(dir+"/testtmp").delete();
+        return isWrite;
+    }
 
+    public static void cache2Disk(VFile vfile, String url) {
+        HttpGet oInstance = new HttpGet();
 
+        if( App.getDefaultRemoveableDrive()==null){
+            App.initDisks();
+        }
+        if (url != null&&App.getDefaultRemoveableDrive()!=null) {
+            String finalUrl = url;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    //String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id=" + id);
+
+                    if (vfile.getFolder().getRoot() == null) {
+                        vfile.getFolder().setRoot(App.getDefaultRemoveableDrive());
+
+                    }
+
+                    oInstance.addItem(vfile, finalUrl, vfile.getAbsPath());
+                    oInstance.downLoadByList();
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                        folderDao.update(vfile.getFolder());
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
 }

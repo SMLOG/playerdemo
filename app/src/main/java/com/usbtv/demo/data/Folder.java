@@ -5,6 +5,8 @@ import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 
+import java.io.File;
+
 import app.com.tvrecyclerview.RowItem;
 
 
@@ -148,5 +150,16 @@ public class Folder extends RowItem {
 
     public void setTypeId(int typeId) {
         this.typeId = typeId;
+    }
+
+    public String absPath(){
+        if(this.getRoot()==null)return null;
+        if(this.getP()==null)return null;
+
+        return  this.getRoot().getP()+"/"+this.getP();
+    }
+
+    public boolean exists() {
+        return  this.absPath()!=null && new File(this.absPath()).exists() ;
     }
 }

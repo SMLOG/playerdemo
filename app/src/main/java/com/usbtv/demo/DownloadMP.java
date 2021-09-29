@@ -274,7 +274,7 @@ public class DownloadMP {
 
         List<Folder> folders = folderDao.queryForAll();
         for(Folder folder:folders){
-            if(folder.getRoot()==null ||!new File(folder.getRoot().getP()+folder.getP()).exists()){
+            if(!folder.exists()){
                 if(validFoldersMap.get(folder.getId())==null){
                     vFileDao.delete(folder.getFiles());
                     folderDao.delete(folder);

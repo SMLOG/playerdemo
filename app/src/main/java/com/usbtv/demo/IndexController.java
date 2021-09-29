@@ -54,7 +54,6 @@ import okhttp3.Request;
 @RestController
 public class IndexController {
     private static String TAG = "IndexController";
-    HttpGet oInstance = new HttpGet();
     private int searchPage;
     private int curP;
     private int playIndex;
@@ -107,14 +106,14 @@ public class IndexController {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-            }  else if(typeId==4)  {
+            } else if (typeId == 4) {
                 try {
                     item = App.getHelper().getDao(His.class).queryBuilder().where().eq("id", id).queryForFirst();
 
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-            } else  {
+            } else {
                 try {
                     item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id", id).queryForFirst();
 
@@ -260,7 +259,7 @@ public class IndexController {
                 } else {
                     App.bgMedia.reset();
                     App.bgMedia.setDataSource(val);
-                   // App.bgMedia.setDataSource(Uri.parse(val));
+                    // App.bgMedia.setDataSource(Uri.parse(val));
                     App.bgMedia.prepare();
                     App.bgMedia.setLooping(true);
                     App.bgMedia.start();
@@ -277,7 +276,7 @@ public class IndexController {
 
     @GetMapping(path = "/api/manRes")
     @ResponseBody
-    String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId ,@RequestParam(name = "searchValue",required = false,defaultValue = "") String searchValue) {
+    String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId, @RequestParam(name = "searchValue", required = false, defaultValue = "") String searchValue) {
 
         try {
             int pageSize = 20;
@@ -290,8 +289,8 @@ public class IndexController {
 
                 QueryBuilder<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder();
 
-                if(searchValue!=null&&!searchValue.trim().equals("")){
-                   where =  where.where().like("name","%"+searchValue+"%").queryBuilder();
+                if (searchValue != null && !searchValue.trim().equals("")) {
+                    where = where.where().like("name", "%" + searchValue + "%").queryBuilder();
                 }
                 long total = where.countOf();
 
@@ -576,67 +575,68 @@ public class IndexController {
     @GetMapping(path = "/api/searchplay")
     com.yanzhenjie.andserver.http.ResponseBody searchplay(
             @RequestParam(name = "keyword") String keyword,
-            @RequestParam(name = "research",required = false,defaultValue = "true"
+            @RequestParam(name = "research", required = false, defaultValue = "true"
             ) boolean research,
 
             HttpResponse response) throws SQLException, IOException {
 
-        while(true){
+        while (true) {
 
 
-        if(research || searchResult == null){
-            this.searchPage=1;
-            this.curP = 1;
-            this.playIndex = -1 ;
-            this.searchKeyword = keyword;
+            if (research || searchResult == null) {
+                this.searchPage = 1;
+                this.curP = 1;
+                this.playIndex = -1;
+                this.searchKeyword = keyword;
 
-        }
-        if(this.playIndex>20){
-            this.searchPage++;
-            this.playIndex=-1;
-        }
+            }
+            if (this.playIndex > 20) {
+                this.searchPage++;
+                this.playIndex = -1;
+            }
 
-        if(this.playIndex==-1){
-            Document doc = Jsoup.connect("https://api.bilibili.com/x/web-interface/search/type?context=&order=&"
-                    + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
-                    .ignoreContentType(true)
-                    .data("page", ""+this.searchPage)
-                    .data("keyword", this.searchKeyword)
-                    .userAgent(AGENT).get();
+            if (this.playIndex == -1) {
+                Document doc = Jsoup.connect("https://api.bilibili.com/x/web-interface/search/type?context=&order=&"
+                        + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
+                        .ignoreContentType(true)
+                        .data("page", "" + this.searchPage)
+                        .data("keyword", this.searchKeyword)
+                        .userAgent(AGENT).get();
 
-            System.out.println(doc.body().text());
-            com.alibaba.fastjson.JSONObject json = JSON.parseObject(doc.body().text());
+                System.out.println(doc.body().text());
+                com.alibaba.fastjson.JSONObject json = JSON.parseObject(doc.body().text());
 
-            json= (com.alibaba.fastjson.JSONObject) json.get("data");
-            this.searchResult  = json.getJSONArray("result");
-            this.playIndex=0;
-        }
+                json = (com.alibaba.fastjson.JSONObject) json.get("data");
+                this.searchResult = json.getJSONArray("result");
+                this.playIndex = 0;
+            }
 
-        com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
-        com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(data.getString("bvid"), this.curP);
-        if(vidoInfo==null || null==vidoInfo.getString("video")){
-            this.curP = 1;
-            this.playIndex++;
-            continue;
-        }else {
-            this.curP++;
+            com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
+            com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(data.getString("bvid"), this.curP);
+            if (vidoInfo == null || null == vidoInfo.getString("video")) {
+                this.curP = 1;
+                this.playIndex++;
+                continue;
+            } else {
+                this.curP++;
 
-            if(vidoInfo!=null&&null!=vidoInfo.getString("video"))
-                response.sendRedirect(vidoInfo.getString("video"));
+                if (vidoInfo != null && null != vidoInfo.getString("video"))
+                    response.sendRedirect(vidoInfo.getString("video"));
 
-        }
+            }
 
-        break;
+            break;
         }
         return null;
 
     }
 
     @GetMapping(path = "/api/vfile")
-    com.yanzhenjie.andserver.http.ResponseBody vfile(@RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
+    com.yanzhenjie.andserver.http.ResponseBody vfile(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
+        dao.queryForAll();
         String path = vfile.getAbsPath();
         if (path != null) {
             final File file = new File(path);
@@ -652,46 +652,32 @@ public class IndexController {
 
             }
         }
-        {
 
-            if (vfile.getFolder().getRoot() == null) {
-                vfile.getFolder().setRoot(App.getDefaultRemoveableDrive());
-                Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-                folderDao.update(vfile.getFolder());
+
+        String url = null;
+
+
+        if (vfile.getdLink() != null) {
+            url = DLVideo.getM3U8(vfile.getdLink());
+        } else {
+            com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+            if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                url = vidoInfo.getString("video");
             }
-
-            String url = null;
-            if (vfile.getdLink() == null) {
-                com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
-                if (vfile.getFolder().getRoot() == null || !new File(vfile.getFolder().getRoot().getP()).exists()) {
-                    if(vidoInfo!=null&&null!=vidoInfo.getString("video"))
-                        url = vidoInfo.getString("video");
-                    response.sendRedirect(vidoInfo.getString("video"));
-                    return null;
-                }
-                ;
-                if (url != null)
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id=" + id);
-                            oInstance.addItem(vfile, proxyUrl, path);
-                            oInstance.downLoadByList();
-
-                        }
-                    }).start();
-            } else {
-                url = DLVideo.getM3U8(vfile.getdLink());
-            }
-
-
-            System.out.println(url);
-            response.sendRedirect(url);
-
         }
+
+        App.cache2Disk(vfile, url);
+
+
+        System.out.println(url);
+        response.sendRedirect(url);
+
+
         return null;
 
     }
+
+
 
     @ResponseBody
     @GetMapping(path = "/api/syncache")
@@ -720,7 +706,8 @@ public class IndexController {
                     File file = new File(vfile.getAbsPath());
                     if (!file.exists() || file.length() == 0) {
                         com.alibaba.fastjson.JSONObject info = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
-                        if (info != null&&info.getString("video")!=null) oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
+                        //if (info != null && info.getString("video") != null)
+                           // oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
                     }
                     vfile.setP(vfile.getRelativePath());
                     dao.update(vfile);
