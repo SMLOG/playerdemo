@@ -192,10 +192,12 @@ public class DownloadMP {
 
 
         Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
+        Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
-            Integer id = (Integer) item.get("id");
+            Integer typeId = (Integer) item.get("id");
+            Integer typeId2 = i+1;
             Integer media_count = (Integer) item.get("media_count");
 
             System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
@@ -203,7 +205,7 @@ public class DownloadMP {
             int pn=1;
 
             do {
-                resp = get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + id + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
+                resp = get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + typeId + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
                 jsonObj = JSONObject.parseObject(resp);
                 JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
@@ -228,7 +230,7 @@ public class DownloadMP {
                         folder.setAid("" + aid);
                         folder.setBvid(bvid);
                         folder.setCoverUrl(cover);
-                        folder.setTypeId(1);
+                        folder.setTypeId(typeId2);
                         folderDao.create(folder);
 
                         Map<String, Object> infoMap = new HashMap<String, Object>();
@@ -238,7 +240,7 @@ public class DownloadMP {
                         infoMap.put("CoverURL", "" + cover);
 
                     } else {
-                        folder.setTypeId(1);
+                        folder.setTypeId(typeId2);
                         folder.setName(title);
                         folder.setCoverUrl(cover);
                         folderDao.update(folder);
@@ -246,6 +248,7 @@ public class DownloadMP {
                     }
 
                     validFoldersMap.put(folder.getId(),true);
+                    validAidsMap.put(aid.toString(),true);
 
                     for (int k = 1; k <= pages; k++) {
 
@@ -271,18 +274,23 @@ public class DownloadMP {
        // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");
        // deleteBuilder.delete();
+        try {
+            Aid.scanAllDrive(validFoldersMap,validAidsMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         List<Folder> folders = folderDao.queryForAll();
         for(Folder folder:folders){
-            if(!folder.exists()){
+            //if(!folder.exists()){
                 if(validFoldersMap.get(folder.getId())==null){
                     vFileDao.delete(folder.getFiles());
                     folderDao.delete(folder);
                 }
-            }else
-            if(folder.getFiles().size()==0){
-                folderDao.delete(folder);
-            }
+            //}else
+          //  if(folder.getFiles().size()==0){
+            //    folderDao.delete(folder);
+          //  }
         }
 
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");

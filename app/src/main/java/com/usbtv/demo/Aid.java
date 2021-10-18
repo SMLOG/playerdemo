@@ -3,7 +3,6 @@ package com.usbtv.demo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.field.DatabaseField;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -13,14 +12,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 
 public class Aid {
@@ -76,7 +72,7 @@ public class Aid {
     }
 
 
-    public static void scanAllDrive() throws Exception {
+    public static void scanAllDrive(Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
@@ -92,14 +88,17 @@ public class Aid {
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
             for (File aidDir : aidDirs) {
-                scanFolder(root, aidDir);
+                scanFolder(root, aidDir,validFoldersMap,validAidsMap);
             }
         }
 
 
     }
 
-    public static void scanFolder(Drive root, File aidDir) throws Exception {
+    public static void scanFolder(Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+
+        if(validAidsMap.get(aidDir.getName())!=null)return;
+
         String divfile = aidDir.getAbsolutePath() + File.separator + aidDir.getName() + ".dvi";
 
         List<File> matchFiles = searchFiles(aidDir, ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
@@ -132,8 +131,10 @@ public class Aid {
             folder.setBvid(bvid);
             folderDao.createOrUpdate(folder);
 
-
         }
+        validFoldersMap.put(folder.getId(),true);
+        validAidsMap.put(folder.getAid(),true);
+
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
         for (File file : matchFiles) {

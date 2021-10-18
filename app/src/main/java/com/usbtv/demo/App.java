@@ -3,7 +3,6 @@ package com.usbtv.demo;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.util.Log;
 
@@ -114,7 +113,7 @@ public class App extends Application implements CacheListener {
 
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
         Log.d(TAG, ipaddr.getHostAddress());
-        DowloadPlayList.loadPlayList(true);
+        //DowloadPlayList.loadPlayList(true);
     }
     @Override
     public void onTerminate() {
@@ -152,6 +151,11 @@ public class App extends Application implements CacheListener {
         diskList.clear();
         List<Drive> drives = Utils.getSysAllDriveList();
         diskList.addAll(drives);
+        /*Drive drive = new Drive();
+        drive.setRemoveable(true);
+        drive.setP(android.os.Environment.getExternalStorageDirectory()+"");
+        diskList.add(drive);*/
+
     }
 
     public static synchronized Drive getDefaultRemoveableDrive(){
@@ -163,17 +167,33 @@ public class App extends Application implements CacheListener {
 
     public static boolean isWritableDirectory(String dir) {
         boolean isWrite = new File(dir+"/testtmp").mkdirs();
-        new File(dir+"/testtmp").delete();
+        new File(dir+"/testtmp").delete();new File(dir+"/testtmp").canWrite();
         return isWrite;
     }
 
-    public static void cache2Disk(VFile vfile, String url) {
+    public static String cache2Disk(VFile vfile, String url) {
         HttpGet oInstance = new HttpGet();
 
         if( App.getDefaultRemoveableDrive()==null){
             App.initDisks();
         }
         if (url != null&&App.getDefaultRemoveableDrive()!=null) {
+
+            for(Drive d:App.diskList){
+                vfile.getFolder().setRoot(d);
+                if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
+                ){
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                        folderDao.update(vfile.getFolder());
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
+                    return  "file://" + vfile.getAbsPath();
+                }
+            }
             String finalUrl = url;
             new Thread(new Runnable() {
                 @Override
@@ -196,6 +216,9 @@ public class App extends Application implements CacheListener {
                     }
                 }
             }).start();
+
+            return url;
         }
+        return url;
     }
 }

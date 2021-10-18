@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.MyImageView;
+import com.usbtv.demo.view.WBottomTitleView;
 
 import app.com.tvrecyclerview.Presenter;
 import app.com.tvrecyclerview.RowItem;
@@ -22,7 +23,7 @@ public class RegularVerticalPresenter extends Presenter {
 
     @Override
     public View onCreateView() {
-        MyImageView view = new MyImageView(getContext());
+        WBottomTitleView view = new WBottomTitleView(getContext());
         view.setSelected(true);
         view.setFocusable(true);
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(413, 238);
@@ -34,13 +35,15 @@ public class RegularVerticalPresenter extends Presenter {
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
         viewHolder.view.setBackgroundColor(Utils.getRandColor());
         Folder folder = (Folder) item;
-        MyImageView imageView = (MyImageView) viewHolder.view;
+        WBottomTitleView imageView = (WBottomTitleView) viewHolder.view;
         if(folder.getCoverUrl()!=null){
             //ImageUtil.displayImg(imageView,folder.getCoverUrl());
             Glide.with(App.getInstance().getApplicationContext()).load(folder.getCoverUrl()).into(imageView);
            // ImageUtil.displayImg(imageView,App.getProxyUrl(folder.getCoverUrl()));
            // if(imageView.getUrl()==null)
             //imageView.setUrl(App.getProxyUrl(folder.getCoverUrl()));
+        }else{
+            imageView.setTextString(folder.getName());
         }
 
 

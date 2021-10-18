@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.RegularVerticalActivity.SpaceItemDecoration;
@@ -109,28 +110,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
            if (intent.getAction().equals(App.CMD)) {
 
                 String cmd = intent.getExtras().getString("cmd");
-                String val = intent.getExtras().getString("val");
+               String val = intent.getExtras().getString("val");
+               if ("play".equals(cmd)) {
+                   PlayerController.getInstance().play(null);
 
-                if("detach".equals(cmd) ){
-
-                    if(Boolean.parseBoolean(val)){
-                        if(PlayerController.getInstance().isDetach())return;
-                        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
-                                Context.WINDOW_SERVICE);
-                        wm.removeViewImmediate(mInView);
-                        setContentView(mInView);
-                        PlayerController.getInstance().setDetach(true);
-                    }else{
-                        //setContentView(null);
-                        if(!PlayerController.getInstance().isDetach())return;
-
-                        setTopView();
-                    }
-                }else if("play".equals(cmd)){
-                    PlayerController.getInstance().play(null);
-
-                }
-            }
+               }
+           }
         }
     };
 
@@ -177,6 +162,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 }
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            this.requestPermissions( new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
 //new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
@@ -209,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     throwables.printStackTrace();
                 }
                 try {
-                    List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
+                    List<Folder> list = App.getHelper().getDao(Folder.class).queryBuilder().orderBy("id",false).query();
                     for (int i = 0; i < list.size(); i++) {
 
                         adapter.add(list.get(i));
@@ -309,8 +297,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-       // System.out.println("grant");android.os.Environment.getExternalStorageDirectory();
-      //  new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
+        System.out.println("grant");android.os.Environment.getExternalStorageDirectory();
+        //new File(android.os.Environment.getExternalStorageDirectory()+File.separator+"test/abc").getParentFile().mkdirs();
 
     }
 

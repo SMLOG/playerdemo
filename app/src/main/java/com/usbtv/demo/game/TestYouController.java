@@ -60,101 +60,12 @@ public class TestYouController {
     }
 
 
-    @com.yanzhenjie.andserver.annotation.ResponseBody
-    @GetMapping(value = "/api2/randList")
-    public String randList(@RequestParam(name = "n") int n) throws SQLException {
-
-        Dao<ResItem, Integer> subjectDao = App.getHelper().getDao(ResItem.class);
-
-        long total = subjectDao.queryBuilder().countOf();
-        long maxId = total;
-
-        List<ResItem> list = new ArrayList<ResItem>();
-        if (total == 0) return JSON.toJSONString(list);
-        ;
-        Set<Integer> set = new HashSet();
-        while (true) {
-            int nextId = (int) (Math.random() * maxId);
-            if (set.contains(new Integer(nextId)))
-                continue;
-            //Optional<Subject> subject = subjectsRepository.findById(nextId);
-            ResItem subject = subjectDao.queryBuilder().where().eq("typeId", ResItem.IMAGE).and().ge("id", nextId)
-                    .and().isNotNull("imgUrl")
-                   // .and().lt("rTimes", 5)
-                    .queryForFirst();
-
-
-            set.add(nextId);
-            if (subject == null) continue;
-            set.add(subject.getId());
-
-            list.add(subject);
-
-            if (list.size() == n)
-                break;
-        }
-
-        return JSON.toJSONString(list);
-    }
-
 
     private boolean isBlank(String str){
         return str==null||str.trim().equals("");
     }
-    @com.yanzhenjie.andserver.annotation.ResponseBody
-    @PostMapping(value = "/api2/save")
-    public String save(com.yanzhenjie.andserver.http.RequestBody content) throws Exception {
-        ResItem subject = JSON.parseObject(content.string(), ResItem.class);
-        Dao<ResItem, Integer> subjectDao = App.getHelper().getDao(ResItem.class);
 
-        subject.setTypeId(ResItem.IMAGE);
 
-        TransApi api = new TransApi();
-
-        if( isBlank(subject.getEnText()) &&isBlank(subject.getCnText())){
-            return "error";
-        }
-
-        if(! isBlank(subject.getEnText()) &&isBlank(subject.getCnText())){
-            String transResult = api.getTransResult(subject.getEnText().trim(), "en", "zh");
-            subject.setCnText(transResult);
-        }
-        if(! isBlank(subject.getCnText()) &&isBlank(subject.getEnText())){
-            String transResult = api.getTransResult(subject.getCnText(), "zh", "en");
-            subject.setEnText(transResult);
-        }
-
-        String transResult = api.getTransResult(subject.getCnText(), "zh", "jp");
-        subject.setJpText(transResult);
-
-        subject.setEnText(subject.getEnText().toLowerCase().trim());
-        subject.setCnText(subject.getCnText().toLowerCase().trim());
-
-        if (subject.getId() != 0) {
-            subjectDao.update(subject);
-
-        } else {
-            ResItem target = subjectDao.queryBuilder().where().eq("enText", subject.getEnText()).queryForFirst();
-            if (target != null) {
-                subject.setId(target.getId());
-                subjectDao.update(subject);
-            } else
-                subjectDao.create(subject);
-
-        }
-
-        return JSON.toJSONString(subject);
-
-    }
-
-    @GetMapping(path = "/api2/say")
-    public void say(@RequestParam(name = "str") String str) {
-
-        //exec("say  " + str);
-
-        // exec("say "+ list.get(result.getCurIndex()).getEnText());
-
-    }
 
     @GetMapping(path = "/api2/tts")
     public FileBody tts(@RequestParam(name = "lan") String lan, @RequestParam(name = "str") String str, HttpResponse resp) throws IOException {
@@ -203,44 +114,6 @@ public class TestYouController {
     }
 
 
-    @GetMapping(path = "/api2/ttscacheall")
-    public String ttscacheall() throws SQLException {
-
-        List<ResItem> items = App.getHelper().getDao(ResItem.class).queryForAll();
-
-        if (cacheFolder == null || new File(cacheFolder).canWrite()) {
-
-            List<Drive> drives = Utils.getSysAllDriveList();
-            String rootDir = drives.get(drives.size() - 1).getP();
-            cacheFolder = rootDir + "/audio/";
-        }
-
-
-        for (ResItem item : items) {
-            try {
-
-                String cacheFile = cacheFolder + item.getEnText() + ".mp3";
-
-                File file = new File(cacheFile);
-                if (!file.exists()) {
-                    tts("en", item.getEnText(), null);
-                }
-                cacheFile = cacheFolder + item.getCnText() + ".mp3";
-
-                file = new File(cacheFile);
-                if (!file.exists()) {
-                    tts("zh", item.getCnText(), null);
-                }
-
-                System.out.println(item.getEnText());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        return "OK";
-    }
 
     @GetMapping(value = "/api2/proxy")
     public void proxy(@RequestParam(name = "url") String url, @RequestParam(name = "enText") String enText, HttpResponse resp)

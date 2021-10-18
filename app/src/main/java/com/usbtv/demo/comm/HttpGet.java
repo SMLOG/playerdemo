@@ -60,7 +60,7 @@ public class HttpGet {
                     GetInfo next = queue.take();
                     if(next==null || next.url == null )break;
                     saveToFile(next.url, next.savePath);
-                    System.out.println("资源[" + next.url + "]下载失败!!!");
+                    //System.out.println("资源[" + next.url + "]下载失败!!!");
                     System.out.println("下载完成!!!"+next.url+":"+next.savePath);
 
                     next.vFile.setP(next.vFile.getRelativePath());

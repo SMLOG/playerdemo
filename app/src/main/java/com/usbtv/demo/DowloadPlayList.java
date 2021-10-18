@@ -7,7 +7,6 @@ import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -58,65 +57,9 @@ public class DowloadPlayList {
 
     }
 
-    public static void loadPlayList(boolean isUsingThread) {
-
-        if (isUsingThread) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    reLoadPlayList();
-                }
-
-            }).start();
-        } else {
-            reLoadPlayList();
-        }
-
-    }
-
-
-    public static void scanToDB() {
 
 
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-
-                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-                        Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
-                        // if the path changed,clean all data and re-scan again
-                        Folder testFolder = folderDao.queryBuilder().where().isNotNull("root_id").queryForFirst();
-                        if(! testFolder.exists()){
-                            Dao<Drive, Integer> driveDao = App.getHelper().getDao(Drive.class);
-
-                            List<Folder> folders = folderDao.queryBuilder().where().isNotNull("root_id").query();
-                            for(Folder f:folders){
-                                vfDao.delete(f.getFiles());
-                                folderDao.delete(f);
-                            }
-                            driveDao.deleteBuilder().delete();
-                            Aid.scanAllDrive();
-
-                        }
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-            return;
-        }
-
-
-    public static void reLoadPlayList() {
-
-        scanToDB();
-
-    }
 
 
 

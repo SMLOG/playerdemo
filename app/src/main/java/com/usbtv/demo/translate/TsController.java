@@ -32,38 +32,6 @@ public class TsController {
     }
 
 
-    @ResponseBody
-    @GetMapping("/api/translateAll")
-    public String translateAll() throws Exception {
-
-        TransApi api = new TransApi();
-
-        Dao<ResItem, Integer> dao = App.getHelper().getDao(ResItem.class);
-        List<ResItem> list = dao.queryForAll();
-        for(ResItem item:list){
-
-            //String transResult = api.getTransResult(item.getCnText(), "zh", "jp");
-            //item.setJpText(transResult);
-
-             //transResult = api.getTransResult(item.getCnText(), "zh", "en");
-            //item.setEnText(transResult);
-
-            try {
-                System.out.println(item.getCnText());
-                System.out.println(item.getEnText());
-
-                if(!item.getEnText().matches("^[a-z A-Z.'?!-]*")){
-                    System.out.println(item.getEnText());
-                    dao.delete(item);
-                }
-              //  dao.update(item);
-            }catch (Throwable e){
-                e.printStackTrace();
-            }
-        }
-
-        return "done";
-    }
 
 
 

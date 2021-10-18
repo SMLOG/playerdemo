@@ -7,12 +7,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.data.His;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;
@@ -73,7 +71,6 @@ public class IndexController {
     @GetMapping(path = "/api/reLoadPlayList")
     String reLoadPlayList(RequestBody body) throws IOException {
 
-        DowloadPlayList.loadPlayList(false);
 
         return "ok";
     }
@@ -99,29 +96,15 @@ public class IndexController {
     ) {
 
         if ("play".equals(cmd)) {
-            Object item = null;
-            if (typeId == 3) {
-                try {
-                    item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-            } else if (typeId == 4) {
-                try {
-                    item = App.getHelper().getDao(His.class).queryBuilder().where().eq("id", id).queryForFirst();
+            VFile item = null;
+            try {
+                item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
+                PlayerController.getInstance().play(item);
+                PlayerController.getInstance().setTypeId(item.getFolder().getTypeId());
 
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-            } else {
-                try {
-                    item = App.getHelper().getDao(ResItem.class).queryBuilder().where().eq("id", id).queryForFirst();
-
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
             }
-            PlayerController.getInstance().play(item);
 
         } else if ("next".equals(cmd)) {
 
@@ -213,23 +196,7 @@ public class IndexController {
     }
 
 
-    @GetMapping(path = "/api/res")
-    String res(@RequestParam(name = "typeId") int typeId, @RequestParam(name = "id") int id, HttpResponse response) {
 
-        ResItem res = new ResItem();
-        res.setTypeId(typeId);
-
-        if (typeId == res.IMAGE) {
-            try {
-                res = App.getHelper().getDao().queryForId(id);
-
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-        return JSON.toJSONString(res);
-
-    }
 
     @GetMapping(path = "/api/bgmedia")
     @ResponseBody
@@ -288,26 +255,17 @@ public class IndexController {
             if (typeId == 3) {
 
                 QueryBuilder<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder();
-
                 if (searchValue != null && !searchValue.trim().equals("")) {
                     where = where.where().like("name", "%" + searchValue + "%").queryBuilder();
                 }
                 long total = where.countOf();
-
+                where.query();
                 result.put("total", total);
                 List<Folder> list = where
                         .offset((long) ((page - 1) * pageSize))
                         .limit(20l).query();
                 result.put("datas", list);
 
-            } else {
-                long total = App.getHelper().getDao().queryBuilder().where().eq("typeId", typeId).countOf();
-                List<ResItem> list = App.getHelper().getDao().queryBuilder()
-                        .where().eq("typeId", typeId).queryBuilder()
-                        .offset((long) ((page - 1) * pageSize))
-                        .limit(20l).query();
-                result.put("datas", list);
-                result.put("total", total);
             }
 
 
@@ -319,60 +277,7 @@ public class IndexController {
         return null;
     }
 
-    @PostMapping(path = "/api/manRes")
-    String manRes(RequestBody body, HttpResponse response) {
-        try {
-            String content = body.string();
 
-            ResItem res = JSON.parseObject(content, ResItem.class);
-            App.getHelper().getDao().queryForAll();
-            List<ResItem> list = App.getHelper().getDao().queryForEq("enText", res.getEnText());
-            if (list.size() > 0) {
-                res.setId(list.get(0).getId());
-                App.getHelper().getDao().update(res);
-            } else
-                App.getHelper().getDao().create(res);
-
-            //return JSON.toJSONString(res);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @GetMapping(path = "/api/manRes2")
-    StringBody manResContent(@RequestParam(name = "content") String content, HttpResponse response) {
-        try {
-
-            ResItem res = JSON.parseObject(content, ResItem.class);
-
-            List<ResItem> list = App.getHelper().getDao().queryForEq("enText", res.getEnText());
-            if (list.size() > 0) {
-                res.setId(list.get(0).getId());
-                App.getHelper().getDao().update(res);
-            } else
-                App.getHelper().getDao().create(res);
-
-            //return JSON.toJSONString(res);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        response.setHeader("Content-Type", "text/html;charset=utf-8");
-        StringBuilder sb = new StringBuilder();
-        sb.append("<html><body><script>alert('ok');window.close();</script></body></html>");
-        return new StringBody(sb.toString());
-    }
-
-    @PostMapping(path = "/api/delRes")
-    String delRes(@RequestParam(name = "id") int id) {
-        try {
-            App.getHelper().getDao().deleteById(id);
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     @GetMapping(path = "/api/delete")
     String delete(@RequestParam(name = "aIndex") int aIndex, @RequestParam(name = "bIndex") int bIndex, HttpResponse response) throws IOException {
@@ -421,30 +326,7 @@ public class IndexController {
 
     }
 
-    @PostMapping(path = "/api/uploadInfo")
-    String upload2(HttpRequest request,
-                   @RequestParam(name = "path") String path
 
-    ) {
-
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        Drive drive = drives.get(drives.size() - 1);
-
-        try {
-
-            Folder folder = new Folder();
-            folder.setRoot(drive);
-            Aid.scanFolder(drive, new File(drive.getP() + "/" + path));
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return "OK";
-    }
 
     @GetMapping(path = "/api/upload")
     String upload2(HttpRequest request,

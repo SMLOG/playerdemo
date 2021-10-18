@@ -10,12 +10,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.VideoView;
 
-import com.alibaba.fastjson.JSON;
-import com.danikula.videocache.CacheListener;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.Where;
-import com.usbtv.demo.comm.Utils;
-import com.usbtv.demo.data.His;
+import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.MyImageView;
@@ -24,8 +20,6 @@ import com.usbtv.demo.view.MyVideoView;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -50,6 +44,7 @@ public final class PlayerController {
     private Map<String, VFile> mapFiles;
     private Uri videoUrl;
     private View girdView;
+    private int curTypeId=1;
 
     public boolean isDetach() {
         return detach;
@@ -220,73 +215,6 @@ public final class PlayerController {
                                 PlayerController.getInstance().setMediaObj(videoView);
                             }
 
-                        } else if (res instanceof ResItem) {
-                            ResItem item = (ResItem) res;
-                            try {
-                                synchronized (mediaPlayer) {
-                                    PlayerController.getInstance().setMediaObj(mediaPlayer);
-                                    textView.setVisibility(View.VISIBLE);
-                                    videoView.pause();
-                                    videoView.setVisibility(View.GONE);
-                                    imageView.setVisibility(View.VISIBLE);
-                                    textView.setText(item.getEnText() + " " + item.getCnText());
-                                    imageView.setUrl(App.getProxyUrl(item.getImgUrl()));
-                                    mediaPlayer.reset();
-
-                                    if (item.getTypeId() == ResItem.IMAGE) {
-                                        String url = "https://fanyi.baidu.com/gettts?lan=en&text=" + URLEncoder.encode(item.getEnText()) + "&spd=3&source=web";
-                                        mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-
-                                        url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCnText()) + "&spd=3&source=web";
-                                        mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-                                        if (item.getSound() != null) {
-                                            mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 10000);
-                                        }
-                                    } else {
-
-                                        PlayerController.getInstance().showMaskView();
-                                        if (item.getSound() != null) {
-
-                                            mediaPlayer.addPlaySource(App.getProxyUrl(item.getSound()), 0);
-                                        }
-                                    }
-
-
-                                    mediaPlayer.prepare();
-
-                                    mediaPlayer.start();
-                                }
-
-
-                            } catch (Throwable tt) {
-                                PlayerController.getInstance().playNext();
-                            }
-                        } else if (res instanceof His) {
-                            His item = (His) res;
-                            try {
-                                synchronized (mediaPlayer) {
-                                    PlayerController.getInstance().setMediaObj(mediaPlayer);
-                                    textView.setVisibility(View.VISIBLE);
-                                    videoView.pause();
-                                    videoView.setVisibility(View.GONE);
-                                    imageView.setVisibility(View.VISIBLE);
-                                    textView.setText(item.getLangText() + " " + item.getCn().getCnText());
-                                    imageView.setUrl(App.getProxyUrl(item.getCn().getImgUrl()));
-                                    mediaPlayer.reset();
-
-                                    String url = "https://fanyi.baidu.com/gettts?lan=" + item.getLang() + "&text=" + URLEncoder.encode(item.getLangText()) + "&spd=5&source=web";
-                                    System.out.println(url);
-                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-
-                                    url = "https://fanyi.baidu.com/gettts?lan=zh&text=" + URLEncoder.encode(item.getCn().getCnText()) + "&spd=5&source=web";
-                                    mediaPlayer.addPlaySource(App.getProxyUrl(url), 0);
-                                    mediaPlayer.prepare();
-                                    mediaPlayer.start();
-                                }
-
-                            } catch (Throwable tt) {
-                                PlayerController.getInstance().playNext();
-                            }
                         }
                     }
                 });
@@ -305,7 +233,7 @@ public final class PlayerController {
             com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 vremote = vidoInfo.getString("video");
-                App.cache2Disk(vf, vremote);
+                vremote=App.cache2Disk(vf, vremote);
             }
 
         } else {
@@ -357,49 +285,6 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        } else if (curItem instanceof His) {
-            try {
-
-                do {
-                    His vf = (His) curItem;
-                    His vfile = App.getHelper().getDao(His.class).
-                            queryBuilder().where()
-                            .lt("id", vf.getId()).queryForFirst();
-
-                    if (vfile != null) {
-                        play(vfile);
-                        return;
-                    }
-
-
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-        } else {
-
-            try {
-                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
-                ResItem vi = (ResItem) this.curItem;
-
-                do {
-                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                            .and().ge("id", vi.getId()).queryForFirst();
-                    if (curResItem == null) {
-                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                                .and().lt("id", 0).queryForFirst();
-                    }
-                    if (curResItem != null) {
-                        play(curResItem);
-                        return;
-                    }
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
         }
     }
 
@@ -417,12 +302,21 @@ public final class PlayerController {
 
                 do {
                     VFile vf = (VFile) curItem;
-                    VFile vfile = App.getHelper().getDao(VFile.class).
-                            queryBuilder().where()
-                            .gt("folder_id", vf.getFolder().getId()).queryForFirst();
+
+                    QueryBuilder<Folder, ?> foldersQueryBuilder = App.getHelper().getDao(Folder.class).
+                            queryBuilder();
+
+                    foldersQueryBuilder.where().eq("typeId",curTypeId);
+
+                    VFile vfile =
+                            App.getHelper().getDao(VFile.class).
+                                    queryBuilder().join(foldersQueryBuilder).where()
+                                    .eq("type_id",curTypeId)
+                                    .gt("folder_id", vf.getFolder().getId()).queryForFirst();
+
                     if (vfile == null) {
                         vfile = (VFile) App.getHelper().getDao(VFile.class).
-                                queryBuilder().where()
+                                queryBuilder().join(foldersQueryBuilder).where()
                                 .gt("id", 0).queryForFirst();
                     }
                     if (vfile != null) {
@@ -446,55 +340,6 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        } else if (curItem instanceof His) {
-            try {
-
-                do {
-                    His vf = (His) curItem;
-                    His vfile = App.getHelper().getDao(His.class).
-                            queryBuilder().where()
-                            .gt("id", vf.getId()).queryForFirst();
-                    if (vfile == null) {
-                        vfile = (His) App.getHelper().getDao(His.class).
-                                queryBuilder().where()
-                                .gt("id", 0).queryForFirst();
-                    }
-                    if (vfile != null) {
-                        vf.setId(vf.getId() + 1);
-                        play(vfile);
-                        return;
-                    }
-
-
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-        } else {
-
-            try {
-                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
-                ResItem vi = (ResItem) this.curItem;
-
-                do {
-                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                            .and().ge("id", vi.getId()).queryForFirst();
-                    if (curResItem == null) {
-                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                                .and().ge("id", 0).queryForFirst();
-                    }
-                    if (curResItem != null) {
-                        curResItem.setId(curResItem.getId() + 1);
-                        play(curResItem);
-                        return;
-                    }
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
         }
     }
 
@@ -512,12 +357,21 @@ public final class PlayerController {
 
                 do {
                     VFile vf = (VFile) curItem;
+
+
+                    QueryBuilder<Folder, ?> foldersQueryBuilder = App.getHelper().getDao(Folder.class).
+                            queryBuilder();
+
+                    foldersQueryBuilder.where().eq("typeId",curTypeId);
+
+
                     VFile vfile = App.getHelper().getDao(VFile.class).
-                            queryBuilder().where()
+                            queryBuilder().join(foldersQueryBuilder).where()
                             .gt("id", vf.getId()).queryForFirst();
+
                     if (vfile == null) {
                         vfile = (VFile) App.getHelper().getDao(VFile.class).
-                                queryBuilder().where()
+                                queryBuilder().join(foldersQueryBuilder).where()
                                 .gt("id", 0).queryForFirst();
                     }
                     if (vfile != null) {
@@ -542,55 +396,6 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        } else if (curItem instanceof His) {
-            try {
-
-                do {
-                    His vf = (His) curItem;
-                    His vfile = App.getHelper().getDao(His.class).
-                            queryBuilder().where()
-                            .gt("id", vf.getId()).queryForFirst();
-                    if (vfile == null) {
-                        vfile = (His) App.getHelper().getDao(His.class).
-                                queryBuilder().where()
-                                .gt("id", 0).queryForFirst();
-                    }
-                    if (vfile != null) {
-                        vf.setId(vf.getId() + 1);
-                        play(vfile);
-                        return;
-                    }
-
-
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-
-        } else {
-
-            try {
-                QueryBuilder builder = App.getHelper().getDao().queryBuilder();
-                ResItem vi = (ResItem) this.curItem;
-
-                do {
-                    ResItem curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                            .and().ge("id", vi.getId()).queryForFirst();
-                    if (curResItem == null) {
-                        curResItem = (ResItem) builder.where().eq("typeId", vi.getTypeId())
-                                .and().ge("id", 0).queryForFirst();
-                    }
-                    if (curResItem != null) {
-                        curResItem.setId(curResItem.getId() + 1);
-                        play(curResItem);
-                        return;
-                    }
-                } while (true);
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
         }
     }
 
@@ -635,5 +440,9 @@ public final class PlayerController {
 
     public void hideMenu() {
         this.girdView.setVisibility(View.GONE);
+    }
+
+    public void setTypeId(int typeId) {
+        this.curTypeId=typeId;
     }
 }

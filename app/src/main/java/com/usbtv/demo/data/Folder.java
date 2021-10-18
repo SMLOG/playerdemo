@@ -73,6 +73,7 @@ public class Folder extends RowItem {
     }
 
     public String getP() {
+        if(p==null)return aid;
         return p;
     }
 

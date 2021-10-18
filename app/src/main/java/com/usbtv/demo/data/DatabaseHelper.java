@@ -46,7 +46,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Folder.class);
             TableUtils.createTable(connectionSource, VFile.class);
             TableUtils.createTable(connectionSource, CnDict.class);
-            TableUtils.createTable(connectionSource, His.class);
            if(false) TableUtils.createTable(connectionSource, VFile.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
@@ -76,7 +75,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 TableUtils.dropTable(connectionSource, Folder.class, true);
             TableUtils.dropTable(connectionSource, ResItem.class, true);
             TableUtils.dropTable(connectionSource, CnDict.class, true);
-            TableUtils.dropTable(connectionSource, His.class, true);
             TableUtils.dropTable(connectionSource, Drive.class, true);
                //getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");
 
