@@ -40,7 +40,7 @@ public class App extends Application implements CacheListener {
     private static App self;
     private ServerManager mServer;
 
-    private static List<Drive> diskList = new ArrayList<Drive>();
+    protected static List<Drive> diskList = new ArrayList<Drive>();
 
 
     private static boolean mediaMounted =false;
@@ -54,27 +54,6 @@ public class App extends Application implements CacheListener {
     public static HttpProxyCacheServer getProxy() {
         App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
         return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
-    }
-
-    public synchronized static boolean isMediaMounted() {
-        return mediaMounted;
-    }
-
-    public synchronized static void setMediaMounted(boolean mediaMounted) {
-        App.mediaMounted = mediaMounted;
-    }
-
-    public static void updateCacheFolder(File file) {
-        App app = getInstance();
-        app.proxy = null;
-        if (file != null && file.canWrite()) {
-            app.proxy = new HttpProxyCacheServer.Builder(app)
-
-                    .cacheDirectory(file)
-                    // .maxCacheSize(1024 * 1024 * 1024)
-                    .build();
-        } else app.proxy = app.newProxy();
-
     }
 
     public static void broadcastCMD(String cmd, String val) {
@@ -115,7 +94,7 @@ public class App extends Application implements CacheListener {
 
 
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
-        Log.d(TAG, ipaddr.getHostAddress());
+       // Log.d(TAG, ipaddr.getHostAddress());
         //DowloadPlayList.loadPlayList(true);
     }
     @Override
@@ -154,10 +133,7 @@ public class App extends Application implements CacheListener {
         diskList.clear();
         List<Drive> drives = Utils.getSysAllDriveList();
         diskList.addAll(drives);
-        /*Drive drive = new Drive();
-        drive.setRemoveable(true);
-        drive.setP(android.os.Environment.getExternalStorageDirectory()+"");
-        diskList.add(drive);*/
+
 
     }
 

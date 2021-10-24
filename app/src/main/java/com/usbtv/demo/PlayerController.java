@@ -10,7 +10,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.MyImageView;
@@ -218,6 +220,28 @@ public final class PlayerController {
 
         String vremote = "http://127.0.0.1:8080/api/vfile?id=" + vf.getId();
 
+        String path = vf.getAbsPath();
+
+        if(path == null || ! new File(path).exists())
+            for(Drive d:App.diskList){
+                vf.getFolder().setRoot(d);
+                if(vf.exists() && new File(vf.getAbsPath()).canRead()
+                ){
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                        folderDao.update(vf.getFolder());
+
+                      //  path = vf.getAbsPath();
+                        break;
+
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
+                }
+            }
+
         if (!vf.exists()) {
 
             com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
@@ -227,7 +251,7 @@ public final class PlayerController {
             }
 
         } else {
-            String path = vf.getAbsPath();
+             path = vf.getAbsPath();
             if (new File(path).exists()) {
                 vremote = "file://" + path;
             }

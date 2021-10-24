@@ -516,8 +516,28 @@ public class IndexController {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
-        dao.queryForAll();
         String path = vfile.getAbsPath();
+
+        if(path == null || ! new File(path).exists())
+        for(Drive d:App.diskList){
+            vfile.getFolder().setRoot(d);
+            if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
+            ){
+                try {
+                    Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                    folderDao.update(vfile.getFolder());
+
+                    path = vfile.getAbsPath();
+                    break;
+
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+            }
+        }
+
         if (path != null) {
             final File file = new File(path);
             if (file.exists() && file.length() > 0) {

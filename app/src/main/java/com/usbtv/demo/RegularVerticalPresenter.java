@@ -43,6 +43,7 @@ public class RegularVerticalPresenter extends Presenter {
            // if(imageView.getUrl()==null)
             //imageView.setUrl(App.getProxyUrl(folder.getCoverUrl()));
         }else{
+            imageView.setImageURI(null);
             imageView.setTextString(folder.getName());
         }
 

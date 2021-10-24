@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -35,7 +34,6 @@ import com.usbtv.demo.RegularVerticalActivity.SpaceItemDecoration;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.view.MyImageView;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 
@@ -128,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }
     };
     private Timer timer;
-    private View showList=null;
     private VerticalGridView gridView;
     private GridObjectAdapter adapter;
     private String rootPath;
