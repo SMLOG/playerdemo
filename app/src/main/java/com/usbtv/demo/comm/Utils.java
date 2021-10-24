@@ -6,6 +6,8 @@ import android.app.usage.StorageStatsManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.storage.StorageManager;
@@ -96,7 +98,16 @@ public class Utils {
         }
         return bitmap;
     }
-
+    public static void saveBitmapToJPG(Bitmap bitmap, File file) throws IOException {
+        Bitmap newBitmap = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(newBitmap);
+        canvas.drawColor(Color.WHITE);
+        canvas.drawBitmap(bitmap, 0, 0, null);
+        OutputStream stream = new FileOutputStream(file);
+        newBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+        stream.close();
+    }
     // 获取最大关键帧
     /*Bitmap bmp = ThumbnailUtils.createVideoThumbnail("/sdcard/0001.mp4", MediaStore.Images.Thumbnails.MINI_KIND);
 mTextView01.setBackground(new BitmapDrawable(bmp));
@@ -107,58 +118,14 @@ retriever.setDataSource("/sdcard/0001.mp4");
     Bitmap bmp = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
 mTextView02.setBackground(new BitmapDrawable(bmp));*/
 
-    // 模拟键盘按键，Keycode对应Android键盘按键的的keycode
-    public static void setKeyPress(int keycode) {
-        try {
-            String keyCommand = "input keyevent " + keycode;
-            Runtime runtime = Runtime.getRuntime();
-            Process proc = runtime.exec(keyCommand);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    public  static void simulateKeystroke(final int KeyCode) {
-        new Thread(new Runnable() {
 
-            public void run() {
-                // TODO Auto-generated method stub
-                try {
-                    Instrumentation inst = new Instrumentation();
-                    inst.sendCharacterSync(KeyCode);
-                } catch (Exception e) {
-                    // TODO: handle exception
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
     //        Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    /**
-     * Checks if the app has permission to write to device storage
-     * If the app does not has permission then the user will be prompted to
-     * grant permissions
-     *
-     * @param activity
-     */
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        /*
-        int permission = ActivityCompat.checkSelfPermission(activity,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE);
-        }
-
-         */
-    }
 
     public static String convertStreamToString(InputStream is) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -256,9 +223,9 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
 
         ArrayList<Drive> ret = new ArrayList<>();
 
-        Drive drive = new Drive(App.getInstance().getCacheDir().getAbsolutePath());
-        drive.setRemoveable(false);
-        ret.add(drive);
+        Drive drive = null;//new Drive(App.getInstance().getCacheDir().getAbsolutePath());
+       // drive.setRemoveable(false);
+       // ret.add(drive);
 
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
 

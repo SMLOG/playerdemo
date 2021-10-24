@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
@@ -19,6 +20,8 @@ import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -160,16 +163,12 @@ public class App extends Application implements CacheListener {
 
     public static synchronized Drive getDefaultRemoveableDrive(){
         for (Drive drive:diskList){
-            if(drive.isRemoveable() && isWritableDirectory(drive.getP()))return drive;
+            if(drive.isRemoveable())return drive;
         }
         return null;
     }
 
-    public static boolean isWritableDirectory(String dir) {
-        boolean isWrite = new File(dir+"/testtmp").mkdirs();
-        new File(dir+"/testtmp").delete();new File(dir+"/testtmp").canWrite();
-        return isWrite;
-    }
+
 
     public static String cache2Disk(VFile vfile, String url) {
         HttpGet oInstance = new HttpGet();
@@ -177,6 +176,8 @@ public class App extends Application implements CacheListener {
         if( App.getDefaultRemoveableDrive()==null){
             App.initDisks();
         }
+
+
         if (url != null&&App.getDefaultRemoveableDrive()!=null) {
 
             for(Drive d:App.diskList){
@@ -220,5 +221,30 @@ public class App extends Application implements CacheListener {
             return url;
         }
         return url;
+    }
+
+    public OutputStream documentStream(String filePath) throws IOException {
+
+        Log.i(TAG," sdkOut: " + filePath);
+        File file = new File(filePath);
+        if (!file.getParentFile().exists()){
+            if(DocumentsUtils.mkdirs(this,file.getParentFile())){
+                Log.i(TAG,"创建文件夹：" + file.getParentFile().getAbsolutePath());
+            }else{
+                Log.i(TAG,"创建文件夹失败：" + file.getParentFile().getAbsolutePath());
+            }
+
+        }
+
+        String  fileWritePath = filePath ;
+        File fileWrite = new File(fileWritePath);
+
+
+        Log.i(TAG,"  准备写入" );
+        OutputStream outputStream = DocumentsUtils.getOutputStream(this,fileWrite);  //获取输出流
+        //Toast.makeText(this,"路径：" + fileWritePath + "成功",Toast.LENGTH_SHORT ).show();
+
+        return outputStream;
+
     }
 }

@@ -7,6 +7,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
@@ -86,7 +87,7 @@ public class HttpGet {
      * @throws Exception
      */
     public void saveToFile(String destUrl, String fileName) throws IOException {
-        FileOutputStream fos = null;
+        OutputStream fos = null;
         BufferedInputStream bis = null;
         HttpURLConnection httpUrl = null;
         URL url = null;
@@ -105,9 +106,10 @@ public class HttpGet {
         bis = new BufferedInputStream(httpUrl.getInputStream());
         //建立文件
 
-        new File(fileName).getParentFile().mkdirs();
+        //new File(fileName).getParentFile().mkdirs();
 
-        fos = new FileOutputStream(fileName);
+        fos = App.getInstance().documentStream(fileName);
+        //fos = new FileOutputStream(fileName);
 
 
         while ((size = bis.read(buf)) != -1)

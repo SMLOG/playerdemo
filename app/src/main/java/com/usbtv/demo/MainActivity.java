@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -18,7 +20,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -29,30 +30,24 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
-import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.RegularVerticalActivity.SpaceItemDecoration;
-import com.usbtv.demo.comm.HttpCallback;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.view.MyImageView;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
-import com.usbtv.demo.view.SelectPicPopupWindow;
-
-import org.mozilla.javascript.tools.jsc.Main;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Formatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -83,8 +78,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @BindView(R.id.status)
     RelativeLayout status;
     RelativeLayout mInView;
-    @BindView(R.id.imageView)
-    MyImageView imageView;
+
 
     @BindView(R.id.textView)
     TextView textView;
@@ -137,8 +131,35 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     private View showList=null;
     private VerticalGridView gridView;
     private GridObjectAdapter adapter;
+    private String rootPath;
 
+    private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
+        ArrayList<String> ret = new ArrayList<>();
+        String path = "";
+        //使用getSystemService(String)检索一个StorageManager用于访问系统存储功能。
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Object result = getVolumeList.invoke(mStorageManager);
+
+            for (int i = 0; i < Array.getLength(result); i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                path = (String) getPath.invoke(storageVolumeElement);
+                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+                if (is_removale == removable) {
+                    ret.add(path);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -165,6 +186,35 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             this.requestPermissions( new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
+
+        List<String> paths =getStoragePath(this,true);
+
+        if(paths!=null){
+            for(int i=0;i<paths.size();i++){
+
+                 rootPath = paths.get(i);
+                Log.i(TAG," rootPath： " + rootPath);
+                if (DocumentsUtils.checkWritableRootPath(this, rootPath)) {   //检查sd卡路径是否有 权限 没有显示dialog
+                    Intent intent = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                        StorageManager sm = getSystemService(StorageManager.class);
+
+                        StorageVolume volume = sm.getStorageVolume(new File(rootPath));
+
+                        if (volume != null) {
+                            intent = volume.createAccessIntent(null);
+                        }
+                    }
+
+                    if (intent == null) {
+                        intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    }
+                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE);
+                }
+            }
+        }
+
+
 //new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
@@ -258,7 +308,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         //wm.addView(mInView, layoutParams);
         setContentView(mInView);
-        PlayerController.getInstance().setDetach(false);
 
 
     }
@@ -286,11 +335,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         textView = mInView.findViewById(R.id.textView);
 
         bgTextView = mInView.findViewById(R.id.bgTextView);
-        imageView = mInView.findViewById(R.id.imageView);
         home = mInView.findViewById(R.id.home);
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
-        PlayerController.getInstance().setUIs(bgTextView,imageView,textView,videoView,mediaPlayer,home);
+        PlayerController.getInstance().setUIs(bgTextView,textView,videoView,home);
 
 
     }
@@ -305,7 +352,26 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        isVideoPlay(false, 0);
+
+        switch (requestCode) {
+            case DocumentsUtils.OPEN_DOCUMENT_TREE_CODE:
+                if (data != null && data.getData() != null) {
+                    Uri uri = data.getData();
+
+                    final int takeFlags = data.getFlags()& (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+                    DocumentsUtils.saveTreeUri(this, this.rootPath, uri);
+
+                }
+                break;
+            default:
+                isVideoPlay(false, 0);
+                break;
+        }
+
+
     }
 
     /**

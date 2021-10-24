@@ -12,11 +12,11 @@ import android.widget.VideoView;
 
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.data.ResItem;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.MyImageView;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
+import com.usbtv.demo.vurl.VUrlList;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,10 +35,7 @@ public final class PlayerController {
 
     private int mode;
 
-    private boolean detach;
-    private MyImageView imageView;
     private MyVideoView videoView;
-    private MyMediaPlayer mediaPlayer;
     private TextView textView;
 
     private Map<String, VFile> mapFiles;
@@ -46,13 +43,7 @@ public final class PlayerController {
     private View girdView;
     private int curTypeId=1;
 
-    public boolean isDetach() {
-        return detach;
-    }
 
-    public void setDetach(boolean detach) {
-        this.detach = detach;
-    }
 
     private View maskView;
 
@@ -192,6 +183,8 @@ public final class PlayerController {
                 PlayerController.this.videoUrl = null;
                 if (res instanceof VFile) {
                     videoUrl = getUri((VFile) res);
+                }else if(res instanceof VUrlList){
+                    videoUrl = ((VUrlList) res).getCurVideoUrl();
                 }
 
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -199,13 +192,10 @@ public final class PlayerController {
 
                     @Override
                     public void run() {
-                        if (res instanceof VFile) {
-                            VFile vf = (VFile) res;
+
                             synchronized (videoView) {
 
                                 textView.setVisibility(View.GONE);
-                                imageView.setVisibility(View.GONE);
-                                if (mediaPlayer.isPlaying()) mediaPlayer.stop();
 
                                 videoView.setVisibility(View.VISIBLE);
 
@@ -213,7 +203,7 @@ public final class PlayerController {
                                 videoView.requestFocus();
                                 videoView.start();
                                 PlayerController.getInstance().setMediaObj(videoView);
-                            }
+
 
                         }
                     }
@@ -311,13 +301,12 @@ public final class PlayerController {
                     VFile vfile =
                             App.getHelper().getDao(VFile.class).
                                     queryBuilder().join(foldersQueryBuilder).where()
-                                    .eq("type_id",curTypeId)
                                     .gt("folder_id", vf.getFolder().getId()).queryForFirst();
 
                     if (vfile == null) {
                         vfile = (VFile) App.getHelper().getDao(VFile.class).
                                 queryBuilder().join(foldersQueryBuilder).where()
-                                .gt("id", 0).queryForFirst();
+                                .gt("folder_id", 0).queryForFirst();
                     }
                     if (vfile != null) {
                         play(vfile);
@@ -396,6 +385,10 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
+        }else if(curItem instanceof VUrlList){
+            ((VUrlList) curItem).curNext();
+            play(curItem);
+
         }
     }
 
@@ -409,30 +402,22 @@ public final class PlayerController {
 
     }
 
-    public void setUIs(TextView bgTextView, MyImageView imageView, TextView textView, MyVideoView videoView,
-                       MyMediaPlayer mediaPlayer, View gridView) {
+    public void setUIs(TextView bgTextView, TextView textView, MyVideoView videoView,
+                        View gridView) {
         this.maskView = bgTextView;
-        this.imageView = imageView;
         this.videoView = videoView;
-        this.mediaPlayer = mediaPlayer;
         this.textView = textView;
         this.girdView = gridView;
     }
 
     public String getCoverUrl() {
-        if (this.curItem == null) return "";
-        if (this.curItem instanceof ResItem) {
-            return ((ResItem) this.curItem).getImgUrl();
-        } else if (this.curItem instanceof VFile)
+        if (this.curItem instanceof VFile)
             return ((VFile) (this.curItem)).getFolder().getCoverUrl();
         return "";
     }
 
     public String getName() {
-        if (this.curItem == null) return "";
-        if (this.curItem instanceof ResItem) {
-            return ((ResItem) this.curItem).getEnText();
-        } else if (this.curItem instanceof VFile)
+        if (this.curItem instanceof VFile)
             return ((VFile) (this.curItem)).getFolder().getName();
         return "";
     }

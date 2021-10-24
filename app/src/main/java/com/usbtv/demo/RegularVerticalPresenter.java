@@ -51,7 +51,10 @@ public class RegularVerticalPresenter extends Presenter {
             @Override
             public void onClick(View v) {
                 PlayerController.getInstance().hideMenu();
+
+                PlayerController.getInstance().setTypeId(folder.getTypeId());
                 PlayerController.getInstance().play(folder.getFiles().iterator().next());
+
             }
         });
     }

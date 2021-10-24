@@ -1,17 +1,10 @@
 package com.usbtv.demo.game;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.App;
-import com.usbtv.demo.FileDownload;
 import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
-import com.usbtv.demo.data.ResItem;
-import com.usbtv.demo.translate.TransApi;
 import com.yanzhenjie.andserver.annotation.GetMapping;
-import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.framework.body.FileBody;
@@ -20,7 +13,6 @@ import com.yanzhenjie.andserver.http.HttpResponse;
 import okhttp3.*;
 
 import java.io.*;
-import java.sql.SQLException;
 import java.util.*;
 
 @RestController

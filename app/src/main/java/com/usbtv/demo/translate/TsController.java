@@ -1,15 +1,10 @@
 package com.usbtv.demo.translate;
 
 
-import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.App;
-import com.usbtv.demo.data.ResItem;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.ResponseBody;
 import com.yanzhenjie.andserver.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class TsController {

@@ -23,11 +23,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 26;
+    private static final int DATABASE_VERSION = 27;
 
     // the DAO object we use to access the SimpleData table
-    private Dao<ResItem, Integer> simpleDao = null;
-    private RuntimeExceptionDao<ResItem, Integer> simpleRuntimeDao = null;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
@@ -41,12 +39,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase db, ConnectionSource connectionSource) {
         try {
             Log.i(DatabaseHelper.class.getName(), "onCreate");
-            TableUtils.createTable(connectionSource, ResItem.class);
             TableUtils.createTable(connectionSource, Drive.class);
             TableUtils.createTable(connectionSource, Folder.class);
             TableUtils.createTable(connectionSource, VFile.class);
-            TableUtils.createTable(connectionSource, CnDict.class);
-           if(false) TableUtils.createTable(connectionSource, VFile.class);
+            TableUtils.createTable(connectionSource, Cache.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);
@@ -71,11 +67,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
         try {
             Log.i(DatabaseHelper.class.getName(), "onUpgrade");
-                TableUtils.dropTable(connectionSource, VFile.class, true);
-                TableUtils.dropTable(connectionSource, Folder.class, true);
-            TableUtils.dropTable(connectionSource, ResItem.class, true);
-            TableUtils.dropTable(connectionSource, CnDict.class, true);
+            TableUtils.dropTable(connectionSource, VFile.class, true);
+            TableUtils.dropTable(connectionSource, Folder.class, true);
             TableUtils.dropTable(connectionSource, Drive.class, true);
+            TableUtils.dropTable(connectionSource, Cache.class, true);
                //getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");
 
             //getDao(His.class).executeRaw("ALTER TABLE `His` ADD COLUMN orderN NUMBER default 0;");
@@ -89,27 +84,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
     }
 
-    /**
-     * Returns the Database Access Object (DAO) for our SimpleData class. It will create it or just give the cached
-     * value.
-     */
-    public Dao<ResItem, Integer> getDao() throws SQLException {
-        if (simpleDao == null) {
-            simpleDao = getDao(ResItem.class);
-        }
-        return simpleDao;
-    }
 
-    /**
-     * Returns the RuntimeExceptionDao (Database Access Object) version of a Dao for our SimpleData class. It will
-     * create it or just give the cached value. RuntimeExceptionDao only through RuntimeExceptions.
-     */
-    public RuntimeExceptionDao<ResItem, Integer> getSimpleDataDao() {
-        if (simpleRuntimeDao == null) {
-            simpleRuntimeDao = getRuntimeExceptionDao(ResItem.class);
-        }
-        return simpleRuntimeDao;
-    }
+
 
     /**
      * Close the database connections and clear any cached DAOs.
@@ -117,7 +93,5 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     @Override
     public void close() {
         super.close();
-        simpleDao = null;
-        simpleRuntimeDao = null;
     }
 }

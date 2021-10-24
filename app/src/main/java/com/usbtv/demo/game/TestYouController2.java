@@ -1,11 +1,9 @@
 package com.usbtv.demo.game;
 
 import com.alibaba.fastjson.JSONObject;
-import com.usbtv.demo.App;
 import com.usbtv.demo.comm.HttpGet;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
-import com.usbtv.demo.data.ResItem;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
@@ -17,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
