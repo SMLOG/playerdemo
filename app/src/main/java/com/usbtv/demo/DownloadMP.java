@@ -3,6 +3,9 @@ package com.usbtv.demo;
 
 import android.content.res.AssetFileDescriptor;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Base64;
 
 import androidx.annotation.RequiresApi;
 
@@ -27,6 +30,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -171,6 +175,12 @@ public class DownloadMP {
         System.out.println(rsp);
         JSONObject jsonObj = JSONObject.parseObject(rsp);
 
+        if(jsonObj.getString("retDesc")!=null&&jsonObj.getString("retDesc").equals("outstanding")) {
+
+            String str=new String(Base64.decode(jsonObj.getString("data").substring(6),Base64.DEFAULT));
+            jsonObj.put("data", JSON.parse(str));
+        }
+
         System.out.println(e);
         return jsonObj;
 
@@ -194,11 +204,15 @@ public class DownloadMP {
         Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
+
+
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
             Integer typeId2 = i+1;
             Integer media_count = (Integer) item.get("media_count");
+
+            App.getTypesMap().put(item.getString("title"),typeId2.toString());
 
             System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
 
@@ -270,6 +284,13 @@ public class DownloadMP {
 
             }while (true);
         }
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                MainActivity.adapter.refresh();
+            }});
 
        // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");

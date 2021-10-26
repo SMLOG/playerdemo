@@ -29,13 +29,18 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.usbtv.demo.RegularVerticalActivity.SpaceItemDecoration;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.view.FocusFixedLinearLayoutManager;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
+import com.usbtv.demo.view.SpaceDecoration;
+import com.usbtv.demo.view.adapter.GameListAdapter;
+import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,12 +55,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 
-import app.com.tvrecyclerview.FocusHighlightHelper;
-import app.com.tvrecyclerview.GridObjectAdapter;
-import app.com.tvrecyclerview.VerticalGridView;
+
 import butterknife.BindView;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener  {
 
 
     @BindView(R.id.video_view)
@@ -81,11 +84,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @BindView(R.id.textView)
     TextView textView;
 
-    @BindView(R.id.bgTextView)
-    TextView bgTextView;
 
     @BindView(R.id.home)
     View home;
+    private List<Folder> gameListBeans;
 
     private int key = 0;
     private Handler handler = new Handler();
@@ -126,9 +128,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }
     };
     private Timer timer;
-    private VerticalGridView gridView;
-    private GridObjectAdapter adapter;
+    public static MyRecycleViewAdapter adapter;
     private String rootPath;
+    private RecyclerView recyclerView;
+    private RecyclerView rvGameList;
+    private String[] titles = {"全部", "少儿英语", "影视", "美食", "其他"};
+    private GameListAdapter gameListAdapter;
 
     private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
@@ -220,43 +225,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         setTopView();
         bindElementViews();
         initViews();
-         gridView = findViewById(R.id.id_grid_vertical2);
-
-        gridView.addItemDecoration(new SpaceItemDecoration());
-        gridView.setNumColumns(3);
-         adapter = new GridObjectAdapter(new RegularVerticalPresenter(this));
-        gridView.setFocusZoomFactor(FocusHighlightHelper.ZOOM_FACTOR_SMALL);
 
 
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    DownloadMP.process();
-
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-                try {
-                    List<Folder> list = App.getHelper().getDao(Folder.class).queryBuilder().orderBy("id",false).query();
-                    for (int i = 0; i < list.size(); i++) {
-
-                        adapter.add(list.get(i));
-                    }
-
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-
-                gridView.setAdapter(adapter);
-            }
-        }).start();
 
         PlayerController.getInstance().playNext();
 
@@ -331,11 +301,90 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         status = mInView.findViewById(R.id.status);
         textView = mInView.findViewById(R.id.textView);
 
-        bgTextView = mInView.findViewById(R.id.bgTextView);
-        home = mInView.findViewById(R.id.home);
 
-        PlayerController.getInstance().setUIs(bgTextView,textView,videoView,home);
+        home = findViewById(R.id.home);
+        recyclerView = findViewById(R.id.rv_tab);
+        rvGameList = findViewById(R.id.rv_game_list);
 
+        adapter = new MyRecycleViewAdapter(this);
+
+        LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(adapter);
+
+
+
+        gameListBeans = new ArrayList<>();
+
+        try {
+             gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+
+        gameListAdapter = new GameListAdapter(gameListBeans, this, new GameListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, List<Folder> mList, int position) {
+                PlayerController.getInstance().hideMenu();
+                PlayerController.getInstance().setTypeId(mList.get(position).getTypeId());
+                PlayerController.getInstance().play(mList.get(position).getFiles().iterator().next());
+            }
+        }) {
+            @Override
+            protected void onItemFocus(View itemView) {
+                itemView.setSelected(true);
+                View view = itemView.findViewById(R.id.iv_bg);
+                view.setSelected(true);
+            }
+
+            @Override
+            protected void onItemGetNormal(View itemView) {
+                itemView.setSelected(true);
+                View view = itemView.findViewById(R.id.iv_bg);
+                view.setSelected(true);
+            }
+        };
+        rvGameList.setLayoutManager(new FocusFixedLinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
+        rvGameList.addItemDecoration(new SpaceDecoration(30));
+        rvGameList.setAdapter(gameListAdapter);
+
+
+        MyListener myListener = new MyListener(gameListAdapter);
+        adapter.setOnFocusChangeListener(myListener);
+        adapter.setOnItemClickListener(myListener);
+
+        PlayerController.getInstance().setUIs(textView,videoView,home);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    DownloadMP.process();
+
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+                try {
+                    gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            gameListAdapter.update(gameListBeans);
+                        }
+                    });
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+            }
+        }).start();
 
     }
     @Override
@@ -554,6 +603,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 Log.d(TAG, "back--->");
                 home.bringToFront();
                 home.setVisibility(home.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
+                if(home.getVisibility()==View.VISIBLE){
+                    home.requestFocus();
+                    recyclerView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerView.requestFocus();
+                        }
+                    },1000);
+                }
 
                 //startRun();
 

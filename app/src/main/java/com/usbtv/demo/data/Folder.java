@@ -7,10 +7,9 @@ import com.j256.ormlite.field.ForeignCollectionField;
 
 import java.io.File;
 
-import app.com.tvrecyclerview.RowItem;
 
 
-public class Folder extends RowItem {
+public class Folder  {
 
 
 
@@ -162,5 +161,10 @@ public class Folder extends RowItem {
 
     public boolean exists() {
         return  this.absPath()!=null && new File(this.absPath()).exists() ;
+    }
+
+    public String  getShortName() {
+
+       return getName().length()<10?getName():getName().substring(0,10);
     }
 }

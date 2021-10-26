@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class App extends Application implements CacheListener {
@@ -48,8 +49,13 @@ public class App extends Application implements CacheListener {
     public static App getInstance() {
         return self;
     }
-
+    public static LinkedHashMap<String, String>  getTypesMap() {
+        typesMap.put("全部","");
+        return typesMap;
+    }
     public static HttpProxyCacheServer proxy;
+
+    public static LinkedHashMap<String,String> typesMap = new LinkedHashMap<>();
 
     public static HttpProxyCacheServer getProxy() {
         App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
@@ -223,4 +229,6 @@ public class App extends Application implements CacheListener {
         return outputStream;
 
     }
+
+
 }

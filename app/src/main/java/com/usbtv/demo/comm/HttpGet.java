@@ -1,6 +1,7 @@
 package com.usbtv.demo.comm;
 
 import com.usbtv.demo.App;
+import com.usbtv.demo.DocumentsUtils;
 import com.usbtv.demo.data.VFile;
 
 import java.io.BufferedInputStream;
@@ -107,7 +108,7 @@ public class HttpGet {
         //建立文件
 
         //new File(fileName).getParentFile().mkdirs();
-
+        DocumentsUtils.mkdirs(App.getInstance().getApplicationContext(),new File(fileName).getParentFile());
         fos = App.getInstance().documentStream(fileName);
         //fos = new FileOutputStream(fileName);
 

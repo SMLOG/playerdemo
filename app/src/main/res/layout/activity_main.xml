@@ -24,11 +24,6 @@
                 android:layout_height="match_parent"
                 android:focusable="true" />
 
-            <com.usbtv.demo.view.MyImageView
-                android:id="@+id/imageView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
             <TextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
@@ -44,24 +39,39 @@
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
-            <com.usbtv.demo.view.AudioWaveView
-                android:id="@+id/bgTextView"
+            <RelativeLayout
+                android:id="@+id/home"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/common_black"
-                android:gravity="center_vertical|center"
-                android:text=""
-                android:visibility="gone"
-                tools:visibility="gone" />
+                android:layout_height="@dimen/dp_150"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="-1dp"
+                android:background="@drawable/lb_background"
+                android:visibility="gone">
 
-            <app.com.tvrecyclerview.VerticalGridView
-                android:id="@+id/id_grid_vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:gravity="center_horizontal"
-                android:paddingTop="30dp" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_tab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:descendantFocusability="afterDescendants"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:focusable="true"
+
+                    />
+
+                <com.usbtv.demo.view.FocusRecyclerView
+                    android:id="@+id/rv_game_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/rv_tab"
+                    android:focusable="true"
+                    />
+
+            </RelativeLayout>
 
 
         </RelativeLayout>
@@ -142,27 +152,7 @@
         android:background="@mipmap/icon_restart_play"
         android:layout_width="@dimen/dp_100"
         android:layout_height="@dimen/dp_100"/>
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    <FrameLayout
-        android:id="@+id/home"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipChildren="false"
-        android:visibility="gone"
-        tools:visibility="gone">
 
 
-
-        <app.com.tvrecyclerview.VerticalGridView
-            android:id="@+id/id_grid_vertical2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:gravity="center_horizontal"
-            android:paddingTop="30dp" />
-
-    </FrameLayout>
 </RelativeLayout>
+

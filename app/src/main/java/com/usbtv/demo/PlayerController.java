@@ -47,7 +47,6 @@ public final class PlayerController {
 
 
 
-    private View maskView;
 
     private PlayerController() {
     }
@@ -138,33 +137,10 @@ public final class PlayerController {
         }
     }
 
-    public void showMaskView() {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                PlayerController.this.maskView.bringToFront();
-                PlayerController.this.maskView.setVisibility(View.VISIBLE);
-            }
-        });
-
-    }
-
-    public void hideMaskView() {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                PlayerController.this.maskView.setVisibility(View.GONE);
-            }
-        });
-    }
 
 
 
-    public boolean isShowMask() {
-        return this.maskView.getVisibility() == View.VISIBLE;
-    }
+
 
     public void setMode(int mode) {
         this.mode = mode;
@@ -426,9 +402,8 @@ public final class PlayerController {
 
     }
 
-    public void setUIs(TextView bgTextView, TextView textView, MyVideoView videoView,
+    public void setUIs( TextView textView, MyVideoView videoView,
                         View gridView) {
-        this.maskView = bgTextView;
         this.videoView = videoView;
         this.textView = textView;
         this.girdView = gridView;

@@ -111,4 +111,9 @@
 
     <color name="text_gray">#A0A0A0</color>
 
+    <color name="colorTransparent">#00000000</color>
+    <color name="keyNormal">#30ffffff</color>
+    <color name="transparent">#00ffffff</color>
+    <color name="color_141843">#141843</color>
+    <color name="color_blue">#4169E1</color>
 </resources>

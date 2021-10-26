@@ -137,12 +137,6 @@ public class IndexController {
 
             PlayerController.getInstance().seekTo(progress);
 
-        } else if ("showMask".equals(cmd)) {
-
-            if (Boolean.parseBoolean(val)) {
-                PlayerController.getInstance().showMaskView();
-            } else
-                PlayerController.getInstance().hideMaskView();
         } else if ("mode".equals(cmd)) {
 
             PlayerController.getInstance().setMode(Integer.parseInt(val));

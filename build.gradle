@@ -2,12 +2,19 @@
 
 buildscript {
     repositories {
+
+
         google()
+        maven { url 'https://jitpack.io' }
         jcenter()
+        mavenCentral()
+        maven { url 'http://developer.huawei.com/repo/' }
         
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.1'
+        // classpath 'com.android.tools.build:gradle:3.4.1'
+        classpath "com.android.tools.build:gradle:4.0.0"
+
         classpath 'androidx.benchmark:benchmark-gradle-plugin:1.0.0'
         classpath 'com.yanzhenjie.andserver:plugin:2.1.9'
         // NOTE: Do not place your application dependencies here; they belong
@@ -19,7 +26,8 @@ allprojects {
     repositories {
         google()
         jcenter()
-        
+        maven { url 'https://jitpack.io' }
+
     }
 }
 
