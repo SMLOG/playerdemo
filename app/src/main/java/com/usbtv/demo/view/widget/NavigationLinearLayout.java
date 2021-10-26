@@ -5,7 +5,6 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseIntArray;
@@ -16,8 +15,11 @@ import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.hxxdashai.android.navigation.R;
-import com.hxxdashai.android.navigation.util.SoundUtil;
+
+import androidx.core.view.ViewCompat;
+
+import com.usbtv.demo.R;
+import com.usbtv.demo.SoundUtil;
 
 import java.util.ArrayList;
 import java.util.List;
