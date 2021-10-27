@@ -41,6 +41,8 @@ import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SpaceDecoration;
 import com.usbtv.demo.view.adapter.GameListAdapter;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
+import com.usbtv.demo.view.widget.NavigationCursorView;
+import com.usbtv.demo.view.widget.NavigationLinearLayout;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,6 +99,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
     private RetrofitServiceApi api = RetrofitUtil.getApi("http://127.0.0.1:8080/");
 
+    public static NavigationLinearLayout mNavigationLinearLayout;
+    private NavigationCursorView mNavigationCursorView;
+
+
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -130,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     private Timer timer;
     public static MyRecycleViewAdapter adapter;
     private String rootPath;
-    private RecyclerView recyclerView;
+   // private RecyclerView recyclerView;
     private RecyclerView rvGameList;
     private String[] titles = {"全部", "少儿英语", "影视", "美食", "其他"};
     private GameListAdapter gameListAdapter;
@@ -303,15 +309,25 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
 
         home = findViewById(R.id.home);
-        recyclerView = findViewById(R.id.rv_tab);
+        //recyclerView = findViewById(R.id.rv_tab);
         rvGameList = findViewById(R.id.rv_game_list);
 
         adapter = new MyRecycleViewAdapter(this);
 
         LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+        //recyclerView.setLayoutManager(linearLayoutManager);
+        //recyclerView.setAdapter(adapter);
 
+
+        mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.mNavigationLinearLayout_id);
+        mNavigationCursorView = (NavigationCursorView) findViewById(R.id.mNavigationCursorView_id);
+        List<String> data = new ArrayList<>();
+        data.addAll(App.getInstance().getTypesMap().keySet());
+
+        mNavigationLinearLayout.setDataList(data);
+        mNavigationLinearLayout.setNavigationListener(mNavigationListener);
+        mNavigationLinearLayout.setNavigationCursorView(mNavigationCursorView);
+        mNavigationLinearLayout.requestFocus();
 
 
         gameListBeans = new ArrayList<>();
@@ -351,6 +367,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         rvGameList.setAdapter(gameListAdapter);
 
 
+
         MyListener myListener = new MyListener(gameListAdapter);
         adapter.setOnFocusChangeListener(myListener);
         adapter.setOnItemClickListener(myListener);
@@ -387,6 +404,26 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }).start();
 
     }
+
+    private NavigationLinearLayout.NavigationListener mNavigationListener = new NavigationLinearLayout.NavigationListener() {
+        @Override
+        public void onNavigationChange(String s, int pos, int keyCode) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
+                    gameListAdapter.update(App.typesMap.get(s));
+                    //rvGameList.smoothScrollToPosition(0);
+
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    break;
+                case KeyEvent.KEYCODE_MENU:
+                    break;
+            }
+        }
+    };
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -605,12 +642,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 home.setVisibility(home.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
                 if(home.getVisibility()==View.VISIBLE){
                     home.requestFocus();
-                    recyclerView.postDelayed(new Runnable() {
+                    /*recyclerView.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             recyclerView.requestFocus();
                         }
-                    },1000);
+                    },1000);*/
                 }
 
                 //startRun();

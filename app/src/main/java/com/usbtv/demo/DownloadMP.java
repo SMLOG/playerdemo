@@ -289,7 +289,10 @@ public class DownloadMP {
 
             @Override
             public void run() {
-                MainActivity.adapter.refresh();
+                ArrayList<String> newList = new ArrayList<>();
+                newList.addAll(App.getInstance().getTypesMap().keySet());
+                MainActivity.mNavigationLinearLayout.setDataList(newList);
+
             }});
 
        // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();

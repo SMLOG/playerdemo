@@ -92,8 +92,8 @@ public class NavigationLinearLayout extends LinearLayout {
      */
     public void setNavigationListener(NavigationListener listener) {
         mNavigationListener = listener;
-        if (mNavigationListener != null) {
-            mNavigationListener.onNavigationChange(mNowPos, KeyEvent.KEYCODE_DPAD_LEFT);
+        if (mNavigationListener != null&&mDataList.size()>0 && mNowPos>-1 && mNowPos < mDataList.size()) {
+            mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, KeyEvent.KEYCODE_DPAD_LEFT);
         }
     }
 
@@ -140,7 +140,7 @@ public class NavigationLinearLayout extends LinearLayout {
                             mNavigationCursorView.fsatJumpTo(left);
                         }
                         if (mNavigationListener != null) {
-                            mNavigationListener.onNavigationChange(mNowPos, KeyEvent.KEYCODE_DPAD_LEFT);
+                            mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, KeyEvent.KEYCODE_DPAD_LEFT);
                         }
                     }
                 }
@@ -189,7 +189,7 @@ public class NavigationLinearLayout extends LinearLayout {
                         if (left != 0 && mNavigationCursorView != null)
                             mNavigationCursorView.jumpTo(left);
                         if (mNavigationListener != null) {
-                            mNavigationListener.onNavigationChange(mNowPos, keyCode);
+                            mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                         }
                     }
                     SoundUtil.playClickSound(this);
@@ -203,7 +203,7 @@ public class NavigationLinearLayout extends LinearLayout {
                         if (left != 0 && mNavigationCursorView != null)
                             mNavigationCursorView.jumpTo(left);
                         if (mNavigationListener != null) {
-                            mNavigationListener.onNavigationChange(mNowPos, keyCode);
+                            mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                         }
                     }
                     SoundUtil.playClickSound(this);
@@ -211,12 +211,12 @@ public class NavigationLinearLayout extends LinearLayout {
                 case KeyEvent.KEYCODE_DPAD_UP:
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                     if (mNavigationListener != null) {
-                        mNavigationListener.onNavigationChange(mNowPos, keyCode);
+                        mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                     }
                     break;
                 case KeyEvent.KEYCODE_MENU:
                     if (mNavigationListener != null) {
-                        mNavigationListener.onNavigationChange(mNowPos, keyCode);
+                        mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                     }
                     return true;
             }
@@ -263,13 +263,13 @@ public class NavigationLinearLayout extends LinearLayout {
             if (left != 0 && mNavigationCursorView != null)
                 mNavigationCursorView.jumpTo(left);
             if (mNavigationListener != null) {
-                mNavigationListener.onNavigationChange(mNowPos, keyCode);
+                mNavigationListener.onNavigationChange(mDataList.get(mNowPos),mNowPos, keyCode);
             }
         }
     }
 
     public interface NavigationListener {
 
-        void onNavigationChange(int pos, int keyCode);
+        void onNavigationChange(String s, int pos, int keyCode);
     }
 }
