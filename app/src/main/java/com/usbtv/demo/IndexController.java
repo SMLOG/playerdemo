@@ -294,15 +294,6 @@ public class IndexController {
     }
 
 
-    @GetMapping("/api/down")
-    public void download(HttpRequest request, HttpResponse respone) {
-        try {
-            com.yanzhenjie.andserver.http.ResponseBody body = new FileDownload(request, respone);
-            respone.setBody(body);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
 
     @PostMapping(path = "/api/upload2")
     String upload(HttpRequest request, @RequestParam(name = "file") MultipartFile[] files) throws IOException {

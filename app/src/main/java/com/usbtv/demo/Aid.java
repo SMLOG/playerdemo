@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -116,6 +117,26 @@ public class Aid {
             }
         } else return;
 
+        matchFiles.sort(new Comparator<File>() {
+            @Override
+            public int compare(File f1, File f2) {
+
+                String n1=f1.getName();
+                String n2=f2.getName();
+                int maxLen=n1.length()>n2.length()?n1.length():n2.length();
+
+                while (n1.length()<maxLen){
+                    n1=" "+n1;
+                }
+                while (n2.length()<maxLen){
+                    n2=" "+n2;
+                }
+                return n1.compareTo(n2);
+
+            }
+        });
+
+
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
         Folder folder = folderDao.queryBuilder().where().eq("aid", aidDir.getName()).and().eq("root_id", root.getId()).queryForFirst();
@@ -137,6 +158,7 @@ public class Aid {
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
+        int orderN=1;
         for (File file : matchFiles) {
 
             String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
@@ -159,7 +181,6 @@ public class Aid {
 
                     }
 
-                    vFileDao.create(vfile);
 
 
                 } catch (Throwable e) {
@@ -167,6 +188,8 @@ public class Aid {
                 }
 
             }
+            vfile.setOrderSeq(orderN++);
+            vFileDao.createOrUpdate(vfile);
 
 
         }

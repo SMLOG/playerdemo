@@ -272,8 +272,10 @@ public class DownloadMP {
                             vfile = new VFile();
                             vfile.setFolder(folder);
                             vfile.setPage(k);
-                            vFileDao.create(vfile);
+                            vfile.setOrderSeq(k);
                         }
+                        vFileDao.createOrUpdate(vfile);
+
                     }
 
 

@@ -19,30 +19,35 @@ import java.nio.charset.StandardCharsets;
 public class FileDownload implements ResponseBody {
     private final HttpRequest request;
     private final HttpResponse response;
-    private String file;
+    private  String type;
+    private File file;
     private long contentLength;
     private long endByte;
     private long startByte;
 
-    public FileDownload(HttpRequest request, HttpResponse response) {
+    public FileDownload(HttpRequest request, HttpResponse response,String path,String type) {
         this.request = request;
         this.response = response;
-        String path = request.getParameter("path");
-        if(path==null)path = "playlist.json";
-        this.file =path;
-        this.fileChunkDownload(this.file,request,response);
+        this.file =new File(path);
+        this.fileChunkDownload(request,response);
+        this.type = type;
+    }
+
+    public FileDownload(HttpRequest request, HttpResponse response, File file,String type) {
+
+        this.request = request;
+        this.response = response;
+        this.file = file;
+        this.fileChunkDownload(request,response);
     }
 
     /**
      * 文件支持分块下载和断点续传
-     * @param filePath 文件完整路径
      * @param request 请求
      * @param response 响应
      */
-    public void fileChunkDownload(String filePath, HttpRequest request, HttpResponse response) {
+    public void fileChunkDownload( HttpRequest request, HttpResponse response) {
         String range = request.getHeader("Range");
-        File file = new File(filePath);
-        this.file = filePath;
         //开始下载位置
         long startByte = 0;
         //结束下载位置
@@ -94,7 +99,7 @@ public class FileDownload implements ResponseBody {
         //response.setContentType(contentType);
         //response.setHeader("Content-Type", contentType);
         //inline表示浏览器直接使用，attachment表示下载，fileName表示下载的文件名
-        response.setHeader("Content-Disposition", "inline;filename=" + fileName);
+        response.setHeader("Content-Disposition", "inline;filename=" + fileName.replace(".dl",""));
         //response.setHeader("Content-Length", String.valueOf(contentLength));
         // Content-Range，格式为：[要下载的开始位置]-[结束位置]/[文件总大小]
         response.setHeader("Content-Range", "bytes " + startByte + "-" + endByte + "/" + file.length());
@@ -118,7 +123,11 @@ public class FileDownload implements ResponseBody {
     @Nullable
     @Override
     public MediaType contentType() {
-        return MediaType.getFileMediaType((this.file.lastIndexOf(".")>0?this.file.substring(this.file.lastIndexOf(".")):""));
+
+        if(type!=null )return  MediaType.getFileMediaType(type);
+
+        String name=this.file.getName();
+        return MediaType.getFileMediaType((name.lastIndexOf(".")>0?name.substring(name.lastIndexOf(".")):""));
     }
 
     @Override

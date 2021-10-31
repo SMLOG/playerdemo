@@ -32,6 +32,8 @@ public class VFile {
     @DatabaseField
     Integer page;
 
+    @DatabaseField
+    int orderSeq;
 
     public VFile() {
     }
@@ -128,5 +130,13 @@ public class VFile {
     public boolean exists() {
 
        return this.getAbsPath()!=null && new File(this.getAbsPath()).exists();
+    }
+
+    public int getOrderSeq() {
+        return orderSeq;
+    }
+
+    public void setOrderSeq(int orderSeq) {
+        this.orderSeq = orderSeq;
     }
 }

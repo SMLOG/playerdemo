@@ -135,11 +135,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     };
     private Timer timer;
     public static MyRecycleViewAdapter adapter;
-    private String rootPath;
    // private RecyclerView recyclerView;
     private RecyclerView rvGameList;
     private String[] titles = {"全部", "少儿英语", "影视", "美食", "其他"};
     private GameListAdapter gameListAdapter;
+    private List<String> storagePathList;
 
     private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
@@ -195,12 +195,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             this.requestPermissions( new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
 
-        List<String> paths =getStoragePath(this,true);
+        storagePathList =getStoragePath(this,true);
 
-        if(paths!=null){
-            for(int i=0;i<paths.size();i++){
+        if(storagePathList!=null){
+            for(int i=0;i<storagePathList.size();i++){
 
-                 rootPath = paths.get(i);
+                 String rootPath = storagePathList.get(i);
                 Log.i(TAG," rootPath： " + rootPath);
                 if (DocumentsUtils.checkWritableRootPath(this, rootPath)) {   //检查sd卡路径是否有 权限 没有显示dialog
                     Intent intent = null;
@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     if (intent == null) {
                         intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     }
-                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE);
+                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE+i);
                 }
             }
         }
@@ -436,8 +436,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case DocumentsUtils.OPEN_DOCUMENT_TREE_CODE:
+        if(requestCode>=DocumentsUtils.OPEN_DOCUMENT_TREE_CODE&&requestCode<DocumentsUtils.OPEN_DOCUMENT_TREE_CODE+storagePathList.size()){
+
                 if (data != null && data.getData() != null) {
                     Uri uri = data.getData();
 
@@ -445,13 +445,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                             | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
-                    DocumentsUtils.saveTreeUri(this, this.rootPath, uri);
+                    DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode-DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
 
                 }
-                break;
-            default:
-                isVideoPlay(false, 0);
-                break;
+
+        }else{
+            isVideoPlay(false, 0);
+
         }
 
 

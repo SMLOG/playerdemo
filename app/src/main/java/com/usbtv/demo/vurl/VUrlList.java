@@ -31,11 +31,16 @@ public class VUrlList {
     }
 
     public Uri getCurVideoUrl() {
-        return Uri.parse(this.urls.get(curIndex));
+        return Uri.parse("http://127.0.0.1:8080/api/r?url="+this.urls.get(curIndex));
+    }
+
+    public String getCurUrl() {
+        return this.urls.get(curIndex);
     }
 
     public void curNext() {
         curIndex++;
         if(curIndex>=urls.size())curIndex=0;
     }
+
 }

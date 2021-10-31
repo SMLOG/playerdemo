@@ -1,4 +1,4 @@
-package com.usbtv.demo.vurl.download;
+package download;
 
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;

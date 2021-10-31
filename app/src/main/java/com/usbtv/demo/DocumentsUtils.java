@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.util.Log;
@@ -202,7 +203,7 @@ public class DocumentsUtils {
                     res = file.mkdirs() && file.delete();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
         return res;
@@ -283,7 +284,23 @@ public class DocumentsUtils {
         }
         return out;
     }
+    public static OutputStream getAppendOutputStream(Context context, File destFile) {
+        OutputStream out = null;
+        try {
+            if (!canWrite(destFile) && isOnExtSdCard(destFile, context)) {
+                DocumentFile file = DocumentsUtils.getDocumentFile(destFile, false, context);
+                if (file != null && file.canWrite()) {
+                    out = context.getContentResolver().openOutputStream(file.getUri(), "wa");
+                }
+            } else {
+                out = new FileOutputStream(destFile,true);
 
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
     public static boolean saveTreeUri(Context context, String rootPath, Uri uri) {
         DocumentFile file = DocumentFile.fromTreeUri(context, uri);
         if (file != null && file.canWrite()) {
@@ -320,5 +337,11 @@ public class DocumentsUtils {
             }
         }
         return false;
+    }
+
+
+
+    public static void mkdirs(File file1) {
+         mkdirs(App.getInstance().getApplicationContext(),file1);
     }
 }

@@ -211,6 +211,7 @@ public class NavigationLinearLayout extends LinearLayout {
                 case KeyEvent.KEYCODE_DPAD_UP:
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                     if (mNavigationListener != null) {
+                        if(mDataList.size()>mNowPos)
                         mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                     }
                     break;

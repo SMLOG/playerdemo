@@ -21,6 +21,7 @@ import com.usbtv.demo.data.VFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.sql.SQLException;
@@ -231,4 +232,9 @@ public class App extends Application implements CacheListener {
     }
 
 
+    public static InputStream documentInputStream(File file2) {
+
+        return DocumentsUtils.getInputStream(App.getInstance().getApplicationContext(),file2);  //获取输出流
+
+    }
 }

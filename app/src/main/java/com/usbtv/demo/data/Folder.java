@@ -37,7 +37,7 @@ public class Folder  {
     @DatabaseField(uniqueCombo = true)
     String aid;
 
-    @ForeignCollectionField
+    @ForeignCollectionField(orderColumnName = "orderSeq",orderAscending = true)
     private ForeignCollection<VFile> files;
 
     @JSONField(serialize = false)
