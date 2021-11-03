@@ -10,7 +10,10 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.usbtv.demo.App;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.R;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 
 
 /**
@@ -20,7 +23,7 @@ import com.usbtv.demo.R;
 
 public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context mContext;
-    private String[] mStrings;
+    private Folder folder;
     private  OnItemFocusChangeListener mOnFocusChangeListener;
     private OnItemClickListener mOnItemClickListener;
     private final LayoutInflater mLayoutInflater;
@@ -30,13 +33,12 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     public MyRecycleViewAdapter(Context context){
         this.mContext = context;
-        this.mStrings = App.getInstance().getTypesMap().keySet().toArray(new String[]{});
 
         mLayoutInflater = LayoutInflater.from(mContext);
     }
 
-public void refresh(){
-    this.mStrings = App.getInstance().getTypesMap().keySet().toArray(new String[]{});
+public void refresh(Folder f){
+    this.folder = f;
     this.notifyDataSetChanged();
 }
     public interface OnItemClickListener {
@@ -65,24 +67,22 @@ public void refresh(){
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
-        viewHolder.tv.setText(mStrings[position]);
 
-        if (mOnItemClickListener != null) {
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mOnItemClickListener.onItemClick(v, position);
+        viewHolder.tv.setText(position+1+"");
 
-                }
-            });
-        }
+        viewHolder.tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]);
+            }
+        });
 
         if (mOnFocusChangeListener != null) {
             holder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
                     if (mOnFocusChangeListener != null) {
-                        mOnFocusChangeListener.onItemFocusChange(v, mStrings[position],position, hasFocus);
+                       // mOnFocusChangeListener.onItemFocusChange(v, mStrings[position],position, hasFocus);
                     }
                 }
             });
@@ -115,7 +115,9 @@ public void refresh(){
 
     @Override
     public int getItemCount() {
-        return mStrings.length;
+        if(folder!=null)
+        return folder.getFiles().size();
+        return  0;
     }
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {

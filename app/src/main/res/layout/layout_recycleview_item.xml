@@ -8,11 +8,10 @@
     android:background="@drawable/bg_recyclerview_item"
     android:focusable="true">
 
-
     <TextView
         android:id="@+id/tv"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:text=""

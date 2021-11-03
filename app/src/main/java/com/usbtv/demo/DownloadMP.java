@@ -212,7 +212,7 @@ public class DownloadMP {
             Integer typeId2 = i+1;
             Integer media_count = (Integer) item.get("media_count");
 
-            App.getTypesMap().put(item.getString("title"),typeId2.toString());
+            if(media_count>0) App.getTypesMap().put(item.getString("title"),typeId2.toString());
 
             System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
 
@@ -292,7 +292,7 @@ public class DownloadMP {
             @Override
             public void run() {
                 ArrayList<String> newList = new ArrayList<>();
-                newList.addAll(App.getInstance().getTypesMap().keySet());
+                newList.addAll(App.getInstance().getAllTypeMap().keySet());
                 MainActivity.mNavigationLinearLayout.setDataList(newList);
 
             }});

@@ -20,6 +20,8 @@ import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.vurl.VUrlList;
 
+import org.mozilla.javascript.tools.jsc.Main;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -181,6 +183,8 @@ public final class PlayerController {
                                 videoView.requestFocus();
                                 videoView.start();
                                 PlayerController.getInstance().setMediaObj(videoView);
+                                if(res instanceof  VFile)
+                                    MainActivity.adapter.refresh(((VFile)res).getFolder());
 
 
                         }

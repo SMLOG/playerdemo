@@ -32,9 +32,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.r.InitChannel;
 import com.usbtv.demo.view.FocusFixedLinearLayoutManager;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
@@ -60,7 +62,7 @@ import java.util.Timer;
 
 import butterknife.BindView;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener  {
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
 
     @BindView(R.id.video_view)
@@ -107,15 +109,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         @Override
         public void onReceive(Context context, Intent intent) {
 
-           if (intent.getAction().equals(App.CMD)) {
+            if (intent.getAction().equals(App.CMD)) {
 
                 String cmd = intent.getExtras().getString("cmd");
-               String val = intent.getExtras().getString("val");
-               if ("play".equals(cmd)) {
-                   PlayerController.getInstance().play(null);
+                String val = intent.getExtras().getString("val");
+                if ("play".equals(cmd)) {
+                    PlayerController.getInstance().play(null);
 
-               }
-           }
+                }
+            }
         }
     };
 
@@ -135,11 +137,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     };
     private Timer timer;
     public static MyRecycleViewAdapter adapter;
-   // private RecyclerView recyclerView;
+    private RecyclerView recyclerView;
     private RecyclerView rvGameList;
-    private String[] titles = {"全部", "少儿英语", "影视", "美食", "其他"};
-    private GameListAdapter gameListAdapter;
+    public static GameListAdapter gameListAdapter;
     private List<String> storagePathList;
+
+    private View mLastFocusView;
 
     private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
@@ -168,6 +171,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }
         return ret;
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -192,16 +196,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.requestPermissions( new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            this.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
 
-        storagePathList =getStoragePath(this,true);
+        storagePathList = getStoragePath(this, true);
 
-        if(storagePathList!=null){
-            for(int i=0;i<storagePathList.size();i++){
+        if (storagePathList != null) {
+            for (int i = 0; i < storagePathList.size(); i++) {
 
-                 String rootPath = storagePathList.get(i);
-                Log.i(TAG," rootPath： " + rootPath);
+                String rootPath = storagePathList.get(i);
+                Log.i(TAG, " rootPath： " + rootPath);
                 if (DocumentsUtils.checkWritableRootPath(this, rootPath)) {   //检查sd卡路径是否有 权限 没有显示dialog
                     Intent intent = null;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -217,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     if (intent == null) {
                         intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     }
-                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE+i);
+                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + i);
                 }
             }
         }
@@ -232,9 +236,26 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         bindElementViews();
         initViews();
 
+        Intent intent = getIntent();
 
 
-        PlayerController.getInstance().playNext();
+        long id = -1;
+        if (intent != null) id = intent.getLongExtra("Movie", -1l);
+        if (id > 0) {
+            Folder folder = null;
+            try {
+                Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
+                folder = dao.queryForId((int) id);
+
+                PlayerController.getInstance().play(folder.getFiles().iterator().next());
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        } else {
+            PlayerController.getInstance().playNext();
+        }
+
 
     }
 
@@ -269,12 +290,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         //View view = LayoutInflater.from(this).inflate(R.layout.activity_main,null);
 
-        if(mInView==null){
+        if (mInView == null) {
             mInView = (RelativeLayout) inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
 
-        }else{
-            ViewGroup vg =  (ViewGroup) mInView.getParent();
-            if(vg!=null){
+        } else {
+            ViewGroup vg = (ViewGroup) mInView.getParent();
+            if (vg != null) {
                 vg.removeAllViews();
             }
         }
@@ -309,20 +330,37 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
 
         home = findViewById(R.id.home);
-        //recyclerView = findViewById(R.id.rv_tab);
+        recyclerView = findViewById(R.id.rv_tab);
+        recyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    v.setSelected(true);
+                    if (mLastFocusView != null) {
+                        mLastFocusView.setSelected(false);
+                    }
+                } else {
+                    mLastFocusView = v;
+                }
+
+            }
+
+        });
         rvGameList = findViewById(R.id.rv_game_list);
 
         adapter = new MyRecycleViewAdapter(this);
 
         LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        //recyclerView.setLayoutManager(linearLayoutManager);
-        //recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(adapter);
 
 
         mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.mNavigationLinearLayout_id);
         mNavigationCursorView = (NavigationCursorView) findViewById(R.id.mNavigationCursorView_id);
         List<String> data = new ArrayList<>();
-        data.addAll(App.getInstance().getTypesMap().keySet());
+
+        data.addAll(App.getInstance().getAllTypeMap().keySet());
 
         mNavigationLinearLayout.setDataList(data);
         mNavigationLinearLayout.setNavigationListener(mNavigationListener);
@@ -333,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         gameListBeans = new ArrayList<>();
 
         try {
-             gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
+            gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -362,46 +400,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 view.setSelected(true);
             }
         };
-        rvGameList.setLayoutManager(new FocusFixedLinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
+        rvGameList.setLayoutManager(new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rvGameList.addItemDecoration(new SpaceDecoration(30));
         rvGameList.setAdapter(gameListAdapter);
-
 
 
         MyListener myListener = new MyListener(gameListAdapter);
         adapter.setOnFocusChangeListener(myListener);
         adapter.setOnItemClickListener(myListener);
 
-        PlayerController.getInstance().setUIs(textView,videoView,home);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    DownloadMP.process();
+        PlayerController.getInstance().setUIs(textView, videoView, home);
 
 
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-
-                try {
-                    gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        public void run() {
-                            gameListAdapter.update(gameListBeans);
-                        }
-                    });
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-
-            }
-        }).start();
 
     }
 
@@ -411,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
-                    gameListAdapter.update(App.typesMap.get(s));
+                    gameListAdapter.update(App.getAllTypeMap().get(s));
                     //rvGameList.smoothScrollToPosition(0);
 
                     break;
@@ -427,7 +437,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        System.out.println("grant");android.os.Environment.getExternalStorageDirectory();
+        System.out.println("grant");
+        android.os.Environment.getExternalStorageDirectory();
         //new File(android.os.Environment.getExternalStorageDirectory()+File.separator+"test/abc").getParentFile().mkdirs();
 
     }
@@ -436,20 +447,20 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode>=DocumentsUtils.OPEN_DOCUMENT_TREE_CODE&&requestCode<DocumentsUtils.OPEN_DOCUMENT_TREE_CODE+storagePathList.size()){
+        if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + storagePathList.size()) {
 
-                if (data != null && data.getData() != null) {
-                    Uri uri = data.getData();
+            if (data != null && data.getData() != null) {
+                Uri uri = data.getData();
 
-                    final int takeFlags = data.getFlags()& (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
-                    DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode-DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
+                DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
 
-                }
+            }
 
-        }else{
+        } else {
             isVideoPlay(false, 0);
 
         }
@@ -620,13 +631,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        boolean isShowHome = home.getVisibility()==View.VISIBLE;
+        boolean isShowHome = home.getVisibility() == View.VISIBLE;
         switch (keyCode) {
 
             case KeyEvent.KEYCODE_ENTER:     //确定键enter
             case KeyEvent.KEYCODE_DPAD_CENTER:
                 Log.d(TAG, "enter--->");
-                if(isShowHome){
+                if (isShowHome) {
                     home.setVisibility(View.GONE);
                     return false;
                 }
@@ -639,8 +650,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
                 home.bringToFront();
-                home.setVisibility(home.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
-                if(home.getVisibility()==View.VISIBLE){
+                home.setVisibility(home.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                if (home.getVisibility() == View.VISIBLE) {
                     home.requestFocus();
                     /*recyclerView.postDelayed(new Runnable() {
                         @Override
@@ -735,7 +746,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             case KeyEvent.KEYCODE_DPAD_DOWN:   //向下键
 
-                if(isShowHome)return false;
+                if (isShowHome) return false;
                 /*    实际开发中有时候会触发两次，所以要判断一下按下时触发 ，松开按键时不触发
                  *    exp:KeyEvent.ACTION_UP
                  */
@@ -748,14 +759,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 break;
 
             case KeyEvent.KEYCODE_DPAD_UP:   //向上键
-                if(isShowHome)return false;
+                if (isShowHome) return false;
 
                 Log.d(TAG, "up--->");
                 PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键
-                if(isShowHome)return false;
+                if (isShowHome) return false;
 
                 Log.d(TAG, "left--->");
                 if (videoView.getCurrentPosition() > 4) {
@@ -764,7 +775,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 break;
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
-                if(isShowHome)return false;
+                if (isShowHome) return false;
 
                 Log.d(TAG, "right--->");
                 videoView.seekTo(videoView.getCurrentPosition() + 5 * 1000);

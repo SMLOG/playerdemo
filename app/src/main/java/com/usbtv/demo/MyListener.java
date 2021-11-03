@@ -24,7 +24,6 @@ public class MyListener implements MyRecycleViewAdapter.OnItemClickListener,MyRe
     @Override
     public void onItemFocusChange(View view, String mString, int position, boolean hasFocus) {
         System.out.println("onItemFocusChange");
-        gameListAdapter.update(App.typesMap.get(mString));
 
     }
 }

@@ -42,17 +42,29 @@
             <RelativeLayout
                 android:id="@+id/home"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_150"
+                android:layout_height="@dimen/dp_200"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="-1dp"
                 android:background="@drawable/lb_background"
                 android:visibility="gone">
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_tab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:descendantFocusability="afterDescendants"
+                    android:focusable="true"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+
+                    />
 
                 <com.usbtv.demo.view.widget.NavigationLinearLayout
                     android:id="@+id/mNavigationLinearLayout_id"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@id/rv_tab"
                     android:layout_centerHorizontal="true"
                     android:descendantFocusability="afterDescendants"
                     app:home_DefaultPos="1"
@@ -63,9 +75,9 @@
                     app:home_FontSize="10sp"
                     app:home_ItemSpace="20dp"
                     app:home_OrderMode="self"
+
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintRight_toRightOf="parent" />
 
                 <com.usbtv.demo.view.widget.NavigationCursorView
                     android:id="@+id/mNavigationCursorView_id"

@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,6 +20,7 @@ import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.r.InitChannel;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +31,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class App extends Application implements CacheListener {
     public static final String URLACTION = "urlaction";
@@ -50,10 +54,20 @@ public class App extends Application implements CacheListener {
     public static App getInstance() {
         return self;
     }
+
     public static LinkedHashMap<String, String>  getTypesMap() {
-        typesMap.put("全部","");
         return typesMap;
     }
+    public static LinkedHashMap<String, String> getAllTypeMap() {
+
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        map.put("全部","");
+        map.putAll(typesMap);
+
+        map.put("其他","0");
+        return map;
+    }
+
     public static HttpProxyCacheServer proxy;
 
     public static LinkedHashMap<String,String> typesMap = new LinkedHashMap<>();
@@ -74,7 +88,7 @@ public class App extends Application implements CacheListener {
 
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(1024*1024*1024)
+                .maxCacheSize(1024*1024*200)
                 .build();
     }
 
@@ -103,7 +117,46 @@ public class App extends Application implements CacheListener {
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
        // Log.d(TAG, ipaddr.getHostAddress());
         //DowloadPlayList.loadPlayList(true);
+
+
+        syncWithRemote();
     }
+
+    public void syncWithRemote() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+
+                    DownloadMP.process();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        List<Folder> movies = null;
+                        try {
+                            movies = App.getHelper().getDao(Folder.class).queryForAll();
+                            MainActivity.gameListAdapter.update(movies);
+                            new InitChannel();
+
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+
+                    }});
+            }
+        }).start();
+    }
+
     @Override
     public void onTerminate() {
         super.onTerminate();
@@ -237,4 +290,6 @@ public class App extends Application implements CacheListener {
         return DocumentsUtils.getInputStream(App.getInstance().getApplicationContext(),file2);  //获取输出流
 
     }
+
+
 }
