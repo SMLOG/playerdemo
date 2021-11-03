@@ -1,7 +1,11 @@
 package com.usbtv.demo;
 
 
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.media.ThumbnailUtils;
+import android.provider.MediaStore;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -32,6 +36,8 @@ import org.jsoup.nodes.Document;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -614,7 +620,41 @@ public class IndexController {
         SpeechUtils.getInstance(App.getInstance().getApplicationContext()).speakText(t);
         return "OK";
     }
+    @GetMapping("/api/thumb")
+    public StreamBody thumb(HttpResponse response, @RequestParam(name = "id") int id,@RequestParam(name = "path",required = false,defaultValue = "") String path) {
 
+        String vPath = null;
+        if(!path.equals("")){
+                    List<File> matchFiles = Aid.searchFiles( new File(path), ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
+
+                    if(matchFiles!=null&&matchFiles.size()>0){
+                        vPath = matchFiles.get(0).getAbsolutePath();
+                    }
+        }
+        if(vPath==null) return null;
+        
+       // Bitmap bitmap = Utils.createVideoThumbnail(vPath, MediaStore.Images.Thumbnails.MINI_KIND);
+        Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(
+                vPath, MediaStore.Video.Thumbnails.MINI_KIND);
+
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+        try {
+            baos.flush();
+            baos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] bitmapBytes = baos.toByteArray();
+
+        StreamBody body = new StreamBody(new ByteArrayInputStream(bitmapBytes),bitmapBytes.length, MediaType.IMAGE_JPEG);
+
+        response.setBody(body);
+        return body;
+    }
     /*@GetMapping("/")
     public String index() {
         return "forward:/index.html";

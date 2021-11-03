@@ -33,8 +33,10 @@ public class InitChannel {
 
         Integer[] channels = JSON.parseArray(perf.getString("channels", "[]")).toArray(new Integer[0]);
 
+        if(channels.length>0)return;
         for (long ch : channels) {
             MediaTVProvider.deleteChannel(App.getInstance().getApplicationContext(), ch);
+
         }
 
         LinkedHashMap<String, String> map = App.getAllTypeMap();

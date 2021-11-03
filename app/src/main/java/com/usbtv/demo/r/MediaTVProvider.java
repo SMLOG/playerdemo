@@ -107,6 +107,9 @@ public class MediaTVProvider {
             } else {
                 mp.setProgramId(ContentUris.parseId(programUri));
             }
+            if(mediaChannel.isDefault())
+                TvContractCompat.requestChannelBrowsable(context, channelId);
+
         }
         return channelId;
     }

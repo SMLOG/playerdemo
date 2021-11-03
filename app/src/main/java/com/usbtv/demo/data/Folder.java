@@ -6,7 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 
 import java.io.File;
-
+import java.net.URLEncoder;
 
 
 public class Folder  {
@@ -81,7 +81,7 @@ public class Folder  {
     }
 
     public String getCoverUrl() {
-        return coverUrl;
+        return coverUrl==null?"http://127.0.0.1:8080/api/thumb?id="+id+"&path="+ URLEncoder.encode(absPath()):coverUrl;
     }
 
     public void setCoverUrl(String coverUrl) {

@@ -86,8 +86,10 @@ public class Utils {
             retriever.setDataSource(filePath);
             bitmap = retriever.getFrameAtTime(-1);
         } catch (IllegalArgumentException ex) {
+            ex.printStackTrace();
             // Assume this is a corrupt video file
         } catch (RuntimeException ex) {
+            ex.printStackTrace();
             // Assume this is a corrupt video file.
         } finally {
             try {
