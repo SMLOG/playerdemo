@@ -42,6 +42,7 @@ public final class PlayerController {
     private Uri videoUrl;
     private View girdView;
     private int curTypeId = 1;
+    private int curIndex;
 
 
     private PlayerController() {
@@ -143,8 +144,14 @@ public final class PlayerController {
     }
 
 
-    public void play(Object res) {
+    public PlayerController play(Object res) {
         this.curItem = res;
+        if(res instanceof VFile){
+            VFile vf = (VFile) res;
+
+            PlayerController.getInstance().setCurIndex(vf.getOrderSeq());
+
+        }
 
         new Thread(new Runnable() {
             @Override
@@ -183,7 +190,7 @@ public final class PlayerController {
             }
         }).start();
 
-
+    return this;
     }
 
     private Uri getUri(VFile vf) {
@@ -437,11 +444,20 @@ public final class PlayerController {
     }
 
 
-    public void hideMenu() {
+    public PlayerController hideMenu() {
         this.girdView.setVisibility(View.GONE);
+        return this;
     }
 
     public void setTypeId(int typeId) {
         this.curTypeId = typeId;
+    }
+
+    public int getCurIndex() {
+        return this.curIndex;
+    }
+    public PlayerController setCurIndex(int i) {
+         this.curIndex=i;
+        return this;
     }
 }

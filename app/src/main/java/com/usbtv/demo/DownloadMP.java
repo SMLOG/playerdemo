@@ -264,7 +264,7 @@ public class DownloadMP {
                     validFoldersMap.put(folder.getId(),true);
                     validAidsMap.put(aid.toString(),true);
 
-                    for (int k = 1; k <= pages; k++) {
+                    for (int k = 0; k <= pages; k++) {
 
                         VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
                                 .and().eq("page", k).queryForFirst();

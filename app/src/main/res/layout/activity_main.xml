@@ -42,7 +42,7 @@
             <RelativeLayout
                 android:id="@+id/home"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_200"
+                android:layout_height="@dimen/dp_180"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="-1dp"
                 android:background="@drawable/lb_background"
@@ -52,7 +52,7 @@
                     android:id="@+id/rv_tab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:descendantFocusability="afterDescendants"
+                    android:descendantFocusability="beforeDescendants"
                     android:focusable="true"
                     android:nextFocusDown="@id/mNavigationLinearLayout_id"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -78,7 +78,7 @@
                     app:home_FontSize="10sp"
                     app:home_ItemSpace="20dp"
                     app:home_OrderMode="self"
-
+                    app:layout_constraintTop_toBottomOf="@+id/rv_tab"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent" />
 

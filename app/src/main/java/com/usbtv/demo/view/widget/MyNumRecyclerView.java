@@ -4,9 +4,11 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
 
 public class MyNumRecyclerView extends RecyclerView {
@@ -15,14 +17,20 @@ public class MyNumRecyclerView extends RecyclerView {
 
     public MyNumRecyclerView(Context context) {
         super(context);
+        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        setFocusable(true);
     }
 
     public MyNumRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        setFocusable(true);
     }
 
     public MyNumRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        setFocusable(true);
     }
 
     @Override
@@ -30,22 +38,21 @@ public class MyNumRecyclerView extends RecyclerView {
 
         super.requestChildFocus(child, focused);
         if (child != null) {
-           // mlastFocusPosition = getChildViewHolder(child).getAdapterPosition();
+            // mlastFocusPosition = getChildViewHolder(child).getAdapterPosition();
         }
     }
 
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
-        MyRecycleViewAdapter adapter  = (MyRecycleViewAdapter) getAdapter();
-        if(adapter!=null){
-            View lastFocusedview = getLayoutManager().findViewByPosition(adapter.getCurIndex());
+
+            View lastFocusedview = getLayoutManager().findViewByPosition(PlayerController.getInstance().getCurIndex());
             if (lastFocusedview != null) {
-                scrollToPosition(adapter.getCurIndex());
+                scrollToPosition(PlayerController.getInstance().getCurIndex());
                 lastFocusedview.requestFocus();
-                //lastFocusedview.setSelected(true);
+               // lastFocusedview.setSelected(true);
                 return false;
             }
-        }
+
 
         return super.requestFocus(direction, previouslyFocusedRect);
     }

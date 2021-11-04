@@ -158,7 +158,7 @@ public class Aid {
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
-        int orderN=1;
+        int orderN=0;
         for (File file : matchFiles) {
 
             String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);

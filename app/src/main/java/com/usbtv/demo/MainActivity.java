@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                View chv = numTabRecyclerView.getChildAt(numTabAdapter.getCurIndex());
+                View chv = numTabRecyclerView.getChildAt(PlayerController.getInstance().getCurIndex());
               if(chv!=null) chv.requestFocus();
             }
 

@@ -32,8 +32,6 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     private int defaultFocus = 0;
     private boolean needFocus = true;
 
-    private int curIndex = 0;
-
     public MyRecycleViewAdapter(Context context) {
         this.mContext = context;
 
@@ -43,13 +41,10 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void refresh(Folder f) {
         if (f!=null&&folder!=null&&f.getId() == folder.getId()) return;
         this.folder = f;
-        curIndex = 0;
         this.notifyDataSetChanged();
     }
 
-    public int getCurIndex() {
-        return curIndex;
-    }
+
 
     public interface OnItemClickListener {
         void onItemClick(View view, int position);
@@ -81,15 +76,14 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         viewHolder.tv.setText(position + 1 + "");
 
 
-        viewHolder.tv.setTextColor(position == curIndex ? Color.RED : Color.WHITE);
+        viewHolder.tv.setTextColor(position == PlayerController.getInstance().getCurIndex() ? Color.RED : Color.WHITE);
 
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]);
-                PlayerController.getInstance().hideMenu();
-                curIndex = position;
+                PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]).hideMenu();
+
                 viewHolder.tv.setTextColor(Color.RED);
                 notifyDataSetChanged();
             }
