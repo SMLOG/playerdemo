@@ -20,6 +20,7 @@ import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.util.GlideUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -36,13 +37,16 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
     private final LayoutInflater mLayoutInflater;
     private String typeId="";
 
-    public GameListAdapter(List<Folder> mList, Context context, OnItemClickListener onItemClickListener) {
+    private  RecyclerView moviesRecyclerView;
+    public GameListAdapter(RecyclerView moviesRecyclerView, List<Folder> mList, Context context, OnItemClickListener onItemClickListener) {
         this.allList = mList;
         this.mContext = context;
         List<Folder> newList = new ArrayList<>();
         newList.addAll(allList);
 
         this.mList = newList;
+
+        this.moviesRecyclerView = moviesRecyclerView;
 
         mLayoutInflater = LayoutInflater.from(mContext);
         this.mOnItemClickListener = onItemClickListener;
@@ -66,6 +70,8 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
         this.typeId = mString;
         notifyDataSetChanged();
     }
+
+
 
     public void update(List<Folder> gameListBeans) {
         this.allList = gameListBeans;
@@ -233,5 +239,10 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
     protected abstract void onItemGetNormal(View itemView);
 
 
+    static class OrderNum{
+        public int id;
+        public int typeId;
+        public int seq;
+    }
 
 }

@@ -15,12 +15,8 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.view.MyImageView;
-import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.vurl.VUrlList;
-
-import org.mozilla.javascript.tools.jsc.Main;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +41,7 @@ public final class PlayerController {
     private Map<String, VFile> mapFiles;
     private Uri videoUrl;
     private View girdView;
-    private int curTypeId=1;
-
-
+    private int curTypeId = 1;
 
 
     private PlayerController() {
@@ -140,10 +134,6 @@ public final class PlayerController {
     }
 
 
-
-
-
-
     public void setMode(int mode) {
         this.mode = mode;
     }
@@ -163,7 +153,7 @@ public final class PlayerController {
                 PlayerController.this.videoUrl = null;
                 if (res instanceof VFile) {
                     videoUrl = getUri((VFile) res);
-                }else if(res instanceof VUrlList){
+                } else if (res instanceof VUrlList) {
                     videoUrl = ((VUrlList) res).getCurVideoUrl();
                 }
 
@@ -173,18 +163,18 @@ public final class PlayerController {
                     @Override
                     public void run() {
 
-                            synchronized (videoView) {
+                        synchronized (videoView) {
 
-                                textView.setVisibility(View.GONE);
+                            textView.setVisibility(View.GONE);
 
-                                videoView.setVisibility(View.VISIBLE);
+                            videoView.setVisibility(View.VISIBLE);
 
-                                videoView.setVideoURI(PlayerController.this.videoUrl);
-                                videoView.requestFocus();
-                                videoView.start();
-                                PlayerController.getInstance().setMediaObj(videoView);
-                                if(res instanceof  VFile)
-                                    MainActivity.adapter.refresh(((VFile)res).getFolder());
+                            videoView.setVideoURI(PlayerController.this.videoUrl);
+                            videoView.requestFocus();
+                            videoView.start();
+                            PlayerController.getInstance().setMediaObj(videoView);
+                            if (res instanceof VFile)
+                                MainActivity.numTabAdapter.refresh(((VFile) res).getFolder());
 
 
                         }
@@ -202,17 +192,17 @@ public final class PlayerController {
 
         String path = vf.getAbsPath();
 
-        if(path == null || ! new File(path).exists())
-            for(Drive d:App.diskList){
+        if (path == null || !new File(path).exists())
+            for (Drive d : App.diskList) {
                 vf.getFolder().setRoot(d);
-                if(vf.exists() && new File(vf.getAbsPath()).canRead()
-                ){
+                if (vf.exists() && new File(vf.getAbsPath()).canRead()
+                ) {
                     try {
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
                         folderDao.update(vf.getFolder());
 
-                      //  path = vf.getAbsPath();
+                        //  path = vf.getAbsPath();
                         break;
 
                     } catch (SQLException throwables) {
@@ -227,11 +217,11 @@ public final class PlayerController {
             com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 vremote = vidoInfo.getString("video");
-                vremote=App.cache2Disk(vf, vremote);
+                vremote = App.cache2Disk(vf, vremote);
             }
 
         } else {
-             path = vf.getAbsPath();
+            path = vf.getAbsPath();
             if (new File(path).exists()) {
                 vremote = "file://" + path;
             }
@@ -300,7 +290,7 @@ public final class PlayerController {
                     QueryBuilder<Folder, ?> foldersQueryBuilder = App.getHelper().getDao(Folder.class).
                             queryBuilder();
 
-                    foldersQueryBuilder.where().eq("typeId",curTypeId);
+                    foldersQueryBuilder.where().eq("typeId", curTypeId);
 
                     VFile vfile =
                             App.getHelper().getDao(VFile.class).
@@ -351,16 +341,24 @@ public final class PlayerController {
                 do {
                     VFile vf = (VFile) curItem;
 
+                    Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
+                    vf = vfDao.queryForId(vf.getId());
 
                     QueryBuilder<Folder, ?> foldersQueryBuilder = App.getHelper().getDao(Folder.class).
                             queryBuilder();
 
-                    foldersQueryBuilder.where().eq("typeId",curTypeId);
+                    foldersQueryBuilder.where().eq("typeId", curTypeId);
 
 
-                    VFile vfile = App.getHelper().getDao(VFile.class).
-                            queryBuilder().join(foldersQueryBuilder).where()
+                    VFile vfile = null;
+
+                    vf=vfDao.queryBuilder().where().eq("folder_id", vf.getFolder().getId()).and()
                             .gt("id", vf.getId()).queryForFirst();
+                    if (vf == null)
+
+                        vfile = App.getHelper().getDao(VFile.class).
+                                queryBuilder().join(foldersQueryBuilder).where()
+                                .gt("id", vf.getId()).queryForFirst();
 
                     if (vfile == null) {
                         vfile = (VFile) App.getHelper().getDao(VFile.class).
@@ -389,7 +387,7 @@ public final class PlayerController {
                 throwables.printStackTrace();
             }
 
-        }else if(curItem instanceof VUrlList){
+        } else if (curItem instanceof VUrlList) {
             ((VUrlList) curItem).curNext();
             play(curItem);
 
@@ -406,8 +404,8 @@ public final class PlayerController {
 
     }
 
-    public void setUIs( TextView textView, MyVideoView videoView,
-                        View gridView) {
+    public void setUIs(TextView textView, MyVideoView videoView,
+                       View gridView) {
         this.videoView = videoView;
         this.textView = textView;
         this.girdView = gridView;
@@ -431,6 +429,6 @@ public final class PlayerController {
     }
 
     public void setTypeId(int typeId) {
-        this.curTypeId=typeId;
+        this.curTypeId = typeId;
     }
 }

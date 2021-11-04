@@ -36,18 +36,17 @@ import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.r.InitChannel;
 import com.usbtv.demo.view.FocusFixedLinearLayoutManager;
 import com.usbtv.demo.view.MyMediaPlayer;
 import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SpaceDecoration;
 import com.usbtv.demo.view.adapter.GameListAdapter;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
+import com.usbtv.demo.view.widget.MyNumRecyclerView;
 import com.usbtv.demo.view.widget.NavigationCursorView;
 import com.usbtv.demo.view.widget.NavigationLinearLayout;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -91,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
     @BindView(R.id.home)
     View home;
-    private List<Folder> gameListBeans;
+    private List<Folder> movieList;
 
     private int key = 0;
     private Handler handler = new Handler();
@@ -136,10 +135,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }
     };
     private Timer timer;
-    public static MyRecycleViewAdapter adapter;
-    private RecyclerView recyclerView;
-    private RecyclerView rvGameList;
-    public static GameListAdapter gameListAdapter;
+    public static MyRecycleViewAdapter numTabAdapter;
+    private MyNumRecyclerView numTabRecyclerView;
+    private RecyclerView moviesRecyclerView;
+    public static GameListAdapter moviesRecyclerViewAdapter;
     private List<String> storagePathList;
 
     private View mLastFocusView;
@@ -246,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             try {
                 Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
                 folder = dao.queryForId((int) id);
-
+                PlayerController.getInstance().setTypeId(folder.getTypeId());
                 PlayerController.getInstance().play(folder.getFiles().iterator().next());
 
             } catch (SQLException throwables) {
@@ -330,55 +329,48 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
 
         home = findViewById(R.id.home);
-        recyclerView = findViewById(R.id.rv_tab);
-        recyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        numTabRecyclerView = findViewById(R.id.rv_tab);
+        numTabRecyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    v.setSelected(true);
-                    if (mLastFocusView != null) {
-                        mLastFocusView.setSelected(false);
-                    }
-                } else {
-                    mLastFocusView = v;
-                }
-
+                View chv = numTabRecyclerView.getChildAt(numTabAdapter.getCurIndex());
+              if(chv!=null) chv.requestFocus();
             }
 
         });
-        rvGameList = findViewById(R.id.rv_game_list);
+        moviesRecyclerView = findViewById(R.id.rv_game_list);
 
-        adapter = new MyRecycleViewAdapter(this);
+        numTabAdapter = new MyRecycleViewAdapter(this);
 
         LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(adapter);
+        numTabRecyclerView.setLayoutManager(linearLayoutManager);
+        numTabRecyclerView.setAdapter(numTabAdapter);
 
 
         mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.mNavigationLinearLayout_id);
-        mNavigationCursorView = (NavigationCursorView) findViewById(R.id.mNavigationCursorView_id);
+        //mNavigationCursorView = (NavigationCursorView) findViewById(R.id.mNavigationCursorView_id);
         List<String> data = new ArrayList<>();
 
         data.addAll(App.getInstance().getAllTypeMap().keySet());
 
         mNavigationLinearLayout.setDataList(data);
         mNavigationLinearLayout.setNavigationListener(mNavigationListener);
-        mNavigationLinearLayout.setNavigationCursorView(mNavigationCursorView);
+        //mNavigationLinearLayout.setNavigationCursorView(mNavigationCursorView);
         mNavigationLinearLayout.requestFocus();
 
 
-        gameListBeans = new ArrayList<>();
+        movieList = new ArrayList<>();
 
         try {
-            gameListBeans = App.getHelper().getDao(Folder.class).queryForAll();
+            movieList = App.getHelper().getDao(Folder.class).queryForAll();
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
 
-        gameListAdapter = new GameListAdapter(gameListBeans, this, new GameListAdapter.OnItemClickListener() {
+        moviesRecyclerViewAdapter = new GameListAdapter(moviesRecyclerView,movieList, this, new GameListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, List<Folder> mList, int position) {
                 PlayerController.getInstance().hideMenu();
@@ -400,14 +392,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 view.setSelected(true);
             }
         };
-        rvGameList.setLayoutManager(new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        rvGameList.addItemDecoration(new SpaceDecoration(30));
-        rvGameList.setAdapter(gameListAdapter);
+        moviesRecyclerView.setLayoutManager(new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        moviesRecyclerView.addItemDecoration(new SpaceDecoration(30));
+        moviesRecyclerView.setAdapter(moviesRecyclerViewAdapter);
 
 
-        MyListener myListener = new MyListener(gameListAdapter);
-        adapter.setOnFocusChangeListener(myListener);
-        adapter.setOnItemClickListener(myListener);
+        MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
+        numTabAdapter.setOnFocusChangeListener(myListener);
+       // adapter.setOnItemClickListener(myListener);
 
         PlayerController.getInstance().setUIs(textView, videoView, home);
 
@@ -421,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
-                    gameListAdapter.update(App.getAllTypeMap().get(s));
+                    moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
                     //rvGameList.smoothScrollToPosition(0);
 
                     break;
@@ -638,8 +630,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             case KeyEvent.KEYCODE_DPAD_CENTER:
                 Log.d(TAG, "enter--->");
                 if (isShowHome) {
-                    home.setVisibility(View.GONE);
-                    return false;
+                   // home.setVisibility(View.GONE);
+                    return super.onKeyDown(keyCode, event);
                 }
 
                 //如果是播放中则暂停、如果是暂停则继续播放

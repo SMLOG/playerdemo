@@ -7,7 +7,6 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
@@ -31,7 +30,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class App extends Application implements CacheListener {
     public static final String URLACTION = "urlaction";
@@ -145,7 +143,7 @@ public class App extends Application implements CacheListener {
                         List<Folder> movies = null;
                         try {
                             movies = App.getHelper().getDao(Folder.class).queryForAll();
-                            MainActivity.gameListAdapter.update(movies);
+                            MainActivity.moviesRecyclerViewAdapter.update(movies);
                             new InitChannel();
 
                         } catch (SQLException throwables) {
