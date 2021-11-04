@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.Settings;
@@ -357,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         mNavigationLinearLayout.setDataList(data);
         mNavigationLinearLayout.setNavigationListener(mNavigationListener);
         //mNavigationLinearLayout.setNavigationCursorView(mNavigationCursorView);
-        mNavigationLinearLayout.requestFocus();
+        //mNavigationLinearLayout.requestFocus();
 
 
         movieList = new ArrayList<>();
@@ -413,9 +414,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
-                    moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
+                  //  moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
                     //rvGameList.smoothScrollToPosition(0);
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
 
+                        @Override
+                        public void run() {
+                            moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
+
+                        }});
                     break;
                 case KeyEvent.KEYCODE_DPAD_UP:
                 case KeyEvent.KEYCODE_DPAD_DOWN:
