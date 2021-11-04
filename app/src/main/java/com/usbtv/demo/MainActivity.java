@@ -805,4 +805,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         PlayerController.getInstance().playNext();
         return false;
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 }

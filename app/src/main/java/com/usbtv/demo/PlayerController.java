@@ -327,22 +327,35 @@ public final class PlayerController {
     }
 
     public void next() {
+        try {
+        Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
 
         if (curItem == null) {
-            curItem = new VFile();
             SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
             int id = sp.getInt("id", 0);
-            VFile vf = (VFile) curItem;
-            vf.setId(id);
+
+            curItem = vfDao.queryForId(id);
+
+            if(curItem==null){
+                curItem = new VFile();
+                VFile vf = (VFile) curItem;
+                vf.setId(id);
+            }else{
+                play(curItem);
+                return;
+            }
+
         }
         if (curItem instanceof VFile) {
-            try {
+
 
                 do {
                     VFile vf = (VFile) curItem;
 
-                    Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
-                    vf = vfDao.queryForId(vf.getId());
+
+                    int vfId = vf.getId();
+
+                    if(vf.getFolder()==null)vf = vfDao.queryForId(vfId);
 
                     QueryBuilder<Folder, ?> foldersQueryBuilder = App.getHelper().getDao(Folder.class).
                             queryBuilder();
@@ -350,28 +363,27 @@ public final class PlayerController {
                     foldersQueryBuilder.where().eq("typeId", curTypeId);
 
 
-                    VFile vfile = null;
+                    VFile nextVf = vfDao.queryBuilder().where().eq("folder_id", vf.getFolder().getId()).and()
+                            .gt("id", vfId).queryForFirst();
 
-                    vf=vfDao.queryBuilder().where().eq("folder_id", vf.getFolder().getId()).and()
-                            .gt("id", vf.getId()).queryForFirst();
-                    if (vf == null)
-
-                        vfile = App.getHelper().getDao(VFile.class).
+                    if (nextVf == null){
+                        nextVf = App.getHelper().getDao(VFile.class).
                                 queryBuilder().join(foldersQueryBuilder).where()
-                                .gt("id", vf.getId()).queryForFirst();
+                                .gt("id", vfId).queryForFirst();
+                    }
 
-                    if (vfile == null) {
-                        vfile = (VFile) App.getHelper().getDao(VFile.class).
+                    if (nextVf == null) {
+                        nextVf = (VFile) App.getHelper().getDao(VFile.class).
                                 queryBuilder().join(foldersQueryBuilder).where()
                                 .gt("id", 0).queryForFirst();
                     }
-                    if (vfile != null) {
+                    if (nextVf != null) {
                         //vf.setId(vf.getId()+1);
-                        play(vfile);
+                        play(nextVf);
                         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
                         SharedPreferences.Editor editor = sp.edit();
-                        editor.putInt("id", vf.getId()); //sp.getInt("id",0);
+                        editor.putInt("id", nextVf.getId()); //sp.getInt("id",0);
                         editor.apply();
                         //editor.apply();
 
@@ -383,14 +395,15 @@ public final class PlayerController {
 
                 } while (true);
 
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
+
 
         } else if (curItem instanceof VUrlList) {
             ((VUrlList) curItem).curNext();
             play(curItem);
 
+        }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
     }
 
