@@ -148,8 +148,13 @@ public final class PlayerController {
         this.curItem = res;
         if(res instanceof VFile){
             VFile vf = (VFile) res;
-
             PlayerController.getInstance().setCurIndex(vf.getOrderSeq());
+            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putInt("id", vf.getId()); //sp.getInt("id",0);
+            editor.apply();
+            //editor.apply();
+            sp.edit().commit();
 
         }
 
@@ -257,15 +262,6 @@ public final class PlayerController {
 
                     if (vfile != null) {
                         play(vfile);
-                        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putInt("id", vf.getId()); //sp.getInt("id",0);
-                        editor.apply();
-                        //editor.apply();
-
-                        sp.edit().commit();
-
                         return;
                     }
 

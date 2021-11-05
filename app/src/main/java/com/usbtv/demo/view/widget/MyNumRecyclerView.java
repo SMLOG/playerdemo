@@ -12,47 +12,57 @@ import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
 
 public class MyNumRecyclerView extends RecyclerView {
-    //private int mlastFocusPosition = 0;
+    private int mlastFocusPosition = 0;
 
 
     public MyNumRecyclerView(Context context) {
         super(context);
-        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
-        setFocusable(true);
+
     }
 
     public MyNumRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
-        setFocusable(true);
+
+
     }
 
     public MyNumRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
-        setFocusable(true);
     }
 
     @Override
     public void requestChildFocus(View child, View focused) {
 
+
         super.requestChildFocus(child, focused);
+
         if (child != null) {
-            // mlastFocusPosition = getChildViewHolder(child).getAdapterPosition();
+            int newPosition =   getChildViewHolder(child).getAdapterPosition();
+            if(Math.abs(newPosition-mlastFocusPosition)>1){
+                mlastFocusPosition=PlayerController.getInstance().getCurIndex();
+                final View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
+                if (lastFocusedview != null) {
+                    this.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            lastFocusedview.requestFocus();
+
+                        }
+                    });
+                }
+            }else mlastFocusPosition=newPosition;
         }
     }
 
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
 
-            View lastFocusedview = getLayoutManager().findViewByPosition(PlayerController.getInstance().getCurIndex());
-            if (lastFocusedview != null) {
-                scrollToPosition(PlayerController.getInstance().getCurIndex());
-                lastFocusedview.requestFocus();
-               // lastFocusedview.setSelected(true);
-                return false;
-            }
-
+            mlastFocusPosition=PlayerController.getInstance().getCurIndex();
+        View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
+        if (lastFocusedview != null) {
+            lastFocusedview.requestFocus();
+            return false;
+        }
 
         return super.requestFocus(direction, previouslyFocusedRect);
     }

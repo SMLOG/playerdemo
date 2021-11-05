@@ -330,8 +330,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
 
         home = findViewById(R.id.home);
+        home.setOnFocusChangeListener((view,hasFocus)->{
+            numTabRecyclerView.requestFocus();
+        });
         numTabRecyclerView = findViewById(R.id.rv_tab);
-        numTabRecyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+       /* numTabRecyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -339,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
               if(chv!=null) chv.requestFocus();
             }
 
-        });
+        });*/
         moviesRecyclerView = findViewById(R.id.rv_game_list);
 
         numTabAdapter = new MyRecycleViewAdapter(this);
