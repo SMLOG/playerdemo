@@ -58,6 +58,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
+import java.util.TimerTask;
 
 
 import butterknife.BindView;
@@ -129,20 +130,20 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 timeSeekBar.setProgress(current);
 
                 tvPlayTime.setText(time(videoView.getCurrentPosition()));
-                status.setVisibility(View.GONE);
+               // status.setVisibility(View.GONE);
 
             }
             handler.postDelayed(updateProgressBarThread, 500);
         }
     };
     private Timer timer;
+    private TimerTask timerTask;
     public static MyRecycleViewAdapter numTabAdapter;
     private MyNumRecyclerView numTabRecyclerView;
     private RecyclerView moviesRecyclerView;
     public static GameListAdapter moviesRecyclerViewAdapter;
     private List<String> storagePathList;
 
-    private View mLastFocusView;
 
     private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
@@ -579,6 +580,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
      * 进度条监听
      */
     private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        private TimerTask task;
+
         // 当进度条停止修改的时候触发
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
@@ -598,9 +601,35 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress,
                                       boolean fromUser) {
+            if(fromUser){
+                videoView.seekTo(progress);
+                MainActivity.this.startDelayHideStatusTask();
+            }
 
         }
     };
+
+    private void startDelayHideStatusTask() {
+
+        try{
+            timerTask.cancel();
+        }catch (Exception e){
+
+        }
+        this.timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                status.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        status.setVisibility(View.GONE);
+                    }
+                });
+            }
+        };
+
+        timer.schedule(timerTask,5000);
+    }
 
     //将长度转换为时间
     StringBuilder mFormatBuilder = new StringBuilder();
@@ -646,8 +675,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 }
 
                 //如果是播放中则暂停、如果是暂停则继续播放
-                isVideoPlay(videoView.isPlaying(), key);
-                status.setVisibility(View.VISIBLE);
+                if(!videoView.isPlaying() || status.getVisibility()==View.VISIBLE)
+                    isVideoPlay(videoView.isPlaying(), key);
+                else{
+
+                    showStatusAndAutoHide();
+                }
+
                 break;
 
             case KeyEvent.KEYCODE_BACK:    //返回键
@@ -772,16 +806,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 if (isShowHome) return false;
 
                 Log.d(TAG, "left--->");
-                if (videoView.getCurrentPosition() > 4) {
-                    videoView.seekTo(videoView.getCurrentPosition() - 5 * 1000);
-                }
+
+                showStatusAndAutoHide();
+                timeSeekBar.requestFocus();
+
                 break;
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
                 if (isShowHome) return false;
-
                 Log.d(TAG, "right--->");
-                videoView.seekTo(videoView.getCurrentPosition() + 5 * 1000);
+                showStatusAndAutoHide();
+                timeSeekBar.requestFocus();
+
                 break;
 
             case KeyEvent.KEYCODE_VOLUME_UP:   //调大声音键
@@ -802,6 +838,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
         return super.onKeyDown(keyCode, event);
 
+    }
+
+    private void showStatusAndAutoHide() {
+        status.setVisibility(View.VISIBLE);
+        startDelayHideStatusTask();
     }
 
     @Override

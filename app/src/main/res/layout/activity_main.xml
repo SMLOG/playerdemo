@@ -108,6 +108,7 @@
         android:layout_height="@dimen/dp_100"
         android:layout_alignParentBottom="true"
         android:background="@drawable/shape_gradual_change"
+        android:visibility="gone"
         tools:visibility="gone">
 
         <LinearLayout
@@ -126,7 +127,7 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/sp_24" />
 
-            <SeekBar
+            <com.usbtv.demo.view.widget.SmoothSeekBar
                 android:id="@+id/time_seekBar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
