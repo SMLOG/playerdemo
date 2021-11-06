@@ -1,11 +1,16 @@
 package com.usbtv.demo.view.adapter;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.Interpolator;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,6 +24,7 @@ import com.usbtv.demo.R;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.util.GlideUtils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +108,54 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
         View v = mLayoutInflater.inflate(R.layout.listview_item,parent, false);
         return new RecyclerViewHolder(v);
     }
+    //根据坐标滑动到指定距离
+    private void scrollToAmount(RecyclerView recyclerView, int dx, int dy) {
+        //如果没有滑动速度等需求，可以直接调用这个方法，使用默认的速度
+//                recyclerView.smoothScrollBy(dx,dy);
 
+        //以下对滑动速度提出定制
+        try {
+            Class recClass = recyclerView.getClass();
+            recyclerView.smoothScrollBy(dx,dy);
+            //Method smoothMethod = recClass.getDeclaredMethod("smoothScrollBy", int.class, int.class,  android.view.animation.Interpolator.class, int.class);
+            //smoothMethod.invoke(recyclerView, dx, dy, new AccelerateDecelerateInterpolator(), 700);//时间设置为700毫秒，
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    //放大动画
+    private void ofFloatAnimator(View view,float start,float end){
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.setDuration(700);//动画时间
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, "scaleX", start, end);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, "scaleY", start, end);
+        animatorSet.setInterpolator(new DecelerateInterpolator());//插值器
+        animatorSet.play(scaleX).with(scaleY);//组合动画,同时基于x和y轴放大
+        animatorSet.start();
+    }
+
+    /**
+     * 计算需要滑动的距离,使焦点在滑动中始终居中
+     * @param recyclerView
+     * @param view
+     */
+    private int[] getScrollAmount(RecyclerView recyclerView, View view) {
+        int[] out = new int[2];
+        final int parentLeft = recyclerView.getPaddingLeft();
+        final int parentTop = recyclerView.getPaddingTop();
+        final int parentRight = recyclerView.getWidth() - recyclerView.getPaddingRight();
+        final int childLeft = view.getLeft() + 0 - view.getScrollX();
+        final int childTop = view.getTop() + 0 - view.getScrollY();
+
+        final int dx =childLeft - parentLeft - ((parentRight - view.getWidth()) / 2);//item左边距减去Recyclerview不在屏幕内的部分，加当前Recyclerview一半的宽度就是居中
+
+        final int dy = childTop - parentTop - (parentTop - view.getHeight()) / 2;//同上
+        out[0] = dx;
+        out[1] = dy;
+        return out;
+
+    }
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
@@ -125,6 +178,18 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
                     focusStatus(v,holder.getAdapterPosition());
                 }else {
                     normalStatus(v);
+                }
+
+                if(hasFocus){
+                    int[] amount = getScrollAmount(moviesRecyclerView, v);//计算需要滑动的距离
+                    //滑动到指定距离
+                    scrollToAmount(moviesRecyclerView, amount[0], amount[1]);
+
+                    holder.itemView.setTranslationZ(20);//阴影
+                    ofFloatAnimator(holder.itemView,1f,1.3f);//放大
+                }else {
+                    holder.itemView.setTranslationZ(0);
+                    ofFloatAnimator(holder.itemView,1.3f,1f);
                 }
             }
         });
@@ -176,6 +241,62 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv_name);
             iv = (ImageView) itemView.findViewById(R.id.iv_bg);
+
+            itemView.setFocusable(true);
+            itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean b) {
+                    if(b){
+                        int[] amount = getScrollAmount(moviesRecyclerView, view);//计算需要滑动的距离
+                        //滑动到指定距离
+                        scrollToAmount(moviesRecyclerView, amount[0], amount[1]);
+
+                        //itemView.setTranslationZ(20);//阴影
+                        //ofFloatAnimator(itemView,1f,1.3f);//放大
+                    }else {
+                        //itemView.setTranslationZ(0);
+                        //ofFloatAnimator(itemView,1.3f,1f);
+                    }
+                }
+
+            });
+        }
+        //根据坐标滑动到指定距离
+        private void scrollToAmount(RecyclerView recyclerView, int dx, int dy) {
+            //如果没有滑动速度等需求，可以直接调用这个方法，使用默认的速度
+//                recyclerView.smoothScrollBy(dx,dy);
+
+            //以下对滑动速度提出定制
+            try {
+                Class recClass = recyclerView.getClass();
+                Method smoothMethod = recClass.getDeclaredMethod("smoothScrollBy", int.class, int.class, Interpolator.class, int.class);
+                smoothMethod.invoke(recyclerView, dx, dy, new AccelerateDecelerateInterpolator(), 700);//时间设置为700毫秒，
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        /**
+         * 计算需要滑动的距离,使焦点在滑动中始终居中
+         * @param recyclerView
+         * @param view
+         */
+        private int[] getScrollAmount(RecyclerView recyclerView, View view) {
+            int[] out = new int[2];
+            final int parentLeft = recyclerView.getPaddingLeft();
+            final int parentTop = recyclerView.getPaddingTop();
+            final int parentRight = recyclerView.getWidth() - recyclerView.getPaddingRight();
+            final int childLeft = view.getLeft() + 0 - view.getScrollX();
+            final int childTop = view.getTop() + 0 - view.getScrollY();
+
+            final int dx =childLeft - parentLeft - ((parentRight - view.getWidth()) / 2);//item左边距减去Recyclerview不在屏幕内的部分，加当前Recyclerview一半的宽度就是居中
+
+            final int dy = childTop - parentTop - (parentTop - view.getHeight()) / 2;//同上
+            out[0] = dx;
+            out[1] = dy;
+            return out;
+
         }
     }
 
