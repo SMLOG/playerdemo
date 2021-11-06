@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Interpolator;
 import android.os.Build;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,6 +21,7 @@ import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.bumptech.glide.Glide;
 import com.usbtv.demo.R;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.util.GlideUtils;
@@ -115,7 +117,7 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
 
         //以下对滑动速度提出定制
         try {
-            Class recClass = recyclerView.getClass();
+           // Class recClass = recyclerView.getClass();
             recyclerView.smoothScrollBy(dx,dy);
             //Method smoothMethod = recClass.getDeclaredMethod("smoothScrollBy", int.class, int.class,  android.view.animation.Interpolator.class, int.class);
             //smoothMethod.invoke(recyclerView, dx, dy, new AccelerateDecelerateInterpolator(), 700);//时间设置为700毫秒，
@@ -160,7 +162,10 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
         viewHolder.tv.setText(mList.get(position).getShortName());
-        GlideUtils.loadImg(mContext,mList.get(position).getCoverUrl(),viewHolder.iv);
+        holder.itemView.setTag(position);
+        //GlideUtils.loadImg(mContext,mList.get(position).getCoverUrl(),viewHolder.iv);
+        Glide.with(mContext).load(mList.get(position).getCoverUrl()).into(viewHolder.iv);
+
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -227,6 +232,41 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
             }
         });
 
+        holder.itemView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                int action = event.getAction();
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_DPAD_LEFT:
+                        int positionUp  =  (int) v.getTag();
+                        if (action == KeyEvent.ACTION_DOWN) {
+                            if (positionUp <=  0) {
+                               // moviesRecyclerView.smoothScrollToPosition(getItemCount() - 1);
+                                holder.itemView.setTranslationZ(20);//阴影
+                                ofFloatAnimator(holder.itemView,1f,1.3f);//放大
+                                return true;
+                            }
+                        }
+                        break;
+
+                    case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        int positionDown = (int) v.getTag();
+                        if (action == KeyEvent.ACTION_DOWN) {
+                            if (positionDown >= getItemCount() - 1) {
+                               // moviesRecyclerView.smoothScrollToPosition(0);
+                                holder.itemView.setTranslationZ(20);//阴影
+                                ofFloatAnimator(holder.itemView,1f,1.3f);//放大
+                                return true;
+                            }
+                        }
+                        break;
+                }
+                return false;
+            };
+        }
+        );
+
+
     }
 
     @Override
@@ -241,7 +281,6 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv_name);
             iv = (ImageView) itemView.findViewById(R.id.iv_bg);
-
             itemView.setFocusable(true);
             itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override

@@ -346,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         });*/
         moviesRecyclerView = findViewById(R.id.rv_game_list);
 
-        numTabAdapter = new MyRecycleViewAdapter(this);
+        numTabAdapter = new MyRecycleViewAdapter(this,numTabRecyclerView);
 
         LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         numTabRecyclerView.setLayoutManager(linearLayoutManager);
@@ -689,7 +689,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 home.bringToFront();
                 home.setVisibility(home.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
                 if (home.getVisibility() == View.VISIBLE) {
-                    home.requestFocus();
+                    home.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            numTabRecyclerView.requestFocus();
+                        }
+                    },100);
                     /*recyclerView.postDelayed(new Runnable() {
                         @Override
                         public void run() {

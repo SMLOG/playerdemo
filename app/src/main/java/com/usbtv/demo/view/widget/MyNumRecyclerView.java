@@ -40,6 +40,8 @@ public class MyNumRecyclerView extends RecyclerView {
             int newPosition =   getChildViewHolder(child).getAdapterPosition();
             if(Math.abs(newPosition-mlastFocusPosition)>1){
                 mlastFocusPosition=PlayerController.getInstance().getCurIndex();
+
+               scrollToPosition(mlastFocusPosition);
                 final View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
                 if (lastFocusedview != null) {
                     this.post(new Runnable() {
@@ -57,7 +59,8 @@ public class MyNumRecyclerView extends RecyclerView {
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
 
-            mlastFocusPosition=PlayerController.getInstance().getCurIndex();
+        mlastFocusPosition=PlayerController.getInstance().getCurIndex();
+        scrollToPosition(mlastFocusPosition);
         View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
         if (lastFocusedview != null) {
             lastFocusedview.requestFocus();
