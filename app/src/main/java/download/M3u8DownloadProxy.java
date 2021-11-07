@@ -4,47 +4,46 @@ package download;
 import com.usbtv.demo.App;
 import com.usbtv.demo.DocumentsUtils;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.spec.AlgorithmParameterSpec;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import static download.Constant.FILESEPARATOR;
 
-/**
- * @author liyaling
- * @email ts_liyaling@qq.com
- * @date 2019/12/14 16:05
- */
+    public  class M3u8DownloadProxy {
 
-public class M3u8DownloadFactory {
-
-
-    /**
-     *
-     * 解决java不支持AES/CBC/PKCS7Padding模式解密
-     *
-     */
-    /*static {
-        Security.addProvider(new BouncyCastleProvider());
-    }*/
-
-
-    public static class M3u8Download {
-
+        private static String M3U8URL = null;
         private final Lock lock = new ReentrantLock();
 
         //要下载的m3u8链接
@@ -90,6 +89,9 @@ public class M3u8DownloadFactory {
         private Set<String> tsSet = new LinkedHashSet<>();
         private Set<Integer> downloadedSet = new LinkedHashSet<>();
 
+        private List<String> LINES = new ArrayList<String>();
+        private List<String> STREAM_LINES = new ArrayList<String>();
+
         //解密后的片段
         private Set<File> finishedFiles = new ConcurrentSkipListSet<>(
         		new Comparator<File>() {
@@ -117,6 +119,7 @@ public class M3u8DownloadFactory {
         //监听事件
         private Set<DownloadListener> listenerSet = new HashSet<>(5);
         private boolean downing=true;
+        private String downloadId;
 
         /**
          * 开始下载视频
@@ -130,9 +133,18 @@ public class M3u8DownloadFactory {
                 Log.i("不需要解密");
             
 
-            startDownload();
+            //startDownload();
         }
 
+        public String getM3U8Content(boolean b){
+            StringBuilder sb = new StringBuilder();
+            List<String> lines = b ? STREAM_LINES : LINES;
+            for(String s:lines){
+                sb.append(s).append("\n");
+            }
+
+            return sb.toString().trim();
+        }
 
         /**
          * 下载视频
@@ -191,9 +203,10 @@ public class M3u8DownloadFactory {
 
                 Log.i("下载完成，正在合并文件！共" + finishedFiles.size() + "个！" + StringUtils.convertToDownloadSpeed(downloadBytes, 3));
                 //开始合并视频
-               // mergeTs();
                 //删除多余的ts片段
                // deleteFiles();
+                deleteTses();
+
                 downloadedSet.clear();
                 Log.i("视频合并完成，欢迎使用!");
             }).start();
@@ -298,7 +311,7 @@ f.exists();
                 fileInputStream.close();
                 fileOutputStream.flush();
                 fileOutputStream.close();
-                DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
+                //DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
 
                 Log.i("合并完第 "+index+"/" + tsSet.size() );
 
@@ -307,6 +320,23 @@ f.exists();
             }
         }
 
+        /**
+         * 合并下载好的ts片段
+         */
+        private void deleteTses() {
+            try {
+
+                for(int index:downloadedSet){
+                    File f = new File(dir + FILESEPARATOR +fileName+"_" +index + ".xyz");
+                    if(f.exists())
+                        DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
+                }
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
 
         public float getPercent(){
@@ -321,7 +351,148 @@ f.exists();
 		}
 
 
+        /**
+         * 开启下载线程
+         *
+         * @param urls ts片段链接
+         * @param i    ts片段序号
+         * @return 线程
+         */
+        private Thread getThread2(String urls, int i) {
+            return new Thread(() -> {
+                int count = 1;
+                HttpURLConnection httpURLConnection = null;
+                File xyzfile = new File(dir + FILESEPARATOR + fileName+"_" +i + ".xyz");
 
+                if(downloadedSet.contains(i) && xyzfile.exists())return;
+
+                //xy为未解密的ts片段，如果存在，则删除
+                File xyfile = new File(dir + FILESEPARATOR +fileName+"_"+ i + ".xy");
+                if(xyfile.exists())DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
+
+                OutputStream outputStream2 = null;
+                InputStream inputStream1 = null;
+                OutputStream outputStream1 = null;
+                InputStream inputStream3 = null;
+                byte[] bytes = new  byte[1024];
+                try {
+                   if(false) bytes = BLOCKING_QUEUE.take();
+                } catch (InterruptedException e) {
+                    bytes = new byte[Constant.BYTE_COUNT];
+                }
+                //重试次数判断
+                while (count <= retryCount) {
+                    try {
+                        //模拟http请求获取ts片段文件
+                        URL url = new URL(urls);
+                        httpURLConnection = (HttpURLConnection) url.openConnection();
+                        httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+                        for (Map.Entry<String, Object> entry : requestHeaderMap.entrySet())
+                            httpURLConnection.addRequestProperty(entry.getKey(), entry.getValue().toString());
+                        httpURLConnection.setUseCaches(false);
+                        httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+                        httpURLConnection.setDoInput(true);
+                         inputStream3 = httpURLConnection.getInputStream();
+
+                        if(!urls.endsWith(".ts")) {
+                            inputStream3.skip(212);
+                        }
+                        //outputStream2 = new FileOutputStream(xyfile);
+                        // outputStream2 = DocumentsUtils.getOutputStream(App.getInstance().getApplicationContext(),xyfile);
+
+                        DocumentsUtils.mkdirs(App.getInstance().getApplicationContext(),xyfile.getParentFile());
+
+                        outputStream2 = App.getInstance().documentStream(xyfile.getAbsolutePath());
+
+                        int len;
+                        //将未解密的ts片段写入文件
+                        while ((len = inputStream3.read(bytes)) != -1) {
+                            outputStream2.write(bytes, 0, len);
+                            synchronized (this) {
+                                downloadBytes = downloadBytes.add(new BigDecimal(len));
+                            }
+                        }
+                        outputStream2.flush();
+                        inputStream3.close();
+                        outputStream2.close();
+                        inputStream1 =  App.getInstance().documentInputStream(xyfile);
+                        int available = inputStream1.available();
+                        if (bytes.length < available)
+                            bytes = new byte[available];
+                        inputStream1.read(bytes);
+
+                        inputStream1.close();
+
+                        //outputStream1 = DocumentsUtils.getOutputStream(App.getInstance().getApplicationContext(),xyzfile);
+                        outputStream1 = App.getInstance().documentStream(xyzfile.getAbsolutePath());
+
+                        //开始解密ts片段，这里我们把ts后缀改为了xyz，改不改都一样
+                        byte[] decrypt = decrypt(bytes, available, key, iv, method);
+                        if (decrypt == null)
+                            outputStream1.write(bytes, 0, available);
+                        else outputStream1.write(decrypt);
+
+                        outputStream1.close();
+
+                        finishedFiles.add(xyzfile);
+                        downloadedSet.add(i);
+
+                        break;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        if (e instanceof InvalidKeyException || e instanceof InvalidAlgorithmParameterException) {
+                            Log.e("解密失败！");
+                            break;
+                        }
+                        Log.d("第" + count + "获取链接重试！\t" + urls);
+                        count++;
+//                        e.printStackTrace();
+                    } finally {
+                        try {
+                            try {
+                                if (inputStream1 != null)
+                                    inputStream1.close();
+                            }catch (Exception e){
+
+                            }
+                            try {
+                                if (inputStream3 != null)
+                                    inputStream3.close();
+                            }catch (Exception e){
+
+                            }
+                            try {
+                                if (outputStream1 != null)
+                                    outputStream1.close();
+                            }catch (Exception e){
+
+                            }
+                            try {
+                                if (outputStream2 != null)
+                                    outputStream2.close();
+                            }catch (Exception e){
+
+                            }
+
+                            if(false)BLOCKING_QUEUE.put(bytes);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        if (httpURLConnection != null) {
+                            httpURLConnection.disconnect();
+                        }
+                    }
+                }
+
+                DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
+
+                if (count > retryCount)
+                    //自定义异常
+                    throw new M3u8Exception("连接超时！");
+                finishedCount++;
+//                Log.i(urls + "下载完毕！\t已完成" + finishedCount + "个，还剩" + (tsSet.size() - finishedCount) + "个！");
+            });
+        }
         /**
          * 开启下载线程
          *
@@ -333,6 +504,9 @@ f.exists();
             return new Thread(() -> {
                 int count = 1;
                 HttpURLConnection httpURLConnection = null;
+
+                if(downloadedSet.contains(i))return;
+
                 //xy为未解密的ts片段，如果存在，则删除
                 File xyfile = new File(dir + FILESEPARATOR +fileName+"_"+ i + ".xy");
                 if(xyfile.exists())DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
@@ -447,13 +621,15 @@ f.exists();
             String[] split = content.toString().split("\\n");
             String keyUrl = "";
             boolean isKey = false;
+
+            List<String> lines = content.indexOf("EXT-X-STREAM-INF")>-1?STREAM_LINES:LINES;
             for (String s : split) {
                 //如果含有此字段，则说明只有一层m3u8链接
                 if (s.contains("#EXT-X-KEY") || s.contains("#EXTINF")) {
                     isKey = true;
                     keyUrl = DOWNLOADURL;
                     break;
-                }
+                }else
                 //如果含有此字段，则说明ts片段链接需要从第二个m3u8链接获取
                 if (s.contains(".m3u8")) {
                     if (StringUtils.isUrl(s))
@@ -462,8 +638,13 @@ f.exists();
                     if (s.startsWith("/"))
                         s = s.replaceFirst("/", "");
                     keyUrl = mergeUrl(relativeUrl, s);
+                    M3U8URL=keyUrl;
+
+                    lines.add("/api/s/"+downloadId+"/hls.m3u8?path="+URLEncoder.encode(keyUrl));
+
                     break;
-                }
+                }else
+                lines.add(s);
             }
             if (StringUtils.isEmpty(keyUrl))
                 throw new M3u8Exception("未发现key链接！");
@@ -503,18 +684,28 @@ f.exists();
                             key = s1.split("=", 2)[1];
                             continue;
                         }
-                        if (s1.contains("IV"))
+                        if (s1.contains("URI"))
                             iv = s1.split("=", 2)[1];
                     }
                 }
             }
             String relativeUrl = url.substring(0, url.lastIndexOf("/") + 1);
             //将ts片段链接加入set集合
+            int tsi=0;
             for (int i = 0; i < split.length; i++) {
                 String s = split[i];
                 if (s.contains("#EXTINF")) {
                     String s1 = split[++i];
-                    tsSet.add(StringUtils.isUrl(s1) ? s1 : mergeUrl(relativeUrl, s1));
+                    String tsUrl = StringUtils.isUrl(s1) ? s1 : mergeUrl(relativeUrl, s1);
+                    tsSet.add(tsUrl);
+
+                    LINES.add(s);
+                    LINES.add("/api/rts/"+URLEncoder.encode(downloadId)+"/"+tsi+"/a.ts");
+                    tsi++;
+                }else {
+                    if(s.contains("EXT-X-KEY")||s.contains("METHOD")||s.contains("URI")||s.contains("URI")){
+
+                    }else LINES.add(s);
                 }
             }
             if (!StringUtils.isEmpty(key)) {
@@ -567,7 +758,7 @@ f.exists();
                         content.append(line).append("\n");
                     bufferedReader.close();
                     inputStream.close();
-                    Log.i(content);
+                    //Log.i(content);
                     break;
                 } catch (Exception e) {
                 	e.printStackTrace();
@@ -737,13 +928,18 @@ f.exists();
             listenerSet.add(downloadListener);
         }
 
-        public M3u8Download(String DOWNLOADURL) {
+        public M3u8DownloadProxy( String DOWNLOADURL,String downloadId) {
+            this.downloadId = downloadId;
             this.DOWNLOADURL = DOWNLOADURL;
             requestHeaderMap.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
         }
+
+        public File downloadIndexTs(int index) {
+            String tsUrl = tsSet.toArray(new String[]{})[index];
+            getThread2(tsUrl,index).run();
+            File xyzfile = new File(dir + FILESEPARATOR + fileName+"_" +index + ".xyz");
+            return xyzfile;
+
+        }
     }
 
-    public static void destroied() {
-    }
-
-}

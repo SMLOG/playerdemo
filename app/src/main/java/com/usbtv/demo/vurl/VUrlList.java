@@ -6,6 +6,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class VUrlList {
 
     public VUrlList(String name,int index,String[] urls) {
         this.curIndex = index;
+        this.name = name;
         this.urls = new ArrayList<>();
         for(String url:urls){
             add(url);
@@ -31,7 +33,7 @@ public class VUrlList {
     }
 
     public Uri getCurVideoUrl() {
-        return Uri.parse("http://127.0.0.1:8080/api/r?url="+this.urls.get(curIndex));
+        return Uri.parse("http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(name)+"/"+curIndex+"/index.m3u8?url="+URLEncoder.encode(urls.get(curIndex)));
     }
 
     public String getCurUrl() {

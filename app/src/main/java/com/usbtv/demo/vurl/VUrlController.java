@@ -4,18 +4,21 @@ package com.usbtv.demo.vurl;
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.App;
-import com.usbtv.demo.DocumentsUtils;
 import com.usbtv.demo.FileDownload;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.data.Cache;
 import com.yanzhenjie.andserver.annotation.GetMapping;
+import com.yanzhenjie.andserver.annotation.PathVariable;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.framework.body.FileBody;
+import com.yanzhenjie.andserver.framework.body.StreamBody;
+import com.yanzhenjie.andserver.framework.body.StringBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.ResponseBody;
+import com.yanzhenjie.andserver.util.MediaType;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,14 +26,18 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import download.M3u8DownloadFactory;
+import download.M3u8DownloadProxy;
 import download.M3u8Main;
 
 @RestController
@@ -38,6 +45,7 @@ public class VUrlController {
 
 
     public static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36";
+    private static final Map<String, Object> DOWNLOADING = new HashMap<String, Object>();
 
     private static String getM3u8(String token) throws IOException {
         Document doc;
@@ -61,19 +69,19 @@ public class VUrlController {
         return a[0];
     }
 
-    public List<String> getList( String keyword) {
+    public List<String> getList(String keyword) {
 
-        List<String> list =new ArrayList<>();
+        List<String> list = new ArrayList<>();
 
         if (keyword == null && keyword.length() == 0) {
-                return list;
+            return list;
         }
         try {
             Document doc = Jsoup.connect("https://www.kanju5.com/").userAgent(AGENT).data("s", keyword).get();
 
             Elements links = doc.select("#play_list_o li a");
 
-            if(links.size()==0)return  list;
+            if (links.size() == 0) return list;
 
             Dao<Cache, Integer> cacheDao = App.getHelper().getDao(Cache.class);
             Cache cache = cacheDao.queryBuilder().where().eq("key", keyword).queryForFirst();
@@ -151,7 +159,7 @@ public class VUrlController {
             List<Cache> cacheList = App.getHelper().getDao(Cache.class).queryForAll();
 
             sb.append("<ul>");
-            for(int i=0;i<cacheList.size();i++){
+            for (int i = 0; i < cacheList.size(); i++) {
                 String key = cacheList.get(i).getKey();
                 sb.append("<li><a href=?keyword='").append(URLEncoder.encode(key)).append("' >").append(key).append("</a></li>");
             }
@@ -203,6 +211,12 @@ public class VUrlController {
         StringBuilder sb = new StringBuilder();
 
 
+        sb.append("\n" +
+                "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "\t<head>\n" +
+                "\t\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n" +
+                "\t\t<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\"></head><body>");
         sb.append("<iframe name='ifr' ></iframe><form method='post' target='ifr'><input name='keyword' value='")
                 .append(keyword)
                 .append("'  /><a onclick='document.location.href=document.location.pathname+\"?keyword=\"+encodeURIComponent(document.forms[0].keyword.value);'>Search<a/><br />")
@@ -222,7 +236,7 @@ public class VUrlController {
         }
 
         sb.append("</form>");
-
+        sb.append("</body></html>");
 
         response.setHeader("Content-Type", "text/html");
         return sb.toString();
@@ -242,45 +256,44 @@ public class VUrlController {
     }
 
 
-    @GetMapping(path = "/api/r")
+    @GetMapping(path = "/api/r3")
     ResponseBody range(
-            HttpRequest request,HttpResponse response,
+            HttpRequest request, HttpResponse response,
             @RequestParam(name = "url", required = false, defaultValue = "") String url,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "curIndex", required = false, defaultValue = "0") int curIndex
     ) throws IOException {
 
+        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
         ResponseBody responseBody = null;
         while (true) {
             try {
 
                 String name = "" + (curIndex + 1);
-                String dir = "/storage/36AC6142AC60FDAD/videos/"+keyword;
+                String dir = "/storage/36AC6142AC60FDAD/videos/" + keyword;
 
                 File file = new File(dir + "/" + name + ".mp4");
+                synchronized (DOWNLOADING) {
+                    if (!file.exists() && DOWNLOADING.get(name) == null) {
+                        DOWNLOADING.put(name, M3u8Main.startDownload(url, dir, name));
+                    }
+                }
                 if (!file.exists()) {
-                    final M3u8DownloadFactory.M3u8Download[] dower = {null};
 
-                    new Thread(() -> {
-                        try {
-                            dower[0] = M3u8Main.startDownload(url, dir, name);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
 
-                    }).start();
-
-                    while (true){
-                        Thread.sleep(1000*10);
-                        if(dower[0]!=null&&dower[0].getPercent()>1){
-
-                            responseBody =  new FileDownload(request,response,new File(dower[0].getFilePath()),"mp4");
+                    M3u8DownloadFactory.M3u8Download downloader = (M3u8DownloadFactory.M3u8Download) DOWNLOADING.get(name);
+                    ;
+                    while (true) {
+                        Thread.sleep(1000 * 10);
+                        if (downloader.getPercent() > 1) {
+                            responseBody = new FileDownload(request, response, new File(downloader.getFilePath()), "mp4");
                             break;
                         }
+
                     }
 
-                }else{
-                    responseBody =  new FileBody(file);
+                } else {
+                    responseBody = new FileBody(file);
                 }
                 break;
             } catch (Exception ee) {
@@ -289,8 +302,104 @@ public class VUrlController {
             }
         }
 
+
         response.setBody(responseBody);
         return responseBody;
     }
 
+    @GetMapping(path = "/api/r/{name}/{index}/index.m3u8")
+    ResponseBody range2(
+            HttpRequest request, HttpResponse response,
+            @RequestParam(name = "url", required = false, defaultValue = "") String url,
+            @PathVariable("name") String name,
+            @PathVariable("index") int index
+    ) throws Exception {
+
+        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
+        ResponseBody responseBody = null;
+
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Connection", "keep-alive");
+
+        String path = "" + (index + 1);
+        String dir = "/storage/36AC6142AC60FDAD/videos/" + name;
+
+        File file = new File(dir + "/" + path + ".mp4");
+        String downloadId = name + path;
+        synchronized (DOWNLOADING) {
+            if (!file.exists() && DOWNLOADING.get(downloadId) == null) {
+                M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId);
+                proxy.setDir(dir);
+                proxy.setFileName("" + (index + 1));
+                DOWNLOADING.put(downloadId, proxy);
+                proxy.start();
+                response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
+                // response.setHeader("Content-Disposition", "inline; filename="+proxy.getFileName()+".m3u8");
+                responseBody = new StringBody(proxy.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+                return responseBody;
+            }
+        }
+
+        if (!file.exists()) {
+            M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
+            response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
+            response.setHeader("Content-Disposition", "inline; filename=index.m3u8");
+
+            responseBody = new StringBody(downloader.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+        } else {
+            responseBody = new FileBody(file);
+        }
+
+        response.setBody(responseBody);
+        return responseBody;
+    }
+
+
+    @GetMapping(path = "/api/s/{downloadId}/hls.m3u8")
+    ResponseBody s(
+            HttpRequest request, HttpResponse response,
+            @PathVariable("downloadId") String downloadId,
+            @RequestParam("path") String path
+    ) throws Exception {
+
+        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
+        ResponseBody responseBody = null;
+
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Connection", "keep-alive");
+        response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
+        M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
+
+        responseBody = new StringBody(downloader.getM3U8Content(false), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+
+
+        response.setBody(responseBody);
+        return responseBody;
+    }
+
+    @GetMapping(path = "/api/rts/{downloadId}/{index}/a.ts")
+    ResponseBody ts(
+            HttpRequest request, HttpResponse response,
+            @PathVariable(name = "downloadId") String downloadId,
+            @PathVariable(name = "index") int index
+    ) throws Exception {
+
+        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
+        ResponseBody responseBody = null;
+
+
+        M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
+        File file = downloader.downloadIndexTs(index);
+
+        responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
+        response.setBody(responseBody);
+        response.setHeader("content-type", "video/mp2t");
+        response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
+
+        return responseBody;
+    }
 }

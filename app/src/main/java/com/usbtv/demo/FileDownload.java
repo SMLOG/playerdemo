@@ -136,31 +136,32 @@ public class FileDownload implements ResponseBody {
     @Override
     public void writeTo(@NonNull OutputStream output) throws IOException {
 
-        BufferedOutputStream outputStream = null;
+       // BufferedOutputStream outputStream = null;
         RandomAccessFile randomAccessFile = null;
         //已传送数据大小
         long transmitted = 0;
         try {
             randomAccessFile = new RandomAccessFile(this.file, "r");
 
-            outputStream = new BufferedOutputStream(output);
+           // outputStream = new BufferedOutputStream(output);
             byte[] buff = new byte[4096];
             int len = 0;
             randomAccessFile.seek(this.startByte);
             //warning：判断是否到了最后不足4096（buff的length）个byte这个逻辑（(transmitted + len) <= contentLength）要放前面
             //不然会会先读取randomAccessFile，造成后面读取位置出错;
             while ((transmitted + len) <= this.contentLength && (len = randomAccessFile.read(buff)) != -1) {
-                outputStream.write(buff, 0, len);
+                output.write(buff, 0, len);
+                output.flush();
                 transmitted += len;
             }
             //处理不足buff.length部分
             if (transmitted < this.contentLength) {
                 len = randomAccessFile.read(buff, 0, (int) (this.contentLength - transmitted));
-                outputStream.write(buff, 0, len);
+                output.write(buff, 0, len);
                 transmitted += len;
             }
 
-            outputStream.flush();
+            output.flush();
             //response.flushBuffer();
             randomAccessFile.close();
             System.out.println("下载完毕：" + this.startByte + "-" + this.endByte + "：" + transmitted);

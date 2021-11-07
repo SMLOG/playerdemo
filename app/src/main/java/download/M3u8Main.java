@@ -26,7 +26,7 @@ public class M3u8Main {
 		// 设置视频名称
 		m3u8Download.setFileName(name);
 		// 设置线程数
-		m3u8Download.setThreadCount(5);
+		m3u8Download.setThreadCount(1);
 		// 设置重试次数
 		m3u8Download.setRetryCount(15);
 		// 设置连接超时时间（单位：毫秒）

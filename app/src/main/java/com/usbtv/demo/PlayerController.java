@@ -168,7 +168,6 @@ public final class PlayerController {
                 } else if (res instanceof VUrlList) {
                     videoUrl = ((VUrlList) res).getCurVideoUrl();
                 }
-
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(new Runnable() {
 
