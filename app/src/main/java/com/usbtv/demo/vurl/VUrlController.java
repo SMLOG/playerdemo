@@ -45,7 +45,7 @@ public class VUrlController {
 
 
     public static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36";
-    private static final Map<String, Object> DOWNLOADING = new HashMap<String, Object>();
+    private static final Map<String, M3u8DownloadProxy> DOWNLOADING = new HashMap<String, M3u8DownloadProxy>();
 
     private static String getM3u8(String token) throws IOException {
         Document doc;
@@ -256,57 +256,6 @@ public class VUrlController {
     }
 
 
-    @GetMapping(path = "/api/r3")
-    ResponseBody range(
-            HttpRequest request, HttpResponse response,
-            @RequestParam(name = "url", required = false, defaultValue = "") String url,
-            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(name = "curIndex", required = false, defaultValue = "0") int curIndex
-    ) throws IOException {
-
-        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
-        ResponseBody responseBody = null;
-        while (true) {
-            try {
-
-                String name = "" + (curIndex + 1);
-                String dir = "/storage/36AC6142AC60FDAD/videos/" + keyword;
-
-                File file = new File(dir + "/" + name + ".mp4");
-                synchronized (DOWNLOADING) {
-                    if (!file.exists() && DOWNLOADING.get(name) == null) {
-                        DOWNLOADING.put(name, M3u8Main.startDownload(url, dir, name));
-                    }
-                }
-                if (!file.exists()) {
-
-
-                    M3u8DownloadFactory.M3u8Download downloader = (M3u8DownloadFactory.M3u8Download) DOWNLOADING.get(name);
-                    ;
-                    while (true) {
-                        Thread.sleep(1000 * 10);
-                        if (downloader.getPercent() > 1) {
-                            responseBody = new FileDownload(request, response, new File(downloader.getFilePath()), "mp4");
-                            break;
-                        }
-
-                    }
-
-                } else {
-                    responseBody = new FileBody(file);
-                }
-                break;
-            } catch (Exception ee) {
-                ee.printStackTrace();
-
-            }
-        }
-
-
-        response.setBody(responseBody);
-        return responseBody;
-    }
-
     @GetMapping(path = "/api/r/{name}/{index}/index.m3u8")
     ResponseBody range2(
             HttpRequest request, HttpResponse response,
@@ -315,10 +264,10 @@ public class VUrlController {
             @PathVariable("index") int index
     ) throws Exception {
 
-        //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
         ResponseBody responseBody = null;
 
         response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Connection", "keep-alive");
@@ -329,16 +278,25 @@ public class VUrlController {
         File file = new File(dir + "/" + path + ".mp4");
         String downloadId = name + path;
         synchronized (DOWNLOADING) {
-            if (!file.exists() && DOWNLOADING.get(downloadId) == null) {
-                M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId);
-                proxy.setDir(dir);
-                proxy.setFileName("" + (index + 1));
-                DOWNLOADING.put(downloadId, proxy);
-                proxy.start();
-                response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
-                // response.setHeader("Content-Disposition", "inline; filename="+proxy.getFileName()+".m3u8");
-                responseBody = new StringBody(proxy.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
-                return responseBody;
+
+           for(String id:DOWNLOADING.keySet()){
+               if(downloadId.equals(id))continue;
+               M3u8DownloadProxy down = DOWNLOADING.get(downloadId);
+               if(down!=null)down.pause();
+               DOWNLOADING.put(id,null);
+           }
+            if (!file.exists()) {
+                if( DOWNLOADING.get(downloadId) == null){
+                    M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId,dir,"" + (index + 1)).start();
+                    if(!proxy.mergeAllTsToMp4()){
+                        DOWNLOADING.put(downloadId, proxy);
+                        response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
+                        responseBody = new StringBody(proxy.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+                        return responseBody;
+                    }
+                }
+            }else{
+                DOWNLOADING.put(downloadId,null);
             }
         }
 
@@ -368,6 +326,7 @@ public class VUrlController {
         ResponseBody responseBody = null;
 
         response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Connection", "keep-alive");
@@ -397,6 +356,13 @@ public class VUrlController {
 
         responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
         response.setBody(responseBody);
+
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Connection", "keep-alive");
+
         response.setHeader("content-type", "video/mp2t");
         response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
 

@@ -240,9 +240,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         String strRead = "";
 
         String  sdkOut = getStoragePath(this,true);  //获取 可以插拔的 sd 卡  路径
-        Log.i(TAG,"sdkOut:"+sdkOut);
         String  filePath = sdkOut + "/test";
-        Log.i(TAG," sdkOut: " + filePath);
         File file = new File(filePath);
         if (!file.exists()){
             if(DocumentsUtils.mkdirs(this,file)){

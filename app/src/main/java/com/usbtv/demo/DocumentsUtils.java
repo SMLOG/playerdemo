@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
-import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.util.Log;
@@ -121,7 +120,6 @@ public class DocumentsUtils {
         }
 
         String baseFolder = getExtSdCardFolder(file, context);
-        Log.i(TAG," baseFolder " + baseFolder);
         boolean originalDirectory = false;
         if (baseFolder == null) {
             return null;
@@ -319,11 +317,9 @@ public class DocumentsUtils {
         if (!root.canWrite()) {
 
             if (DocumentsUtils.isOnExtSdCard(root, context)) {
-                Log.i(TAG,"isOnExtSdCard");
                 DocumentFile documentFile = DocumentsUtils.getDocumentFile(root, true, context);
                 return documentFile == null || !documentFile.canWrite();
             } else {
-                Log.i(TAG," get perf");
                 SharedPreferences perf = PreferenceManager.getDefaultSharedPreferences(context);
 
                 String documentUri = perf.getString(rootPath, "");
