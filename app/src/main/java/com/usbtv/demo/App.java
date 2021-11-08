@@ -259,7 +259,7 @@ public class App extends Application implements CacheListener {
 
     public OutputStream documentStream(String filePath) throws IOException {
 
-        Log.i(TAG," sdkOut: " + filePath);
+        Log.i(TAG, filePath);
         File file = new File(filePath);
         if (!file.getParentFile().exists()){
             if(DocumentsUtils.mkdirs(this,file.getParentFile())){
@@ -274,7 +274,6 @@ public class App extends Application implements CacheListener {
         File fileWrite = new File(fileWritePath);
 
 
-        Log.i(TAG,"  准备写入" );
         OutputStream outputStream = DocumentsUtils.getOutputStream(this,fileWrite);  //获取输出流
         //Toast.makeText(this,"路径：" + fileWritePath + "成功",Toast.LENGTH_SHORT ).show();
 

@@ -152,7 +152,7 @@ public class M3u8DownloadProxy {
     /**
      * 合并下载好的ts片段
      */
-    public boolean mergeAllTsToMp4() {
+    public synchronized boolean  mergeAllTsToMp4() {
 
         File file = new File(targetFilePath() );
         if(file.exists())return true;
@@ -177,7 +177,7 @@ public class M3u8DownloadProxy {
                 }
                 fileInputStream.close();
                 Log.i("合并完第 " + i + "/" + tsSet.size());
-                DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
+                //DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
 
             }
             fileOutputStream.flush();
@@ -315,8 +315,8 @@ public class M3u8DownloadProxy {
 
                     finishedFiles.add(xyzfile);
                     downloadedSet.add(i);
-                    DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
-
+                   // DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
+                    Log.d("progress:"+100.0*downloadedSet.size()/tsSet.size()+"%");
                     break;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -698,7 +698,7 @@ public class M3u8DownloadProxy {
         this.fileName = fileName;
 
 
-        this.fixedThreadPool = new ThreadPoolExecutor(15, 15,
+        this.fixedThreadPool = new ThreadPoolExecutor(30, 30,
                 0L, TimeUnit.MILLISECONDS,
                 TASKQUEUE);
 
@@ -714,9 +714,11 @@ public class M3u8DownloadProxy {
     public File downloadIndexTs(int index) {
 
 
-        File xyzfile = new File(dir + FILESEPARATOR + fileName + "_" + index + ".xyz");
+        File tsfile = new File(dir + FILESEPARATOR + fileName + "_" + index + ".xyz");
 
-        if (!xyzfile.exists() && !downloadingSet.contains(index)) {
+        if (!tsfile.exists() && !downloadingSet.contains(index)||this.TASKQUEUE.size()==0) {
+            File file = new File(targetFilePath() );
+            if(file.exists())return file;
             synchronized (this.TASKQUEUE) {
                 this.TASKQUEUE.clear();
             }
@@ -736,7 +738,7 @@ public class M3u8DownloadProxy {
 
         if (downloadingSet.contains(index)) {
             while (true) {
-                if (xyzfile.exists())
+                if (tsfile.exists())
                     break;
 
                 try {
@@ -752,7 +754,7 @@ public class M3u8DownloadProxy {
 
 
         //getThread2(tsUrl,index).run();
-        return xyzfile;
+        return tsfile;
 
     }
 }

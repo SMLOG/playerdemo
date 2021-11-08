@@ -288,7 +288,9 @@ public class VUrlController {
             if (!file.exists()) {
                 if( DOWNLOADING.get(downloadId) == null){
                     M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId,dir,"" + (index + 1)).start();
-                    if(!proxy.mergeAllTsToMp4()){
+                    proxy.mergeAllTsToMp4();
+
+                    if(true){
                         DOWNLOADING.put(downloadId, proxy);
                         response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
                         responseBody = new StringBody(proxy.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
@@ -365,7 +367,8 @@ public class VUrlController {
 
         response.setHeader("content-type", "video/mp2t");
         response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
-
+        //response.sendRedirect("file://"+file.getAbsolutePath());
+        //return null;
         return responseBody;
     }
 }
