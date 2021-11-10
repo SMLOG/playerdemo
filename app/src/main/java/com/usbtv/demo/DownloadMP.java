@@ -209,7 +209,7 @@ public class DownloadMP {
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
-            Integer typeId2 = i+1;
+            Integer typeId2 = i+10;
             Integer media_count = (Integer) item.get("media_count");
 
             if(media_count>0) App.getTypesMap().put(item.getString("title"),typeId2.toString());
@@ -309,7 +309,7 @@ public class DownloadMP {
         List<Folder> folders = folderDao.queryForAll();
         for(Folder folder:folders){
             //if(!folder.exists()){
-                if(validFoldersMap.get(folder.getId())==null){
+                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1){
                     vFileDao.delete(folder.getFiles());
                     folderDao.delete(folder);
                 }

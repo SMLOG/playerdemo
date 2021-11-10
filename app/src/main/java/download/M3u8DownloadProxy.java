@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +49,9 @@ public class M3u8DownloadProxy {
 
     //优化内存占用
     private static final BlockingQueue<byte[]> BLOCKING_QUEUE = new LinkedBlockingQueue<>();
-    private final ThreadPoolExecutor fixedThreadPool;
+    private final int seq;
+    private ExecutorService fixedThreadPool;
+    private final static ExecutorService fixedThreadPool2 = Executors.newFixedThreadPool(1);
 
     //线程数
     private int threadCount = 1;
@@ -61,8 +65,6 @@ public class M3u8DownloadProxy {
     //合并后的文件存储目录
     private String dir;
 
-    //合并后的视频文件名称
-    private String fileName;
 
     //已完成ts片段个数
     private int finishedCount = 0;
@@ -97,8 +99,8 @@ public class M3u8DownloadProxy {
                 @Override
                 public int compare(File o1, File o2) {
 
-                    return Integer.parseInt(o1.getName().split("_")[1].replace(".xyz", "")) -
-                            Integer.parseInt(o2.getName().split("_")[1].replace(".xyz", ""));
+                    return Integer.parseInt(o1.getName().replace(".ts", "")) -
+                            Integer.parseInt(o2.getName().replace(".ts", ""));
 
                 }
             }
@@ -119,8 +121,8 @@ public class M3u8DownloadProxy {
     /**
      * 开始下载视频
      *
-     * @throws Exception
      * @return
+     * @throws Exception
      */
     public M3u8DownloadProxy start() throws Exception {
         //setThreadCount(30);
@@ -142,57 +144,61 @@ public class M3u8DownloadProxy {
             sb.append(s).append("\n");
         }
 
-        return sb.toString().trim();
+        return sb.toString();
     }
-
-
-
 
 
     /**
      * 合并下载好的ts片段
      */
-    public synchronized boolean  mergeAllTsToMp4() {
+    public void mergeAllTsToMp4() {
 
-        File file = new File(targetFilePath() );
-        if(file.exists())return true;
-        try {
+        fixedThreadPool2.submit(new Runnable() {
+            @Override
+            public void run() {
 
-            for(int i=0;i<tsSet.size();i++){
-                File f = new File(dir + FILESEPARATOR + fileName + "_" + i + ".xyz");
-                if(!f.exists()){
-                    Log.i("TS no "+i + " no ready for "+f.getAbsolutePath());
-                    return false;
+
+                File file = new File(targetFilePath());
+                if (file.exists()) return;
+                try {
+
+                    for (int i = 0; i < tsSet.size(); i++) {
+                        File f = getTsFile(i);
+                        if (!f.exists()) {
+                            Log.i("TS no " + i + " no ready for " + f.getAbsolutePath());
+                            return;
+                        }
+                    }
+
+                    OutputStream fileOutputStream = DocumentsUtils.getAppendOutputStream(App.getInstance().getApplicationContext(), file);
+                    byte[] b = new byte[4096];
+                    for (int i = 0; i < tsSet.size(); i++) {
+                        File f = getTsFile(i);
+                        InputStream fileInputStream = App.documentInputStream(f);
+                        int len;
+                        while ((len = fileInputStream.read(b)) != -1) {
+                            fileOutputStream.write(b, 0, len);
+                        }
+                        fileInputStream.close();
+                        Log.i("合并完第 " + i + "/" + tsSet.size());
+                        //DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
+
+                    }
+                    fileOutputStream.flush();
+                    fileOutputStream.close();
+
+                    deleteTses();
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    DocumentsUtils.delete(App.getInstance().getApplicationContext(), file);
                 }
-            }
-
-            OutputStream fileOutputStream = DocumentsUtils.getAppendOutputStream(App.getInstance().getApplicationContext(), file);
-            byte[] b = new byte[4096];
-            for(int i=0;i<tsSet.size();i++){
-                File f = new File(dir + FILESEPARATOR + fileName + "_" + i + ".xyz");
-                InputStream fileInputStream = App.documentInputStream(f);
-                int len;
-                while ((len = fileInputStream.read(b)) != -1) {
-                    fileOutputStream.write(b, 0, len);
-                }
-                fileInputStream.close();
-                Log.i("合并完第 " + i + "/" + tsSet.size());
-                //DocumentsUtils.delete(App.getInstance().getApplicationContext(),f);
 
             }
-            fileOutputStream.flush();
-            fileOutputStream.close();
-
-            deleteTses();
-
-            return true;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            DocumentsUtils.delete(App.getInstance().getApplicationContext(),file);
-        }
-        return false;
+        });
     }
+
     /**
      * 合并下载好的ts片段
      */
@@ -200,11 +206,11 @@ public class M3u8DownloadProxy {
         try {
 
             for (int index : downloadedSet) {
-                File f = new File(dir + FILESEPARATOR + fileName + "_" + index + ".xyz");
+                File f = getTsFile(index);
                 if (f.exists())
                     DocumentsUtils.delete(App.getInstance().getApplicationContext(), f);
 
-                f = new File(dir + FILESEPARATOR + fileName + "_" + index + ".xy");
+                f = getTempTsFile(index);
                 if (f.exists())
                     DocumentsUtils.delete(App.getInstance().getApplicationContext(), f);
             }
@@ -225,9 +231,16 @@ public class M3u8DownloadProxy {
     }
 
     private String targetFilePath() {
-        return dir + FILESEPARATOR + fileName + ".mp4";
+        return dir + FILESEPARATOR + seq + FILESEPARATOR + seq + ".mp4";
     }
 
+    private File getTsFile(int i) {
+        return new File(dir + FILESEPARATOR + seq + FILESEPARATOR + i + ".ts");
+    }
+
+    private File getTempTsFile(int i) {
+        return new File(dir + FILESEPARATOR + seq + FILESEPARATOR + i + ".xy");
+    }
 
     /**
      * 开启下载线程
@@ -245,14 +258,14 @@ public class M3u8DownloadProxy {
                 if (downloadingSet.contains(i)) return;
                 downloadingSet.add(i);
             }
-            File xyzfile = new File(dir + FILESEPARATOR + fileName + "_" + i + ".xyz");
+            File tsfile = getTsFile(i);
 
-            if (xyzfile.exists()) {
+            if (tsfile.exists()) {
                 downloadedSet.add(i);
                 return;
             }
 
-            File xyfile = new File(dir + FILESEPARATOR + fileName + "_" + i + ".xy");
+            File xyfile = getTempTsFile(i);
 
             OutputStream outputStream2 = null;
             InputStream inputStream1 = null;
@@ -264,6 +277,7 @@ public class M3u8DownloadProxy {
             //重试次数判断
             while (count <= retryCount) {
                 try {
+                    log("downing", i);
                     //模拟http请求获取ts片段文件
                     URL url = new URL(urls);
                     httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -276,9 +290,8 @@ public class M3u8DownloadProxy {
                     inputStream3 = httpURLConnection.getInputStream();
 
                     if (!urls.endsWith(".ts")) {
-                        inputStream3.skip(212);
+                        inputStream3.skip(49);
                     }
-
 
 
                     outputStream2 = App.getInstance().documentStream(xyfile.getAbsolutePath());
@@ -296,14 +309,17 @@ public class M3u8DownloadProxy {
                     inputStream3.close();
                     inputStream1 = App.getInstance().documentInputStream(xyfile);
                     int available = inputStream1.available();
-                    if (bytes.length < available)
+                    if (!urls.endsWith(".ts")) {
+                        available=available-16;
+                    }
+                    //if (bytes.length < available)
                         bytes = new byte[available];
                     inputStream1.read(bytes);
 
                     inputStream1.close();
 
-                    //outputStream1 = DocumentsUtils.getOutputStream(App.getInstance().getApplicationContext(),xyzfile);
-                    outputStream1 = App.getInstance().documentStream(xyzfile.getAbsolutePath());
+                    //outputStream1 = DocumentsUtils.getOutputStream(App.getInstance().getApplicationContext(),tsfile);
+                    outputStream1 = App.getInstance().documentStream(tsfile.getAbsolutePath());
 
                     //开始解密ts片段，这里我们把ts后缀改为了xyz，改不改都一样
                     byte[] decrypt = decrypt(bytes, available, key, iv, method);
@@ -312,20 +328,30 @@ public class M3u8DownloadProxy {
                     else outputStream1.write(decrypt);
 
                     outputStream1.close();
-
-                    finishedFiles.add(xyzfile);
+                    log("Downed", i);
+                    finishedFiles.add(tsfile);
                     downloadedSet.add(i);
-                   // DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
-                    Log.d("progress:"+100.0*downloadedSet.size()/tsSet.size()+"%");
+                    // DocumentsUtils.delete(App.getInstance().getApplicationContext(),xyfile);
+                    log("progress:" + 100.0 * downloadedSet.size() / tsSet.size() + "%", i);
+
                     break;
                 } catch (Exception e) {
+
                     e.printStackTrace();
+                    if (tsfile.exists())
+                        DocumentsUtils.delete(App.getInstance().getApplicationContext(), tsfile);
+                    if (xyfile.exists())
+                        DocumentsUtils.delete(App.getInstance().getApplicationContext(), xyfile);
                     if (e instanceof InvalidKeyException || e instanceof InvalidAlgorithmParameterException) {
                         Log.e("解密失败！");
                         break;
                     }
                     Log.d("第" + count + "获取链接重试！\t" + urls);
                     count++;
+
+                    if (e instanceof InterruptedException) {
+                        return;
+                    }
 //                        e.printStackTrace();
                 } finally {
                     try {
@@ -371,7 +397,6 @@ public class M3u8DownloadProxy {
     }
 
 
-
     /**
      * 获取所有的ts片段下载链接
      *
@@ -404,7 +429,7 @@ public class M3u8DownloadProxy {
                     keyUrl = mergeUrl(relativeUrl, s);
                     M3U8URL = keyUrl;
 
-                    lines.add("/api/s/" + downloadId + "/hls.m3u8?path=" + URLEncoder.encode(keyUrl));
+                    lines.add("/api/s/" + URLEncoder.encode(downloadId) + "/hls.m3u8?path=" + URLEncoder.encode(keyUrl));
 
                     break;
                 } else
@@ -587,8 +612,7 @@ public class M3u8DownloadProxy {
             throw new M3u8Exception("超时时间不能小于0！");
         if (StringUtils.isEmpty(dir))
             throw new M3u8Exception("视频存储目录不能为空！");
-        if (StringUtils.isEmpty(fileName))
-            throw new M3u8Exception("视频名称不能为空！");
+
         finishedCount = 0;
         method = "";
         key = "";
@@ -660,13 +684,6 @@ public class M3u8DownloadProxy {
         this.dir = dir;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
 
     public int getFinishedCount() {
         return finishedCount;
@@ -689,72 +706,92 @@ public class M3u8DownloadProxy {
     }
 
 
-    public M3u8DownloadProxy(String m3u8Url, String downloadId,String dir,String fileName) throws Exception {
+    public M3u8DownloadProxy(String m3u8Url, String downloadId, String dir, int seq, String fileName) throws Exception {
         this.downloadId = downloadId;
         this.DOWNLOADURL = m3u8Url;
         requestHeaderMap.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
         this.TASKQUEUE = new LinkedBlockingQueue<Runnable>();
         this.dir = dir;
-        this.fileName = fileName;
+        this.seq = seq;
 
-
-        this.fixedThreadPool = new ThreadPoolExecutor(30, 30,
-                0L, TimeUnit.MILLISECONDS,
-                TASKQUEUE);
 
     }
-    public void pause(){
+
+    public void pause() {
         mergeAllTsToMp4();
-        synchronized (this.TASKQUEUE) {
-            this.TASKQUEUE.clear();
-            this.fixedThreadPool.shutdown();
-
-        }
     }
-    public File downloadIndexTs(int index) {
+
+    public Object downloadIndexTs(int index) {
 
 
-        File tsfile = new File(dir + FILESEPARATOR + fileName + "_" + index + ".xyz");
+        log("request", index);
+        File tsfile = getTsFile(index);
 
-        if (!tsfile.exists() && !downloadingSet.contains(index)||this.TASKQUEUE.size()==0) {
-            File file = new File(targetFilePath() );
-            if(file.exists())return file;
-            synchronized (this.TASKQUEUE) {
-                this.TASKQUEUE.clear();
+        if (!tsfile.exists() && !downloadingSet.contains(index) || downloadingSet.size() == 0) {
+            File file = new File(targetFilePath());
+            if (file.exists()) return file;
+            synchronized (fixedThreadPool2) {
+                if (fixedThreadPool != null) {
+                    fixedThreadPool.shutdownNow();
+                    fixedThreadPool = null;
+                }
+                if (fixedThreadPool == null) fixedThreadPool = Executors.newFixedThreadPool(1);
             }
-            for (int i = index + 1; i < tsArray.length; i++) {
-                if(this.downloadedSet.contains(i))continue;
+
+
+
+            /*synchronized (this.TASKQUEUE) {
+                this.TASKQUEUE.clear();
+            }*/
+            for (int i = index; i < tsArray.length; i++) {
+                File ts = getTsFile(i);
+
+                if (ts.exists()) this.downloadedSet.add(i);
+                if (this.downloadedSet.contains(i)) continue;
                 String tsUrl = tsArray[i];
                 this.fixedThreadPool.submit(getThread2(tsUrl, i));
             }
 
             for (int i = 0; i < index; i++) {
-                if(this.downloadedSet.contains(i))continue;
+                File ts = getTsFile(i);
+
+                if (ts.exists()) this.downloadedSet.add(i);
+                if (this.downloadedSet.contains(i)) continue;
                 String tsUrl = tsArray[i];
                 this.fixedThreadPool.submit(getThread2(tsUrl, i));
             }
+            fixedThreadPool.shutdown();
 
         }
 
-        if (downloadingSet.contains(index)) {
-            while (true) {
+        if (tsfile.exists()) return tsfile;
+        else if (tsArray[index].endsWith(".ts")) return tsArray[index];
+        else {
+            int maxWaitTimes = 100000;
+            while (maxWaitTimes > 0) {
                 if (tsfile.exists())
                     break;
 
                 try {
                     Thread.sleep(1000 * 3);
+                    maxWaitTimes--;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
 
                 }
             }
-        } else {
-            getThread2(tsArray[index], index).run();
+            log("Response", index);
+
+//tsfile.exists();
+            //getThread2(tsUrl,index).run();
+            return tsfile;
         }
 
 
-        //getThread2(tsUrl,index).run();
-        return tsfile;
+    }
+
+    private void log(String request, int index) {
+        System.out.println(request + ":" + seq + ":" + index);
 
     }
 }

@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class DocumentsUtils {
@@ -30,6 +32,7 @@ public class DocumentsUtils {
     public static final int OPEN_DOCUMENT_TREE_CODE = 8000;
 
     private static List<String> sExtSdCardPaths = new ArrayList<>();
+    private static final Lock lock = new ReentrantLock();
 
     private DocumentsUtils() {
 
@@ -103,17 +106,9 @@ public class DocumentsUtils {
         return getExtSdCardFolder(file, c) != null;
     }
 
-    /**
-     * Get a DocumentFile corresponding to the given file (for writing on ExtSdCard on Android 5).
-     * If the file is not
-     * existing, it is created.
-     *
-     * @param file        The file.
-     * @param isDirectory flag indicating if the file should be a directory.
-     * @return The DocumentFile
-     */
-    public static DocumentFile getDocumentFile(final File file, final boolean isDirectory,
+    public static DocumentFile getDocumentFile2(final File file, final boolean isDirectory,
                                                Context context) {
+
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             return DocumentFile.fromFile(file);
@@ -152,20 +147,91 @@ public class DocumentsUtils {
         DocumentFile document = DocumentFile.fromTreeUri(context, treeUri);
         if (originalDirectory) return document;
         String[] parts = relativePath.split("/");
-        for (int i = 0; i < parts.length; i++) {
-            DocumentFile nextDocument = document.findFile(parts[i]);
 
-            if (nextDocument == null) {
-                if ((i < parts.length - 1) || isDirectory) {
-                    nextDocument = document.createDirectory(parts[i]);
-                } else {
-                    nextDocument = document.createFile("image", parts[i]);
+        synchronized (sExtSdCardPaths) {
+            for (int i = 0; i < parts.length; i++) {
+                DocumentFile nextDocument = document.findFile(parts[i]);
+
+                if (nextDocument == null) {
+                    if ((i < parts.length - 1) || isDirectory) {
+                        nextDocument = document.createDirectory(parts[i]);
+                    } else {
+                        nextDocument = document.createFile("image", parts[i]);
+                    }
                 }
+                document = nextDocument;
             }
-            document = nextDocument;
+        }
+        return document;
+
+    }
+    /**
+     * Get a DocumentFile corresponding to the given file (for writing on ExtSdCard on Android 5).
+     * If the file is not
+     * existing, it is created.
+     *
+     * @param file        The file.
+     * @param isDirectory flag indicating if the file should be a directory.
+     * @return The DocumentFile
+     */
+    public static DocumentFile getDocumentFile(final File file, final boolean isDirectory,
+                                               Context context) {
+
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            return DocumentFile.fromFile(file);
         }
 
+        String baseFolder = getExtSdCardFolder(file, context);
+        boolean originalDirectory = false;
+        if (baseFolder == null) {
+            return null;
+        }
+
+        String relativePath = null;
+        try {
+            String fullPath = file.getCanonicalPath();
+            if (!baseFolder.equals(fullPath)) {
+                relativePath = fullPath.substring(baseFolder.length() + 1);
+            } else {
+                originalDirectory = true;
+            }
+        } catch (IOException e) {
+            return null;
+        } catch (Exception f) {
+            originalDirectory = true;
+            //continue
+        }
+        String as = PreferenceManager.getDefaultSharedPreferences(context).getString(baseFolder,
+                null);
+
+        Uri treeUri = null;
+        if (as != null) treeUri = Uri.parse(as);
+        if (treeUri == null) {
+            return null;
+        }
+
+        // start with root of SD card and then parse through document tree.
+        DocumentFile document = DocumentFile.fromTreeUri(context, treeUri);
+        if (originalDirectory) return document;
+        String[] parts = relativePath.split("/");
+
+        synchronized (sExtSdCardPaths) {
+            for (int i = 0; i < parts.length; i++) {
+                DocumentFile nextDocument = document.findFile(parts[i]);
+
+                if (nextDocument == null) {
+                    if ((i < parts.length - 1) || isDirectory) {
+                        nextDocument = document.createDirectory(parts[i]);
+                    } else {
+                        nextDocument = document.createFile("image", parts[i]);
+                    }
+                }
+                document = nextDocument;
+            }
+        }
         return document;
+
     }
 
     public static boolean mkdirs(Context context, File dir) {
@@ -282,6 +348,7 @@ public class DocumentsUtils {
         }
         return out;
     }
+
     public static OutputStream getAppendOutputStream(Context context, File destFile) {
         OutputStream out = null;
         try {
@@ -291,7 +358,7 @@ public class DocumentsUtils {
                     out = context.getContentResolver().openOutputStream(file.getUri(), "wa");
                 }
             } else {
-                out = new FileOutputStream(destFile,true);
+                out = new FileOutputStream(destFile, true);
 
             }
         } catch (FileNotFoundException e) {
@@ -299,6 +366,7 @@ public class DocumentsUtils {
         }
         return out;
     }
+
     public static boolean saveTreeUri(Context context, String rootPath, Uri uri) {
         DocumentFile file = DocumentFile.fromTreeUri(context, uri);
         if (file != null && file.canWrite()) {
@@ -336,8 +404,7 @@ public class DocumentsUtils {
     }
 
 
-
     public static void mkdirs(File file1) {
-         mkdirs(App.getInstance().getApplicationContext(),file1);
+        mkdirs(App.getInstance().getApplicationContext(), file1);
     }
 }

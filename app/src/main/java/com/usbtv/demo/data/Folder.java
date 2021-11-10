@@ -81,7 +81,8 @@ public class Folder  {
     }
 
     public String getCoverUrl() {
-        return coverUrl==null?"http://127.0.0.1:8080/api/thumb?id="+id+"&path="+ URLEncoder.encode(absPath()):coverUrl;
+        String abPath = absPath();
+        return coverUrl==null&&abPath!=null?"http://127.0.0.1:8080/api/thumb?id="+id+"&path="+ URLEncoder.encode(abPath):coverUrl;
     }
 
     public void setCoverUrl(String coverUrl) {

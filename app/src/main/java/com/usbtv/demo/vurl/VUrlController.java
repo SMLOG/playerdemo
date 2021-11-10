@@ -3,10 +3,13 @@ package com.usbtv.demo.vurl;
 
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.ForeignCollection;
 import com.usbtv.demo.App;
 import com.usbtv.demo.FileDownload;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.data.Cache;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PathVariable;
 import com.yanzhenjie.andserver.annotation.PostMapping;
@@ -69,7 +72,7 @@ public class VUrlController {
         return a[0];
     }
 
-    public List<String> getList(String keyword) {
+    public List<String> getList(String keyword, boolean b) {
 
         List<String> list = new ArrayList<>();
 
@@ -90,6 +93,7 @@ public class VUrlController {
 
             }
 
+           if(b)list.clear();
             for (int k = list.size(); k < links.size(); k++) {
 
                 String pageUrl = links.get(k).absUrl("href");
@@ -126,10 +130,12 @@ public class VUrlController {
 
     @GetMapping(path = "/api/v")
     String v(
-            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword, HttpResponse response
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "all", required = false, defaultValue = "0") int all,
+            HttpResponse response
     ) throws IOException {
 
-        List<String> list = getList(keyword);
+        List<String> list = getList(keyword,all>0);
 
         StringBuilder sb = new StringBuilder();
 
@@ -140,10 +146,43 @@ public class VUrlController {
                 .append("'  /><a onclick='document.location.href=document.location.pathname+\"?keyword=\"+encodeURIComponent(document.forms[0].keyword.value);this.onclick=null;'>Search<a/><br />")
                 .append("'  <input type='hidden' name='list' value='");
 
+        try {
+            Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+            Dao<VFile, Integer> vfileDao = App.getHelper().getDao(VFile.class);
+            Folder folder = folderDao.queryBuilder()
+                    .where().eq("typeId",1)
+                    .and().eq("name",keyword)
+                    .queryForFirst();
+            if(folder==null){
+                folder = new Folder();
+                folder.setName(keyword);
+                folder.setTypeId(1);
+                folder.setP(keyword);
+                folderDao.createOrUpdate(folder);
+            }else{
+                if(all>0){
+                    vfileDao.delete(folder.getFiles());
+                    folder.getFiles().clear();
+                }
+            }
+
+            int n=folder.getFiles()==null?0:folder.getFiles().size();
+
         for (int k = 0; k < list.size(); k++) {
             sb.append(list.get(k)).append(';');
+            if(k>=n){
+                VFile vf = new VFile();
+                vf.setFolder(folder);
+                vf.setP(""+k+".mp4");
+                vf.setdLink(list.get(k));
+                vf.setOrderSeq(k);
+                vfileDao.createOrUpdate(vf);
+            }
         }
 
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         if (list.size() > 0) sb.delete(sb.length() - 1, sb.length());
 
         sb.append("' /> <br />");
@@ -176,71 +215,7 @@ public class VUrlController {
         return sb.toString();
     }
 
-    // @ResponseBody
-    @GetMapping(path = "/api/vurl")
-    String vurl(
-            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword, HttpResponse response
-    ) throws IOException {
 
-        List<String> list = new ArrayList<String>();
-
-        if (keyword != null && keyword.length() > 0) {
-            Document doc = Jsoup.connect("https://www.kanju5.com/").userAgent(AGENT).data("s", keyword).get();
-
-            Elements links = doc.select("#play_list_o li a");
-
-
-            int i = 1;
-            for (Element e : links) {
-                String pageUrl = e.absUrl("href");
-
-                if (!pageUrl.startsWith("http")) continue;
-
-                String[] a = Jsoup.connect(pageUrl).userAgent(AGENT).get().toString().split("fc: \"");
-                a = a[1].split("\"");
-
-                String index = getM3u8(a[0]);
-                list.add(index);
-                System.out.println(i);
-                i++;
-            }
-            Collections.reverse(list);
-        }
-
-
-        StringBuilder sb = new StringBuilder();
-
-
-        sb.append("\n" +
-                "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "\t<head>\n" +
-                "\t\t<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n" +
-                "\t\t<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\"></head><body>");
-        sb.append("<iframe name='ifr' ></iframe><form method='post' target='ifr'><input name='keyword' value='")
-                .append(keyword)
-                .append("'  /><a onclick='document.location.href=document.location.pathname+\"?keyword=\"+encodeURIComponent(document.forms[0].keyword.value);'>Search<a/><br />")
-                .append("'  <input type='hidden' name='list' value='");
-
-        for (int k = 0; k < list.size(); k++) {
-            sb.append(list.get(k)).append(';');
-        }
-        ;
-        if (list.size() > 0) sb.delete(sb.length() - 1, sb.length());
-
-        sb.append("' /> <br />");
-
-        for (int k = 0; k < list.size(); k++) {
-            sb.append("<li><input type='radio' name='curIndex' value='").append(k).append("' onchange='this.form.submit()' />")
-                    .append(list.get(k)).append("</li> ");
-        }
-
-        sb.append("</form>");
-        sb.append("</body></html>");
-
-        response.setHeader("Content-Type", "text/html");
-        return sb.toString();
-    }
 
     @PostMapping(path = "/api/vurl")
     String pl(@RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
@@ -272,28 +247,32 @@ public class VUrlController {
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Connection", "keep-alive");
 
-        String path = "" + (index + 1);
+        String path = "" + index+"/"+index+".mp4";
         String dir = "/storage/36AC6142AC60FDAD/videos/" + name;
 
         File file = new File(dir + "/" + path + ".mp4");
-        String downloadId = name + path;
+        String downloadId = name + index;
         synchronized (DOWNLOADING) {
 
            for(String id:DOWNLOADING.keySet()){
                if(downloadId.equals(id))continue;
-               M3u8DownloadProxy down = DOWNLOADING.get(downloadId);
-               if(down!=null)down.pause();
-               DOWNLOADING.put(id,null);
+               M3u8DownloadProxy down = DOWNLOADING.get(id);
+               if(down!=null){
+                   down.pause();
+                   //DOWNLOADING.remove(id);
+               }
            }
             if (!file.exists()) {
                 if( DOWNLOADING.get(downloadId) == null){
-                    M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId,dir,"" + (index + 1)).start();
+                    M3u8DownloadProxy proxy = new M3u8DownloadProxy(url, downloadId,dir,index,"" + (index + 1)).start();
                     proxy.mergeAllTsToMp4();
 
                     if(true){
                         DOWNLOADING.put(downloadId, proxy);
                         response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
-                        responseBody = new StringBody(proxy.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+                        String str=proxy.getM3U8Content(true);
+                        System.out.println(str);
+                        responseBody = new StringBody(str, MediaType.parseMediaType("application/vnd.apple.mpegURL"));
                         return responseBody;
                     }
                 }
@@ -307,7 +286,9 @@ public class VUrlController {
             response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
             response.setHeader("Content-Disposition", "inline; filename=index.m3u8");
 
-            responseBody = new StringBody(downloader.getM3U8Content(true), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
+            String str=downloader.getM3U8Content(true);
+            System.out.println(str);
+            responseBody = new StringBody(str, MediaType.parseMediaType("application/vnd.apple.mpegURL"));
         } else {
             responseBody = new FileBody(file);
         }
@@ -334,13 +315,13 @@ public class VUrlController {
         response.setHeader("Connection", "keep-alive");
         response.setHeader("Content-Type", "application/vnd.apple.mpegURL");
         M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
-
         responseBody = new StringBody(downloader.getM3U8Content(false), MediaType.parseMediaType("application/vnd.apple.mpegURL"));
 
 
         response.setBody(responseBody);
         return responseBody;
     }
+
 
     @GetMapping(path = "/api/rts/{downloadId}/{index}/a.ts")
     ResponseBody ts(
@@ -354,21 +335,26 @@ public class VUrlController {
 
 
         M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
-        File file = downloader.downloadIndexTs(index);
+        Object fileOrUrl = downloader.downloadIndexTs(index);
+        if(fileOrUrl instanceof File){
+            File file = (File) fileOrUrl;
+            responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
+            response.setBody(responseBody);
 
-        responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
-        response.setBody(responseBody);
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+            response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+            response.setHeader("Connection", "keep-alive");
 
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        response.setHeader("Connection", "keep-alive");
+            response.setHeader("content-type", "video/mp2t");
+            response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
+            //response.sendRedirect("file://"+file.getAbsolutePath());
+            //return null;
+            return responseBody;
+        }else
+            response.sendRedirect(fileOrUrl.toString());
 
-        response.setHeader("content-type", "video/mp2t");
-        response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
-        //response.sendRedirect("file://"+file.getAbsolutePath());
-        //return null;
-        return responseBody;
+        return null;
     }
 }

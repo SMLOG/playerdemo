@@ -20,6 +20,7 @@ import com.usbtv.demo.vurl.VUrlList;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -225,11 +226,25 @@ public final class PlayerController {
 
         if (!vf.exists()) {
 
-            com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
-            if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                vremote = vidoInfo.getString("video");
-                vremote = App.cache2Disk(vf, vremote);
+            if(vf.getdLink()!=null&&vf.getdLink().endsWith(".m3u8")){
+
+               // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
+               //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
+
+                return Uri.parse("http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())
+                        +"/"+vf.getOrderSeq()+"/index.m3u8?url="+URLEncoder.encode(vf.getdLink())
+                        +"&t="+System.currentTimeMillis()
+                );
+
+
+            }else {
+                com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
+                if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                    vremote = vidoInfo.getString("video");
+                    vremote = App.cache2Disk(vf, vremote);
+                }
             }
+
 
         } else {
             path = vf.getAbsPath();
@@ -365,7 +380,7 @@ public final class PlayerController {
                     foldersQueryBuilder.where().eq("typeId", curTypeId);
 
 
-                    VFile nextVf = vfDao.queryBuilder().where().eq("folder_id", vf.getFolder().getId()).and()
+                    VFile nextVf = vfDao.queryBuilder().where().eq("folder_id", vf==null?0:vf.getFolder().getId()).and()
                             .gt("id", vfId).queryForFirst();
 
                     if (nextVf == null){

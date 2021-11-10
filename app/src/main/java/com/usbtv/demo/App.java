@@ -62,6 +62,7 @@ public class App extends Application implements CacheListener {
         map.put("全部","");
         map.putAll(typesMap);
 
+        map.put("电视电影","1");
         map.put("其他","0");
         return map;
     }
@@ -259,7 +260,7 @@ public class App extends Application implements CacheListener {
 
     public OutputStream documentStream(String filePath) throws IOException {
 
-        Log.i(TAG, filePath);
+       // Log.i(TAG, filePath);
         File file = new File(filePath);
         if (!file.getParentFile().exists()){
             if(DocumentsUtils.mkdirs(this,file.getParentFile())){

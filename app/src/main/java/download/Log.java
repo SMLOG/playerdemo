@@ -5,22 +5,18 @@ public class Log {
     private static volatile int level = Constant.INFO;
 
     public static void i(CharSequence message) {
-        if (level == Constant.INFO)
-            System.out.println("\33[0;2m" + message);
+        System.out.println( message);
+
     }
 
     public static void d(CharSequence message) {
-        if (level == Constant.INFO || level == Constant.DEBUG) {
-            System.out.println("\33[36;2m" + message);
-            System.out.print("\33[0;2m");
-        }
+            System.out.println( message);
+
     }
 
     public static void e(CharSequence message) {
-        if (level == Constant.INFO || level == Constant.ERROR) {
-            System.out.println("\33[31;2m" + message);
-            System.out.print("\33[0;2m");
-        }
+        System.out.println( message);
+
     }
 
     public static void setLevel(int level) {
