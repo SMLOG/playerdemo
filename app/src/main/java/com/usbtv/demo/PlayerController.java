@@ -231,9 +231,10 @@ public final class PlayerController {
                // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
-                return Uri.parse("http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())
-                        +"/"+vf.getOrderSeq()+"/index.m3u8?url="+URLEncoder.encode(vf.getdLink())
-                        +"&t="+System.currentTimeMillis()
+                return Uri.parse(
+                        "http://127.0.0.1:8080/api/r/"+ vf.getFolder().getId()
+                        +"/"+vf.getOrderSeq()+"/index.m3u8"
+                        +"?t="+System.currentTimeMillis()
                 );
 
 

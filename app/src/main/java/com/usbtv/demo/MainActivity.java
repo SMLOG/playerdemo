@@ -133,7 +133,12 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                // status.setVisibility(View.GONE);
 
             }
-            handler.postDelayed(updateProgressBarThread, 500);
+            try{
+                handler.postDelayed(updateProgressBarThread, 500);
+
+            }catch (Throwable e){
+                e.printStackTrace();
+            }
         }
     };
     private Timer timer;
@@ -511,6 +516,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                //mp.release();
                 PlayerController.getInstance().playNext();
             }
         });

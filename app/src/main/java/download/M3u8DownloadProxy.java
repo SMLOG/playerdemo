@@ -5,7 +5,9 @@ import com.usbtv.demo.App;
 import com.usbtv.demo.DocumentsUtils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -30,8 +32,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -241,7 +241,125 @@ public class M3u8DownloadProxy {
     private File getTempTsFile(int i) {
         return new File(dir + FILESEPARATOR + seq + FILESEPARATOR + i + ".xy");
     }
+    public Object getTsStream( int i) {
 
+        if(getTsFile(i).exists()){
+            return getTsFile(i);
+
+        }
+
+        int count = 1;
+        HttpURLConnection httpURLConnection = null;
+        String urls=tsArray[i];
+
+
+        InputStream in = null;
+
+        //重试次数判断
+        while (count <= retryCount) {
+            try {
+                log("downing", i);
+                URL url = new URL(urls);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+                for (Map.Entry<String, Object> entry : requestHeaderMap.entrySet())
+                    httpURLConnection.addRequestProperty(entry.getKey(), entry.getValue().toString());
+                httpURLConnection.setUseCaches(false);
+                httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+                httpURLConnection.setDoInput(true);
+                in = httpURLConnection.getInputStream();
+
+                ByteArrayOutputStream byos = new ByteArrayOutputStream();
+
+                int len=0;
+                byte[] bytes = new byte[4096];
+
+                if (!urls.endsWith(".ts")) {
+                    len = in.read(bytes);
+                    //47 40 11 10
+                    for (int k = 0; k < len; k++) {
+                        // if (71 === t[r] && 71 === t[r + 188] && 71 === t[r + 376])
+                        if (bytes[k] == 71 && bytes[k + 188] == 71&& bytes[k + 376] == 71   ) {
+                            //in.reset();
+                            //in.skip(k);
+                            byos.write(bytes,k,len-k);
+                            break;
+                        }
+                    }
+                }
+
+                if(len!=-1)
+                while ((len = in.read(bytes)) != -1) {
+                    byos.write(bytes,0,len);
+                }
+                in.close();
+
+
+                int valLen = urls.endsWith(".ts") ? 0 : byos.size() % 188;
+                bytes =  new byte[byos.size() - valLen];
+                System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
+
+                byos.close();
+
+
+
+                byte[] decrypt = decrypt(bytes, bytes.length, key, iv, method);
+
+                final byte[] retBytes =decrypt==null?bytes:decrypt;
+                downloadedSet.add(i);
+
+
+                    fixedThreadPool2.submit(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            File tsFile = getTsFile(i);
+                            if(tsFile.exists())return;
+                            DocumentsUtils.mkdirs(App.getInstance().getApplicationContext(), tsFile.getParentFile());
+                            try {
+                                OutputStream os = App.getInstance().documentStream(tsFile.getAbsolutePath());
+                                os.write(retBytes);
+                                os.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+
+                        }
+                    });
+
+
+                return retBytes;
+
+            } catch (Exception e) {
+e.printStackTrace();
+                if (e instanceof InvalidKeyException || e instanceof InvalidAlgorithmParameterException) {
+                    Log.e("解密失败！");
+                    break;
+                }
+                Log.d("第" + count + "获取链接重试！\t" + urls);
+                count++;
+
+
+//                        e.printStackTrace();
+            } finally {
+
+                if (httpURLConnection != null) {
+                    httpURLConnection.disconnect();
+                }
+
+                synchronized (downloadingSet) {
+                    if (downloadingSet.contains(i))
+                        downloadingSet.remove(i);
+                }
+            }
+        }
+
+        if (count > retryCount)
+            throw new M3u8Exception("连接超时！");
+        finishedCount++;
+        return null;
+    }
     /**
      * 开启下载线程
      *

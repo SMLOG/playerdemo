@@ -28,6 +28,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -231,16 +232,22 @@ public class VUrlController {
     }
 
 
-    @GetMapping(path = "/api/r/{name}/{index}/index.m3u8")
+    @GetMapping(path = "/api/r/{fid}/{index}/index.m3u8")
     ResponseBody range2(
             HttpRequest request, HttpResponse response,
             @RequestParam(name = "url", required = false, defaultValue = "") String url,
-            @PathVariable("name") String name,
+            @PathVariable("fid") int fid,
             @PathVariable("index") int index
     ) throws Exception {
 
+        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+       Folder folder = folderDao.queryForId(fid);
+       String name = folder.getName();
         ResponseBody responseBody = null;
 
+        if(url.trim().equalsIgnoreCase("")){
+            url = folder.getFiles().toArray(new VFile[]{})[index].getdLink();
+        }
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
@@ -332,15 +339,22 @@ public class VUrlController {
 
         //  if(true)return new FileBody(new File("/storage/36AC6142AC60FDAD/videos/970456553/1/970456553.mp4"));;
         ResponseBody responseBody = null;
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Connection", "keep-alive");
 
+        response.setHeader("content-type", "video/mp2t");
 
         M3u8DownloadProxy downloader = (M3u8DownloadProxy) DOWNLOADING.get(downloadId);
-        Object fileOrUrl = downloader.downloadIndexTs(index);
-        if(fileOrUrl instanceof File){
-            File file = (File) fileOrUrl;
-            responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
-            response.setBody(responseBody);
+        Object bytesOrFile = downloader.getTsStream(index);
 
+        if(bytesOrFile instanceof  byte[])
+        {
+           byte[] bytes = (byte[]) bytesOrFile;
+            responseBody = new StreamBody(new ByteArrayInputStream(bytes), bytes.length, MediaType.parseMediaType("video/mp2t"));
+            response.setBody(responseBody);
             response.setHeader("Access-Control-Allow-Origin", "*");
             response.setHeader("Access-Control-Allow-Credentials", "true");
             response.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
@@ -348,12 +362,25 @@ public class VUrlController {
             response.setHeader("Connection", "keep-alive");
 
             response.setHeader("content-type", "video/mp2t");
+
+            return responseBody;
+        }
+
+
+        //Object fileOrUrl = downloader.downloadIndexTs(index);
+        if(bytesOrFile instanceof File){
+            File file = (File) bytesOrFile;
+            responseBody = new StreamBody(new FileInputStream(file), file.length(), MediaType.parseMediaType("video/mp2t"));
+            response.setBody(responseBody);
+
+
             response.setHeader("Content-Disposition", "attachment; filename=" + index + ".ts");
             //response.sendRedirect("file://"+file.getAbsolutePath());
             //return null;
             return responseBody;
-        }else
-            response.sendRedirect(fileOrUrl.toString());
+        }
+        //else
+          //  response.sendRedirect(fileOrUrl.toString());
 
         return null;
     }
