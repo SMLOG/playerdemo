@@ -1,0 +1,52 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+group = 'com.github.nur001'  //注意com.github.后面的为github账号
+android {
+    // http://tools.android.com/tech-docs/new-build-system/tips
+    //noinspection GroovyAssignabilityCheck
+    compileSdkVersion 28
+    //noinspection GroovyAssignabilityCheck
+    buildToolsVersion "28.0.3"
+
+    lintOptions {
+        abortOnError false
+    }
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 800800
+        versionName "0.8.8"
+        flavorDimensions "debug"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.preference:preference:1.0.0'
+    implementation 'androidx.annotation:annotation:1.0.0'
+
+    implementation 'com.squareup:otto:1.3.8'
+
+    implementation project(':ijkplayer-java')
+    implementation project(':ijkplayer-exo')
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+//    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
+//    api 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+//    api 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+//    api 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
+//    api 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
+//    api 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
+    api project(':gsyVideoPlayer-ex_so')
+}

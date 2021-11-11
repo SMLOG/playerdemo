@@ -34,6 +34,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.j256.ormlite.dao.Dao;
+import com.nurmemet.nur.nurvideoplayer.TvVideoView;
+import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.comm.RetrofitServiceApi;
 import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
@@ -63,44 +65,17 @@ import java.util.TimerTask;
 
 import butterknife.BindView;
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+public class MainActivity extends AppCompatActivity {
 
 
     @BindView(R.id.video_view)
-    MyVideoView videoView;
+    TvVideoView videoView;
 
-    @BindView(R.id.tv_play_time)
-    TextView tvPlayTime;
-    @BindView(R.id.time_seekBar)
-    SeekBar timeSeekBar;
-    @BindView(R.id.tv_total_time)
-    TextView tvTotalTime;
-    @BindView(R.id.lay_finish_bg)
-    RelativeLayout layFinishBg;
-    @BindView(R.id.btn_play_or_pause)
-    ImageButton btnPlayOrPause;
-    @BindView(R.id.btn_restart_play)
-    ImageButton btnRestartPlay;
-    @BindView(R.id.status)
-    RelativeLayout status;
     RelativeLayout mInView;
 
-
-    @BindView(R.id.textView)
-    TextView textView;
-
-
     @BindView(R.id.home)
-    View home;
+     View home;
     private List<Folder> movieList;
-
-    private int key = 0;
-    private Handler handler = new Handler();
-    private MediaController mc;
-
-    MyMediaPlayer mediaPlayer = new MyMediaPlayer();
-
-    private RetrofitServiceApi api = RetrofitUtil.getApi("http://127.0.0.1:8080/");
 
     public static NavigationLinearLayout mNavigationLinearLayout;
     private NavigationCursorView mNavigationCursorView;
@@ -123,24 +98,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     };
 
 
-    private Runnable updateProgressBarThread = new Runnable() {
-        public void run() {
-            if (videoView.isPlaying()) {
-                int current = videoView.getCurrentPosition();
-                timeSeekBar.setProgress(current);
-
-                tvPlayTime.setText(time(videoView.getCurrentPosition()));
-               // status.setVisibility(View.GONE);
-
-            }
-            try{
-                handler.postDelayed(updateProgressBarThread, 500);
-
-            }catch (Throwable e){
-                e.printStackTrace();
-            }
-        }
-    };
     private Timer timer;
     private TimerTask timerTask;
     public static MyRecycleViewAdapter numTabAdapter;
@@ -313,42 +270,22 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     }
 
     private void initViews() {
-        timeSeekBar.setOnSeekBarChangeListener(onSeekBarChangeListener);
 
         timer = new Timer();
 
         initVideo();
 
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
     }
 
     private void bindElementViews() {
         videoView = mInView.findViewById(R.id.video_view);
-        timeSeekBar = mInView.findViewById(R.id.time_seekBar);
-        tvPlayTime = mInView.findViewById(R.id.tv_play_time);
-        tvTotalTime = mInView.findViewById(R.id.tv_total_time);
-        layFinishBg = mInView.findViewById(R.id.lay_finish_bg);
-        btnPlayOrPause = mInView.findViewById(R.id.btn_play_or_pause);
-        btnRestartPlay = mInView.findViewById(R.id.btn_restart_play);
-        status = mInView.findViewById(R.id.status);
-        textView = mInView.findViewById(R.id.textView);
-
 
         home = findViewById(R.id.home);
         home.setOnFocusChangeListener((view,hasFocus)->{
             numTabRecyclerView.requestFocus();
         });
         numTabRecyclerView = findViewById(R.id.rv_tab);
-       /* numTabRecyclerView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                View chv = numTabRecyclerView.getChildAt(PlayerController.getInstance().getCurIndex());
-              if(chv!=null) chv.requestFocus();
-            }
-
-        });*/
         moviesRecyclerView = findViewById(R.id.rv_game_list);
 
         numTabAdapter = new MyRecycleViewAdapter(this,numTabRecyclerView);
@@ -411,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         numTabAdapter.setOnFocusChangeListener(myListener);
        // adapter.setOnItemClickListener(myListener);
 
-        PlayerController.getInstance().setUIs(textView, videoView, home);
+        PlayerController.getInstance().setUIs(videoView, home);
 
 
 
@@ -469,9 +406,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
             }
 
-        } else {
-            isVideoPlay(false, 0);
-
         }
 
 
@@ -494,166 +428,44 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
      * 初始化VideoView
      */
     private void initVideo() {
-        mc = new MediaController(this);
-        mc.setVisibility(View.GONE);
-        videoView.setMediaController(mc);
         videoView.requestFocus();
 
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                int totalTime = videoView.getDuration();//获取视频的总时长
-                tvTotalTime.setText(stringForTime(totalTime));
 
-                // 开始线程，更新进度条的刻度
-                handler.postDelayed(updateProgressBarThread, 0);
-                timeSeekBar.setMax(videoView.getDuration());
-                //视频加载完成,准备好播放视频的回调
-                videoView.start();
+        videoView.setOnMediaListener(new OnMediaListener() {
+            @Override
+            public void onStart() {
+
             }
-        });
 
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void onCompletion(MediaPlayer mp) {
-                //mp.release();
+            public void onPause() {
+
+            }
+
+            @Override
+            public void onProgress(int progress, int duration) {
+
+            }
+
+            @Override
+            public void onChangeScreen(boolean isPortrait) {
+
+            }
+
+            @Override
+            public void onEndPlay() {
                 PlayerController.getInstance().playNext();
             }
-        });
-
-        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
 
             @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
+            public boolean onError(Object mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
                 PlayerController.getInstance().playNext();
                 return true;
             }
         });
 
-    }
 
-
-    /**
-     * 控制视频是  播放还是暂停  或者是重播
-     *
-     * @param isPlay
-     * @param keys
-     */
-    private void isVideoPlay(boolean isPlay, int keys) {
-        switch (keys) {
-            case 0:
-                if (isPlay) {//暂停
-                    btnPlayOrPause.setBackground(getResources().getDrawable(R.mipmap.icon_player));
-                    btnPlayOrPause.setVisibility(View.VISIBLE);
-                    videoView.pause();
-
-
-                } else {//继续播放
-                    btnPlayOrPause.setBackground(getResources().getDrawable(R.mipmap.icon_pause));
-                    btnPlayOrPause.setVisibility(View.VISIBLE);
-                    // 开始线程，更新进度条的刻度
-                    handler.postDelayed(updateProgressBarThread, 0);
-                    videoView.start();
-                    timeSeekBar.setMax(videoView.getDuration());
-                    timeGone();
-                }
-                break;
-            case 1://重新播放
-                initVideo();
-                btnRestartPlay.setVisibility(View.GONE);
-                layFinishBg.setVisibility(View.GONE);
-                key = 0;
-                break;
-        }
-
-    }
-
-    /**
-     * 延时隐藏
-     */
-    private void timeGone() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                btnPlayOrPause.setVisibility(View.INVISIBLE);
-            }
-        }, 1500);
-
-    }
-
-    /**
-     * 进度条监听
-     */
-    private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        private TimerTask task;
-
-        // 当进度条停止修改的时候触发
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            // 取得当前进度条的刻度
-            int progress = seekBar.getProgress();
-            if (videoView.isPlaying()) {
-                // 设置当前播放的位置
-                videoView.seekTo(progress);
-            }
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-
-        }
-
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress,
-                                      boolean fromUser) {
-            if(fromUser){
-                videoView.seekTo(progress);
-                MainActivity.this.startDelayHideStatusTask();
-            }
-
-        }
-    };
-
-    private void startDelayHideStatusTask() {
-
-        try{
-            timerTask.cancel();
-        }catch (Exception e){
-
-        }
-        this.timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                status.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        status.setVisibility(View.GONE);
-                    }
-                });
-            }
-        };
-
-        timer.schedule(timerTask,5000);
-    }
-
-    //将长度转换为时间
-    StringBuilder mFormatBuilder = new StringBuilder();
-    Formatter mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
-
-    private String stringForTime(int timeMs) {
-        int totalSeconds = timeMs / 1000;
-
-        int seconds = totalSeconds % 60;
-        int minutes = (totalSeconds / 60) % 60;
-        int hours = totalSeconds / 3600;
-
-        mFormatBuilder.setLength(0);
-        if (hours > 0) {
-            return mFormatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
-        } else {
-            return mFormatter.format("%02d:%02d", minutes, seconds).toString();
-        }
     }
 
 
@@ -680,15 +492,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                     return super.onKeyDown(keyCode, event);
                 }
 
-                //如果是播放中则暂停、如果是暂停则继续播放
-                if(!videoView.isPlaying() || status.getVisibility()==View.VISIBLE)
-                    isVideoPlay(videoView.isPlaying(), key);
-                else{
+              return videoView.onKeyDown(keyCode,event);
 
-                    showStatusAndAutoHide();
-                }
-
-                break;
 
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
@@ -701,89 +506,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                             numTabRecyclerView.requestFocus();
                         }
                     },100);
-                    /*recyclerView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            recyclerView.requestFocus();
-                        }
-                    },1000);*/
                 }
 
-                //startRun();
 
-                //Intent intent = new Intent(MainActivity.this, RegularVerticalActivity.class);
-                //startActivity(intent);
-
-                /*if(this.showList==null){
-
-
-                WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
-                        Context.WINDOW_SERVICE);
-
-                WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-
-                layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-                layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-                layoutParams.type = WindowManager.LayoutParams.LAST_APPLICATION_WINDOW;
-                layoutParams.flags = WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-                layoutParams.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
-
-
-                //layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
-                layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-                //layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-
-
-                LayoutInflater inflater = LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
-                    FrameLayout mInView = (FrameLayout)inflater.inflate(R.layout.activity_regular_vertical, null, false);
-
-                VerticalGridView gridView = mInView.findViewById(R.id.id_grid_vertical);
-
-
-
-                gridView.addItemDecoration(new SpaceItemDecoration());
-                gridView.setNumColumns(3);
-                GridObjectAdapter adapter = new GridObjectAdapter(new RegularVerticalPresenter(this));
-                gridView.setFocusZoomFactor(FocusHighlightHelper.ZOOM_FACTOR_SMALL);
-
-                try {
-                    List<Folder> list = App.getHelper().getDao(Folder.class).queryForAll();
-
-                    gridView.setAdapter(adapter);
-                    for (int i = 0; i < list.size(); i++) {
-
-                        adapter.add(list.get(i));
-                    }
-
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
-
-                    mInView.setOnKeyListener(new View.OnKeyListener() {
-                        @Override
-                        public boolean onKey(View view, int keycode, KeyEvent keyEvent) {
-                            if(keycode==KeyEvent.KEYCODE_BACK&&keyEvent.getAction()==KeyEvent.ACTION_UP){
-
-                                getWindowManager().removeViewImmediate(MainActivity.this.showList);
-                                MainActivity.this.showList = null;
-
-                                return true;
-                            }
-                            return false;
-                        }
-                    });
-                wm.addView(mInView, layoutParams);
-                this.showList = mInView;
-                mInView.setFocusable(true);
-                mInView.setFocusableInTouchMode(true);
-                mInView.requestFocus();
-
-
-                }else {
-                    getWindowManager().removeViewImmediate(this.showList);
-                    this.showList = null;
-                }*/
 
                 return false;   //这里由于break会退出，所以我们自己要处理掉 不返回上一层
 
@@ -818,18 +543,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
                 Log.d(TAG, "left--->");
 
-                showStatusAndAutoHide();
-                timeSeekBar.requestFocus();
+                return videoView.onKeyDown(keyCode,event);
 
-                break;
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
                 if (isShowHome) return false;
                 Log.d(TAG, "right--->");
-                showStatusAndAutoHide();
-                timeSeekBar.requestFocus();
-
-                break;
+                return videoView.onKeyDown(keyCode,event);
 
             case KeyEvent.KEYCODE_VOLUME_UP:   //调大声音键
                 Log.d(TAG, "voice up--->");
@@ -851,23 +571,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
 
     }
 
-    private void showStatusAndAutoHide() {
-        status.setVisibility(View.VISIBLE);
-        startDelayHideStatusTask();
-    }
 
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        MyMediaPlayer mymediaPlayer = (MyMediaPlayer) mediaPlayer;
-        if (mymediaPlayer.isAllCompletedOrContinuePlayNext())
-            PlayerController.getInstance().playNext();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        PlayerController.getInstance().playNext();
-        return false;
-    }
 
     @Override
     protected void onDestroy() {

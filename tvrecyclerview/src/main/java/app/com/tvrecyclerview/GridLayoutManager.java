@@ -2,7 +2,7 @@ package app.com.tvrecyclerview;
 
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.support.v4.view.ViewCompat;
+import androidx.core.view.ViewCompat;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;

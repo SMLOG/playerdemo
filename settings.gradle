@@ -6,3 +6,4 @@ include ':AndroidVideoCache'
 project(':AndroidVideoCache').projectDir = new File(rootProject.projectDir, './AndroidVideoCache/library')
 
 include(':web')
+include ':nurvideoplayer', ':ijkplayer-java', ':ijkplayer-exo', ':ijkplayer-example', ':gsyVideoPlayer-ex_so'

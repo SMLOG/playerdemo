@@ -12,6 +12,7 @@ import android.widget.VideoView;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -36,7 +37,7 @@ public final class PlayerController {
 
     private int mode;
 
-    private MyVideoView videoView;
+    private TvVideoView videoView;
     private TextView textView;
 
     private Map<String, VFile> mapFiles;
@@ -187,7 +188,6 @@ public final class PlayerController {
                             PlayerController.getInstance().setMediaObj(videoView);
                             if (res instanceof VFile)
                                 MainActivity.numTabAdapter.refresh(((VFile) res).getFolder());
-
 
                         }
                     }
@@ -435,10 +435,9 @@ public final class PlayerController {
 
     }
 
-    public void setUIs(TextView textView, MyVideoView videoView,
+    public void setUIs(TvVideoView videoView,
                        View gridView) {
         this.videoView = videoView;
-        this.textView = textView;
         this.girdView = gridView;
     }
 
