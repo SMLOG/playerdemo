@@ -38,7 +38,6 @@ public final class PlayerController {
     private int mode;
 
     private TvVideoView videoView;
-    private TextView textView;
 
     private Map<String, VFile> mapFiles;
     private Uri videoUrl;
@@ -178,7 +177,6 @@ public final class PlayerController {
 
                         synchronized (videoView) {
 
-                            textView.setVisibility(View.GONE);
 
                             videoView.setVisibility(View.VISIBLE);
 
@@ -187,7 +185,7 @@ public final class PlayerController {
                             videoView.start();
                             PlayerController.getInstance().setMediaObj(videoView);
                             if (res instanceof VFile)
-                                MainActivity.numTabAdapter.refresh(((VFile) res).getFolder());
+                                MainActivityTest.numTabAdapter.refresh(((VFile) res).getFolder());
 
                         }
                     }
@@ -393,6 +391,11 @@ public final class PlayerController {
                     if (nextVf == null) {
                         nextVf = (VFile) App.getHelper().getDao(VFile.class).
                                 queryBuilder().join(foldersQueryBuilder).where()
+                                .gt("id", 0).queryForFirst();
+                    }
+                    if (nextVf == null) {
+                        nextVf = (VFile) App.getHelper().getDao(VFile.class).
+                                queryBuilder().where()
                                 .gt("id", 0).queryForFirst();
                     }
                     if (nextVf != null) {

@@ -144,7 +144,7 @@ public class App extends Application implements CacheListener {
                         List<Folder> movies = null;
                         try {
                             movies = App.getHelper().getDao(Folder.class).queryForAll();
-                            MainActivity.moviesRecyclerViewAdapter.update(movies);
+                            MainActivityTest.moviesRecyclerViewAdapter.update(movies);
                             new InitChannel();
 
                         } catch (SQLException throwables) {

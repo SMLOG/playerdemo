@@ -1,6 +1,8 @@
 package com.usbtv.demo;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.os.Build;
 import android.os.Handler;
@@ -192,6 +194,12 @@ public class DownloadMP {
     }
 
     public static void process() throws  IOException, SQLException {
+
+
+        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<24*60*60*1000)return;
+
+
         String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
@@ -293,7 +301,7 @@ public class DownloadMP {
             public void run() {
                 ArrayList<String> newList = new ArrayList<>();
                 newList.addAll(App.getInstance().getAllTypeMap().keySet());
-                MainActivity.mNavigationLinearLayout.setDataList(newList);
+                MainActivityTest.mNavigationLinearLayout.setDataList(newList);
 
             }});
 
@@ -318,6 +326,12 @@ public class DownloadMP {
             //    folderDao.delete(folder);
           //  }
         }
+
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putLong("lastSynTime", System.currentTimeMillis());
+        editor.apply();
+        //editor.apply();
+        sp.edit().commit();
 
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
     }

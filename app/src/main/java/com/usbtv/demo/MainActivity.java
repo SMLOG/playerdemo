@@ -279,6 +279,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindElementViews() {
         videoView = mInView.findViewById(R.id.video_view);
+        String url="https://new.iskcd.com/20210913/hLIjsB5w/index.m3u8";
+
+       // videoView = findViewById(R.id.videoView);
+        videoView.setUp(this, url, "This is video title");
+        //nurVideoPlayer.initPlayer(this, Uri.parse(url), "test");
+        videoView.start();
 
         home = findViewById(R.id.home);
         home.setOnFocusChangeListener((view,hasFocus)->{
