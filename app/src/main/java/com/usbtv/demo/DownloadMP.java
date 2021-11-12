@@ -197,7 +197,7 @@ public class DownloadMP {
 
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<24*60*60*1000)return;
+        //if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<24*60*60*1000)return;
 
 
         String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");

@@ -67,8 +67,13 @@ public class InitChannel {
             MediaChannel channel = new MediaChannel(key, programs, i == 1);
 
 
-            long channelId = MediaTVProvider.addChannel(App.getInstance().getApplicationContext(), channel);
-            channelList.add(channelId);
+            try{
+                long channelId = MediaTVProvider.addChannel(App.getInstance().getApplicationContext(), channel);
+                channelList.add(channelId);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
         }
 
 

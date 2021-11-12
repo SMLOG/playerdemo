@@ -178,8 +178,7 @@ public final class PlayerController {
                         synchronized (videoView) {
 
 
-                            videoView.setVisibility(View.VISIBLE);
-
+                            videoView.pause();
                             videoView.setVideoURI(PlayerController.this.videoUrl);
                             videoView.requestFocus();
                             videoView.start();
