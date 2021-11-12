@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.j256.ormlite.dao.Dao;
@@ -16,12 +15,10 @@ import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.vurl.VUrlList;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -105,22 +102,16 @@ public final class PlayerController {
     }
 
     public void pause() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            m.pause();
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
+         if (mediaObj instanceof TvVideoView) {
+            TvVideoView v = (TvVideoView) mediaObj;
             v.pause();
         }
     }
 
     public void start() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            m.start();
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
-            v.start();
+         if (mediaObj instanceof TvVideoView) {
+            TvVideoView v = (TvVideoView) mediaObj;
+            v.resume();
         }
     }
 
@@ -180,11 +171,11 @@ public final class PlayerController {
 
                             videoView.pause();
                             videoView.setVideoURI(PlayerController.this.videoUrl);
-                            videoView.requestFocus();
-                            videoView.start();
+                            //videoView.requestFocus();
+                            videoView.resume();
                             PlayerController.getInstance().setMediaObj(videoView);
                             if (res instanceof VFile)
-                                MainActivityTest.numTabAdapter.refresh(((VFile) res).getFolder());
+                                MainActivity.numTabAdapter.refresh(((VFile) res).getFolder());
 
                         }
                     }
@@ -197,7 +188,7 @@ public final class PlayerController {
 
     private Uri getUri(VFile vf) {
 
-        String vremote = "http://127.0.0.1:8080/api/vfile?id=" + vf.getId();
+        String vremote = ServerManager.getServerHttpAddress()+"/api/vfile?id=" + vf.getId();
 
         String path = vf.getAbsPath();
 
@@ -228,8 +219,9 @@ public final class PlayerController {
                // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
+                if(true)return Uri.parse(vf.getdLink());
                 return Uri.parse(
-                        "http://127.0.0.1:8080/api/r/"+ vf.getFolder().getId()
+                        ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
                         +"/"+vf.getOrderSeq()+"/index.m3u8"
                         +"?t="+System.currentTimeMillis()
                 );

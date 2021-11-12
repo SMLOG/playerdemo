@@ -4,6 +4,7 @@ import android.net.Uri;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
+import com.usbtv.demo.ServerManager;
 
 import java.io.File;
 import java.net.URLEncoder;
@@ -33,7 +34,7 @@ public class VUrlList {
     }
 
     public Uri getCurVideoUrl() {
-        return Uri.parse("http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(name)+"/"+curIndex+"/index.m3u8?url="+URLEncoder.encode(urls.get(curIndex)));
+        return Uri.parse(ServerManager.getServerHttpAddress()+"/api/r/"+ URLEncoder.encode(name)+"/"+curIndex+"/index.m3u8?url="+URLEncoder.encode(urls.get(curIndex)));
     }
 
     public String getCurUrl() {

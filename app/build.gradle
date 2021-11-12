@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     buildToolsVersion "29.0.3"
     defaultConfig {
-        applicationId "com.usbtv.demo"
+        applicationId "com.usbtv.demo.m3u8"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1

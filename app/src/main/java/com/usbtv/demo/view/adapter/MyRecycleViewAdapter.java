@@ -27,7 +27,7 @@ import com.usbtv.demo.view.widget.MyNumRecyclerView;
  */
 
 public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private final MyNumRecyclerView recyclerView;
+    private final RecyclerView recyclerView;
     private Context mContext;
     private Folder folder;
     private OnItemFocusChangeListener mOnFocusChangeListener;
@@ -37,7 +37,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     private int defaultFocus = 0;
     private boolean needFocus = true;
 
-    public MyRecycleViewAdapter(Context context, MyNumRecyclerView numTabRecyclerView) {
+    public MyRecycleViewAdapter(Context context, RecyclerView numTabRecyclerView) {
         this.mContext = context;
         this.recyclerView = numTabRecyclerView;
         mLayoutInflater = LayoutInflater.from(mContext);

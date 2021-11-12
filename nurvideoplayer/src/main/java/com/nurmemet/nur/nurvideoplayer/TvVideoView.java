@@ -32,7 +32,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
  */
 public class TvVideoView extends LinearLayout implements View.OnClickListener {
 
-    private NurVideoPlayer mVideoView;
+    private TvVideoPlayer mVideoView;
     private int mVideoViewHeight;
     private int bgColor;
     private boolean removeBack;
@@ -71,7 +71,7 @@ public class TvVideoView extends LinearLayout implements View.OnClickListener {
      * 引入播放器
      */
     private void initVideoView() {
-        mVideoView = new NurVideoPlayer(getContext());
+        mVideoView = new TvVideoPlayer(getContext());
         mVideoView.setBgColor(bgColor);
         setVideoViewHeight(mVideoViewHeight);
         addView(mVideoView);

@@ -36,5 +36,7 @@ public interface OnMediaListener {
      */
     void onEndPlay();
 
+    void onCompletion(Object mp);
+
     boolean onError(Object mp, int what, int extra);
 }

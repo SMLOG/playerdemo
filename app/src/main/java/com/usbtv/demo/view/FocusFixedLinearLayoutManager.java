@@ -21,8 +21,8 @@ public class FocusFixedLinearLayoutManager extends LinearLayoutManager {
         super(context,attrs,defStyleAttr,defStyleRes);
     }
 
-
-    public View onInterceptFocusSearch2(View focused, int direction) {
+    @Override
+    public View onInterceptFocusSearch(View focused, int direction) {
 
         int pos = getPosition(focused);
         int count = getItemCount();
@@ -39,8 +39,8 @@ public class FocusFixedLinearLayoutManager extends LinearLayoutManager {
         }
         return super .onInterceptFocusSearch(focused, direction);
     }
-    @Override
-    public View onInterceptFocusSearch(View focused, int direction) {
+
+    public View onInterceptFocusSearch2(View focused, int direction) {
 
         int pos = getPosition(focused);
         int count = getItemCount();

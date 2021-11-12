@@ -48,7 +48,7 @@ public class FocusRecyclerView extends RecyclerView {
                 }
                 // 如果获取失败（也就是说需要交给系统来处理焦点， 消耗掉事件，不让系统处理， 并让先前获取焦点的view获取焦点）
                 if (nextFocusView == null) {
-                    focusedView.requestFocus();
+                    if(focusedView!=null)focusedView.requestFocus();
                      return super.dispatchKeyEvent(event);
 
                 }

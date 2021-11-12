@@ -6,7 +6,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import androidx.annotation.ColorInt;
@@ -135,7 +134,15 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
         float current = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         float a = maxVolume / 200;
         oldVolumeProgress = (int) (current / a);
+        mVideoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(IMediaPlayer mp) {
 
+                if(mediaListener!=null){
+                    mediaListener.onCompletion(mp);
+                }
+            }
+        });
         mVideoView.setOnPreparedListener(preparedListener);
         mVideoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
             @Override
@@ -434,6 +441,7 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
         autoDismiss();
         mUiHandler.removeCallbacks(mUiRunnable);
         mUiHandler.postDelayed(mUiRunnable, 50);
+        _startPlay = false;
     }
 
 

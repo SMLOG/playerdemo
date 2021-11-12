@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,21 +13,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageButton;
-import android.widget.MediaController;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,12 +30,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.j256.ormlite.dao.Dao;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
-import com.usbtv.demo.comm.RetrofitServiceApi;
-import com.usbtv.demo.comm.RetrofitUtil;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.FocusFixedLinearLayoutManager;
-import com.usbtv.demo.view.MyMediaPlayer;
-import com.usbtv.demo.view.MyVideoView;
 import com.usbtv.demo.view.SpaceDecoration;
 import com.usbtv.demo.view.adapter.GameListAdapter;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
@@ -56,25 +46,22 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Formatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-
 
 import butterknife.BindView;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    @BindView(R.id.video_view)
+    @BindView(R.id.videoView)
     TvVideoView videoView;
 
     RelativeLayout mInView;
 
     @BindView(R.id.home)
-     View home;
+    View home;
     private List<Folder> movieList;
 
     public static NavigationLinearLayout mNavigationLinearLayout;
@@ -101,12 +88,10 @@ public class MainActivity extends AppCompatActivity {
     private Timer timer;
     private TimerTask timerTask;
     public static MyRecycleViewAdapter numTabAdapter;
-    private MyNumRecyclerView numTabRecyclerView;
+    private RecyclerView numTabRecyclerView;
     private RecyclerView moviesRecyclerView;
     public static GameListAdapter moviesRecyclerViewAdapter;
     private List<String> storagePathList;
-
-
     private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
         ArrayList<String> ret = new ArrayList<>();
@@ -134,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return ret;
     }
-
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -168,7 +153,6 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < storagePathList.size(); i++) {
 
                 String rootPath = storagePathList.get(i);
-                Log.i(TAG, " rootPath： " + rootPath);
                 if (DocumentsUtils.checkWritableRootPath(this, rootPath)) {   //检查sd卡路径是否有 权限 没有显示dialog
                     Intent intent = null;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -189,15 +173,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        setContentView(R.layout.activity_main);
 
-//new File("/storage/36AC6142AC60FDAD/videos/541422159/3/a/a.mp4").getParentFile().mkdirs();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
         intentFilter.addAction(App.CMD);
         registerReceiver(receiver, intentFilter);
-        setTopView();
         bindElementViews();
-        initViews();
+        initVideo();
 
         Intent intent = getIntent();
 
@@ -218,73 +201,14 @@ public class MainActivity extends AppCompatActivity {
         } else {
             PlayerController.getInstance().playNext();
         }
-
-
     }
 
-    private void setTopView() {
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (!Settings.canDrawOverlays(this)) {
-
-            }
-        }
-
-        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(
-                Context.WINDOW_SERVICE);
-
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-
-        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
-        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
-        layoutParams.type = WindowManager.LayoutParams.LAST_APPLICATION_WINDOW;
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-        layoutParams.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
 
 
-        layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
-        layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-        //layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
-
-        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());//加载需要的XML布局文件
-
-
-        //View view = LayoutInflater.from(this).inflate(R.layout.activity_main,null);
-
-        if (mInView == null) {
-            mInView = (RelativeLayout) inflater.inflate(R.layout.activity_main, null, false);//......//添加到WindowManager里面
-
-        } else {
-            ViewGroup vg = (ViewGroup) mInView.getParent();
-            if (vg != null) {
-                vg.removeAllViews();
-            }
-        }
-
-        //wm.addView(mInView, layoutParams);
-        setContentView(mInView);
-
-
-    }
-
-    private void initViews() {
-
-        timer = new Timer();
-
-        initVideo();
-
-    }
 
     private void bindElementViews() {
-        videoView = mInView.findViewById(R.id.video_view);
-        String url="https://new.iskcd.com/20210913/hLIjsB5w/index.m3u8";
-
-       // videoView = findViewById(R.id.videoView);
-        videoView.setUp(this, url, "This is video title");
-        //nurVideoPlayer.initPlayer(this, Uri.parse(url), "test");
-        videoView.start();
+        videoView = findViewById(R.id.videoView);
 
         home = findViewById(R.id.home);
         home.setOnFocusChangeListener((view,hasFocus)->{
@@ -296,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
         numTabAdapter = new MyRecycleViewAdapter(this,numTabRecyclerView);
 
-        LinearLayoutManager linearLayoutManager = new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         numTabRecyclerView.setLayoutManager(linearLayoutManager);
         numTabRecyclerView.setAdapter(numTabAdapter);
 
@@ -345,14 +269,14 @@ public class MainActivity extends AppCompatActivity {
                 view.setSelected(true);
             }
         };
-        moviesRecyclerView.setLayoutManager(new FocusFixedLinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        moviesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         moviesRecyclerView.addItemDecoration(new SpaceDecoration(30));
         moviesRecyclerView.setAdapter(moviesRecyclerViewAdapter);
 
 
         MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
         numTabAdapter.setOnFocusChangeListener(myListener);
-       // adapter.setOnItemClickListener(myListener);
+        // adapter.setOnItemClickListener(myListener);
 
         PlayerController.getInstance().setUIs(videoView, home);
 
@@ -366,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
-                  //  moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
+                    //  moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
                     //rvGameList.smoothScrollToPosition(0);
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
@@ -460,7 +384,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onEndPlay() {
-                PlayerController.getInstance().playNext();
+            }
+
+            @Override
+            public void onCompletion(Object mp) {
+                 PlayerController.getInstance().playNext();
+
             }
 
             @Override
@@ -486,24 +415,23 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-
         boolean isShowHome = home.getVisibility() == View.VISIBLE;
+
+        if(isShowHome &&(keyCode!=KeyEvent.KEYCODE_ENTER&&KeyEvent.KEYCODE_DPAD_CENTER!=keyCode
+                &&KeyEvent.KEYCODE_BACK!=keyCode)){
+            return super.onKeyDown(keyCode,event);
+        }
+
         switch (keyCode) {
 
-            case KeyEvent.KEYCODE_ENTER:     //确定键enter
+            case KeyEvent.KEYCODE_ENTER:
             case KeyEvent.KEYCODE_DPAD_CENTER:
-                Log.d(TAG, "enter--->");
-                if (isShowHome) {
-                   // home.setVisibility(View.GONE);
-                    return super.onKeyDown(keyCode, event);
-                }
+                if (isShowHome) return false;
 
-              return videoView.onKeyDown(keyCode,event);
-
+                return videoView.onKeyDown(keyCode,event);
 
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
-                home.bringToFront();
                 home.setVisibility(home.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
                 if (home.getVisibility() == View.VISIBLE) {
                     home.postDelayed(new Runnable() {
@@ -514,9 +442,7 @@ public class MainActivity extends AppCompatActivity {
                     },100);
                 }
 
-
-
-                return false;   //这里由于break会退出，所以我们自己要处理掉 不返回上一层
+                return false;
 
             case KeyEvent.KEYCODE_SETTINGS: //设置键
                 Log.d(TAG, "setting--->");
@@ -545,7 +471,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键
-                if (isShowHome) return false;
+                if (isShowHome) {
+                    home.onKeyDown(keyCode,event);
+                    return false;
+                }
 
                 Log.d(TAG, "left--->");
 
@@ -553,7 +482,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
-                if (isShowHome) return false;
+                if (isShowHome){
+                    home.onKeyDown(keyCode,event);
+                    return false;
+                }
                 Log.d(TAG, "right--->");
                 return videoView.onKeyDown(keyCode,event);
 
@@ -584,4 +516,5 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(receiver);
     }
+
 }

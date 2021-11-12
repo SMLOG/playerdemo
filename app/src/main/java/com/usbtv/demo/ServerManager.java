@@ -11,13 +11,18 @@ import java.util.concurrent.TimeUnit;
 public class ServerManager {
 
     private Server mServer;
+    public static final int port=9090;
 
+
+    public static String getServerHttpAddress(){
+        return "http://127.0.0.1:"+port;
+    }
     /**
      * Create server.
      */
     public ServerManager(Context context) {
         mServer = AndServer.webServer(context)
-                .port(8080)
+                .port(port)
                 .timeout(10, TimeUnit.SECONDS)
                 .listener(new Server.ServerListener() {
                     @Override

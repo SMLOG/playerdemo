@@ -3,22 +3,13 @@ package com.usbtv.demo;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetFileDescriptor;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 
-import androidx.annotation.RequiresApi;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,9 +27,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.DeleteBuilder;
 import com.usbtv.demo.comm.SSLSocketClient;
-import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
@@ -301,7 +290,7 @@ public class DownloadMP {
             public void run() {
                 ArrayList<String> newList = new ArrayList<>();
                 newList.addAll(App.getInstance().getAllTypeMap().keySet());
-                MainActivityTest.mNavigationLinearLayout.setDataList(newList);
+                MainActivity.mNavigationLinearLayout.setDataList(newList);
 
             }});
 

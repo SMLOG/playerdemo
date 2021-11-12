@@ -41,8 +41,14 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
 
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -53,18 +59,6 @@
                     android:path="/startApp" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".MainActivityTest"
-
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-        </activity>
-        <activity android:name=".view.SelectPicPopupWindow" android:theme="@style/MyDialogStyleBottom" />
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
         <service
             android:name=".r.UpdateRecommendationsService"
