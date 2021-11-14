@@ -108,6 +108,8 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
         @Override
         public void run() {
             isDragSeekProgress=false;
+            autoDismiss(mControlRunnable,0);
+
         }
     };
     private OnMediaListener mediaListener;
@@ -590,24 +592,28 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
      * 显示的话3秒后知道隐藏
      */
     private void autoDismiss(Runnable runnable) {
+        autoDismiss(runnable,1000);
+    }
+    private void autoDismiss(Runnable runnable,long t) {
         if (runnable != null) {
             mControlHandler.removeCallbacks(runnable);
-            mControlHandler.postDelayed(runnable, 1000);
+            mControlHandler.postDelayed(runnable, t);
         }
     }
-
     /**
      * seekBarChangeListener
      */
     private SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (showControll) {
+            if (showControll&&!fromUser) {
                 videoSeekChange(progress);
             }else if(fromUser){
                 isDragSeekProgress=true;
+                mVideoView.seekTo(progress);
                 mUiHandler.removeCallbacks(resetIsDragSeekProgressRunnable);
                 mUiHandler.postDelayed(resetIsDragSeekProgressRunnable,3000);
+
             }
         }
 
@@ -888,5 +894,22 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
      */
     public void setOnMediaListener(OnMediaListener mediaListener) {
         this.mediaListener = mediaListener;
+    }
+
+    public long getDuration() {
+       return this.mVideoView.getDuration();
+    }
+
+    public long getCurrentPosition() {
+        return this.mVideoView.getCurrentPosition();
+    }
+
+    public boolean isPlaying() {
+        return this.mVideoView.isPlaying();
+
+    }
+
+    public void seekTo(int pos) {
+         this.mVideoView.seekTo(pos);
     }
 }

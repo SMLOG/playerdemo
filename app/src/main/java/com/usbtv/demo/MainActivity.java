@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
             case KeyEvent.KEYCODE_DPAD_CENTER:
                 if (isShowHome) return false;
 
-                return videoView.onKeyDown(keyCode,event);
+                return videoView.onKeyDown(keyCode);
 
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
@@ -478,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d(TAG, "left--->");
 
-                return videoView.onKeyDown(keyCode,event);
+                return videoView.onKeyDown(keyCode);
 
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
@@ -487,7 +487,7 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
                 Log.d(TAG, "right--->");
-                return videoView.onKeyDown(keyCode,event);
+                return videoView.onKeyDown(keyCode);
 
             case KeyEvent.KEYCODE_VOLUME_UP:   //调大声音键
                 Log.d(TAG, "voice up--->");

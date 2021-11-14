@@ -29,7 +29,6 @@ public final class PlayerController {
     final static int MODE_LOOP = 2;
 
     private static PlayerController instance;
-    private Object mediaObj;
     private Object curItem;
 
     private int mode;
@@ -47,9 +46,6 @@ public final class PlayerController {
     }
 
 
-    public void setMediaObj(Object mediaObj) {
-        this.mediaObj = mediaObj;
-    }
 
 
     public static PlayerController getInstance() {
@@ -58,72 +54,35 @@ public final class PlayerController {
     }
 
     public long getDuration() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            return m.getDuration();
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
-            return v.getDuration();
-        }
-        return 0;
+
+        return videoView==null?0:videoView.getDuration();
     }
 
     public long getCurrentPosition() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            return m.getCurrentPosition();
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
-            return v.getCurrentPosition();
-        }
-        return 0;
+        return videoView==null?0:videoView.getCurrentPosition();
+
     }
 
     public boolean isPlaying() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            return m.isPlaying();
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
-            return v.isPlaying();
-        }
-        return false;
+        return videoView==null?false:videoView.isPlaying();
+
     }
 
     public void seekTo(int pos) {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            m.seekTo(pos);
-        } else if (mediaObj instanceof VideoView) {
-            VideoView v = (VideoView) mediaObj;
-            v.seekTo(pos);
-        }
+        if( videoView!=null)videoView.seekTo(pos);
 
     }
 
     public void pause() {
-         if (mediaObj instanceof TvVideoView) {
-            TvVideoView v = (TvVideoView) mediaObj;
-            v.pause();
-        }
+        if( videoView!=null)videoView.pause();
     }
 
     public void start() {
-         if (mediaObj instanceof TvVideoView) {
-            TvVideoView v = (TvVideoView) mediaObj;
-            v.resume();
-        }
+        if( videoView!=null)videoView.start();
+
     }
 
     public void prepare() {
-        if (mediaObj instanceof MediaPlayer) {
-            MediaPlayer m = (MediaPlayer) mediaObj;
-            try {
-                m.prepare();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 
@@ -173,7 +132,6 @@ public final class PlayerController {
                             videoView.setVideoURI(PlayerController.this.videoUrl);
                             //videoView.requestFocus();
                             videoView.resume();
-                            PlayerController.getInstance().setMediaObj(videoView);
                             if (res instanceof VFile)
                                 MainActivity.numTabAdapter.refresh(((VFile) res).getFolder());
 
