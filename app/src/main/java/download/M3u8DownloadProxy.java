@@ -309,6 +309,7 @@ public class M3u8DownloadProxy {
                 downloadedSet.add(i);
 
 
+                     if( getTsFile(i).getParentFile().exists())
                     fixedThreadPool2.submit(new Runnable() {
                         @Override
                         public void run() {
@@ -547,7 +548,7 @@ e.printStackTrace();
                     keyUrl = mergeUrl(relativeUrl, s);
                     M3U8URL = keyUrl;
 
-                    lines.add("/api/s/" + URLEncoder.encode(downloadId) + "/hls.m3u8?path=" + URLEncoder.encode(keyUrl));
+                    lines.add("/api/s/" + downloadId + "/hls.m3u8" );
 
                     break;
                 } else

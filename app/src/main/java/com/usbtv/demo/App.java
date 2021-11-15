@@ -3,6 +3,7 @@ package com.usbtv.demo;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -59,11 +60,11 @@ public class App extends Application implements CacheListener {
     public static LinkedHashMap<String, String> getAllTypeMap() {
 
         LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        map.put("全部","");
-        map.putAll(typesMap);
-
-        map.put("电视电影","1");
         map.put("其他","0");
+        map.putAll(typesMap);
+        map.put("电视电影","1");
+        map.put("直播","2");
+
         return map;
     }
 
@@ -121,14 +122,29 @@ public class App extends Application implements CacheListener {
         syncWithRemote();
     }
 
+
+
+
+
     public void syncWithRemote() {
+
+        SharedPreferences sp = getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+
+        if(System.currentTimeMillis()-sp.getLong("lastSyncWithRemoteTime",0l)>3600*24)
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 try {
 
+
+
                     DownloadMP.process();
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
+                    editor.apply();
+                    sp.edit().commit();
 
                 } catch (IOException e) {
                     e.printStackTrace();

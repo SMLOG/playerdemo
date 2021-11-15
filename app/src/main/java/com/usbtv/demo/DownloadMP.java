@@ -197,8 +197,37 @@ public class DownloadMP {
         //Drive rootDriv = App.getDefaultRootDrive();
 
 
-
+        String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
+                "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
+                "Bloomberg HT,https://ciner.daioncdn.net/bloomberght/bloomberght_720p.m3u8\n" +
+                "AKC TV ,https://video.blivenyc.com/broadcast/prod/2061/22/file-3192k.m3u8\n" +
+                "America’s Funniest Home Videos,https://linear-12.frequency.stream/dist/roku/12/hls/master/playlist.m3u8\n" +
+                "BYUtv,http://a.jsrdn.com/broadcast/d5b46/+0000/high/c.m3u8\n" +
+                "CBSN,https://cbsn-us-cedexis.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master.m3u8").split("\n");
         Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
+
+        for(String zhb:zhiboList){
+           String[] tp= zhb.split(",");
+            Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", tp[0]).queryForFirst();
+            if(zhbFolder==null){
+                zhbFolder = new Folder();
+                zhbFolder.setTypeId(2);
+                zhbFolder.setName(tp[0]);
+                folderDao.createOrUpdate(zhbFolder);
+
+                VFile vf = new VFile();
+                vf.setFolder(zhbFolder);
+                vf.setdLink(tp[1]);
+                vf.setOrderSeq(0);
+                vFileDao.createOrUpdate(vf);
+            }else {
+                VFile vf=zhbFolder.getFiles().iterator().next();
+                vf.setdLink(tp[1]);
+                vFileDao.createOrUpdate(vf);
+            }
+            validFoldersMap.put(zhbFolder.getId(),true);
+        }
+
         Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 

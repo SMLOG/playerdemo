@@ -50,7 +50,7 @@
         <com.usbtv.demo.view.widget.NavigationLinearLayout
             android:id="@+id/mNavigationLinearLayout_id"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/dp_40"
+            android:layout_height="@dimen/dp_45"
             android:layout_below="@id/rv_game_list"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="0dp"

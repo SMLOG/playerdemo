@@ -19,6 +19,7 @@ import com.usbtv.demo.vurl.VUrlList;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -177,7 +178,12 @@ public final class PlayerController {
                // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
-                if(true)return Uri.parse(vf.getdLink());
+                //if(true)return Uri.parse(vf.getdLink());
+                if(true){
+                    return Uri.parse(
+                            ServerManager.getServerHttpAddress()+"/api/m3u8proxy/"+vf.getdLink()
+                    );
+                }
                 return Uri.parse(
                         ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
                         +"/"+vf.getOrderSeq()+"/index.m3u8"
