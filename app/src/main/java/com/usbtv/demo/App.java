@@ -21,6 +21,7 @@ import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.r.InitChannel;
+import com.usbtv.demo.vurl.M3U;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +85,41 @@ public class App extends Application implements CacheListener {
         intent.putExtra("cmd", cmd);
         intent.putExtra("val", val);
         App.getInstance().getApplicationContext().sendBroadcast(intent);
+    }
+
+    public static StringBuilder updateM3U(boolean force) throws InterruptedException, IOException {
+
+
+        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+
+        String lastUpdateM3U = "lastUpdateM3U";
+        if(force||System.currentTimeMillis()-sp.getLong(lastUpdateM3U,0l)>3600*24*15){
+            String[] filePaths= new String[]{
+                    "/storage/36AC6142AC60FDAD/m3u/channels/us.m3u",
+                    "/storage/36AC6142AC60FDAD/m3u/channels/uk.m3u"
+            };
+
+            String filePath2="/storage/36AC6142AC60FDAD/m3u/channels/us_checked.m3u";
+
+            StringBuilder sb = M3U.check(filePaths);
+            OutputStream outputStream2 = App.getInstance().documentStream(filePath2);
+            outputStream2.write(sb.toString().getBytes());
+            outputStream2.close();
+
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putLong(lastUpdateM3U, System.currentTimeMillis());
+            editor.apply();
+            sp.edit().commit();
+
+            return sb;
+
+
+        }
+
+        return null;
+
+
     }
 
     private HttpProxyCacheServer newProxy() {
