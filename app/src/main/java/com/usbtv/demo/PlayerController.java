@@ -114,13 +114,16 @@ public final class PlayerController {
             @Override
             public void run() {
 
+                String title="";
                 PlayerController.this.videoUrl = null;
                 if (res instanceof VFile) {
                     videoUrl = getUri((VFile) res);
+                    title=((VFile) res).getName();
                 } else if (res instanceof VUrlList) {
                     videoUrl = ((VUrlList) res).getCurVideoUrl();
                 }
                 Handler handler = new Handler(Looper.getMainLooper());
+                String finalTitle = title;
                 handler.post(new Runnable() {
 
                     @Override
@@ -130,7 +133,7 @@ public final class PlayerController {
 
 
                             videoView.pause();
-                            videoView.setVideoURI(PlayerController.this.videoUrl);
+                            videoView.setVideoURI(PlayerController.this.videoUrl, finalTitle);
                             //videoView.requestFocus();
                             videoView.resume();
                             if (res instanceof VFile)

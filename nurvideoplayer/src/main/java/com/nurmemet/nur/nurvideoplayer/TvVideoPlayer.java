@@ -354,7 +354,7 @@ public class TvVideoPlayer extends LinearLayout implements View.OnClickListener 
             }
             mUiHandler.postDelayed(mUiRunnable, 50);
         } else {
-            mCenterPlayBtn.setVisibility(VISIBLE);
+            //mCenterPlayBtn.setVisibility(VISIBLE);
             mPlayBtn.change(true);
             if (mediaListener != null)
                 mediaListener.onEndPlay();

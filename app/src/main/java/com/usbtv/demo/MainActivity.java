@@ -204,8 +204,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        videoView.resume();
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        videoView.pause();
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        videoView.stopPlay();
+    }
 
     private void bindElementViews() {
         videoView = findViewById(R.id.videoView);

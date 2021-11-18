@@ -375,8 +375,8 @@ public class TvVideoView extends LinearLayout implements View.OnClickListener {
         }
     }
 
-    public void setVideoURI(Uri videoUrl) {
-        mVideoView.initPlayer(mActivity, videoUrl, "");
+    public void setVideoURI(Uri videoUrl, String title) {
+        mVideoView.initPlayer(mActivity, videoUrl, title);
     }
 
     public long getDuration() {

@@ -65,7 +65,7 @@ public class MyInterceptor implements ExceptionResolver {
     ) throws Exception {
 
         int count = 1;
-        int retryCount = 5;
+        int retryCount = 10;
         HttpURLConnection httpURLConnection = null;
         long timeoutMillisecond = 100000L;
 
@@ -102,7 +102,7 @@ public class MyInterceptor implements ExceptionResolver {
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
                 byos.close();
 
-                if (contentType.contains("x-mpegURL")) {
+                if (contentType.toLowerCase().contains("mpegurl")) {
                     String[] lines = new String(bytes).split("\n");
                     StringBuilder sb = new StringBuilder();
                     for (String line : lines) {
@@ -112,7 +112,7 @@ public class MyInterceptor implements ExceptionResolver {
                             String absUrl = "";
 
                             if (line.startsWith("/")) {
-                                absUrl = url.split("/")[0] + line;
+                                absUrl = url.substring(0,url.indexOf('/',9)) + line;
                             } else if (line.matches("^(http|https)://.+")) {
                                 absUrl = line;
                             } else {
@@ -129,9 +129,9 @@ public class MyInterceptor implements ExceptionResolver {
 
                 Map<String, List<String>> hfs = httpURLConnection.getHeaderFields();
                 for (String name : hfs.keySet()) {
-                     if(name!=null && !name.equalsIgnoreCase("content-length")){
-                         response.setHeader(name, httpURLConnection.getHeaderField(name));
-                     }
+                     //if(name!=null && !name.equalsIgnoreCase("content-length")){
+                      //   response.setHeader(name, httpURLConnection.getHeaderField(name));
+                     //}
                 }
 
                 StreamBody responseBody = new StreamBody(new ByteArrayInputStream(bytes), bytes.length, MediaType.parseMediaType(contentType));
