@@ -65,6 +65,7 @@ public class App extends Application implements CacheListener {
         map.putAll(typesMap);
         map.put("电视电影","1");
         map.put("直播","2");
+        map.put("CNN","3");
 
         return map;
     }

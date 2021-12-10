@@ -118,7 +118,7 @@ public class MyInterceptor implements ExceptionResolver {
                             } else {
                                 absUrl = url.substring(0, url.lastIndexOf("/") + 1) + line;
                             }
-                            sb.append(ServerManager.getServerHttpAddress()).append("/api/m3u8proxy/" + absUrl);
+                            sb.append("/api/m3u8proxy/" + absUrl);
                         }
 
                         sb.append("\n");

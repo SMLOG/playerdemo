@@ -182,6 +182,15 @@ public class DownloadMP {
         process();
     }
 
+
+    private static String getObject(JSONObject obj, String string) {
+
+        if(string.indexOf(".")==-1)return obj.getString(string);
+        String key = string.substring(0,string.indexOf("."));
+
+        return  getObject(obj.getJSONObject(key),string.substring(string.indexOf(".")+1));
+    }
+
     public static void process() throws  IOException, SQLException {
 
 
@@ -189,13 +198,68 @@ public class DownloadMP {
         //if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<24*60*60*1000)return;
 
 
-        String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
-        JSONObject jsonObj = JSONObject.parseObject(resp);
+
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         //Drive rootDriv = App.getDefaultRootDrive();
 
+
+        // cnn news video
+        if(true){
+
+            int channelId=3;
+            String resp = get("https://edition.cnn.com/playlist/top-news-videos/index.json");
+            JSONArray jsonArr = JSONObject.parseArray(resp);
+            for(int i=0;i<jsonArr.size();i++) {
+                JSONObject item =(JSONObject) jsonArr.get(i);
+
+                String videoId = item.getString("videoId");
+                String title = item.getString("title");
+                String folderName = title.replaceAll("'","\"");
+
+                String imageUrl = "http:"+item.getString("imageUrl");
+
+                Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
+
+                if(folder!=null)continue;
+
+                resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
+                JSONObject obj = JSONObject.parseObject(resp);
+
+                String mediumId = obj.getString("mediumId");
+
+                resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
+
+                obj = JSONObject.parseObject(resp);
+
+                String url =  getObject(obj,"media.tv.unprotected.url");
+
+                System.out.println(url);
+
+
+                if(folder==null){
+                    folder = new Folder();
+                    folder.setTypeId(channelId);
+                    folder.setName(folderName);
+                    folder.setCoverUrl(imageUrl);
+                    folderDao.createOrUpdate(folder);
+                    VFile vf = new VFile();
+                    vf.setName(title);
+                    vf.setFolder(folder);
+                    vf.setdLink(url);
+                    vf.setOrderSeq(0);
+                    vFileDao.createOrUpdate(vf);
+                }
+
+
+            }
+
+        }
+
+
+        String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
+        JSONObject jsonObj = JSONObject.parseObject(resp);
 
         String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
                 "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
@@ -335,7 +399,7 @@ public class DownloadMP {
         List<Folder> folders = folderDao.queryForAll();
         for(Folder folder:folders){
             //if(!folder.exists()){
-                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1){
+                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1&& folder.getTypeId()!=3){
                     vFileDao.delete(folder.getFiles());
                     folderDao.delete(folder);
                 }
