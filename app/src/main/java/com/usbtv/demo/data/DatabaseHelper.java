@@ -13,6 +13,7 @@ import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.usbtv.demo.R;
+import com.usbtv.demo.news.UploadItem;
 
 /**
  * Database helper class used to manage the creation and upgrading of your database. This class also usually provides
@@ -23,7 +24,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 28;
+    private static final int DATABASE_VERSION = 33;
 
     // the DAO object we use to access the SimpleData table
 
@@ -43,6 +44,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Folder.class);
             TableUtils.createTable(connectionSource, VFile.class);
             TableUtils.createTable(connectionSource, Cache.class);
+            TableUtils.createTable(connectionSource, UploadItem.class);
         } catch (SQLException e) {
             Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);

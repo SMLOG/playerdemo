@@ -2,7 +2,6 @@ package com.usbtv.demo;
 
 
 import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
@@ -574,7 +573,7 @@ public class IndexController {
     @GetMapping(path = "/api/syncache")
     String mybi(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) throws SQLException, IOException {
 
-        DownloadMP.process();
+        DownloadMP.syncData();
 
         //DLVideo.getList();
 

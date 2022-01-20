@@ -84,7 +84,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         viewHolder.tv.setTextColor(position == PlayerController.getInstance().getCurIndex() ? Color.RED : Color.WHITE);
 
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        viewHolder.tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]).hideMenu();

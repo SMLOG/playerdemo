@@ -67,6 +67,11 @@ public class DownloadMP {
     }
 
     public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
+        int i=5;
+        JSONObject jsonObj = null;
+        while(--i >0){
+
+
 
         String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
 
@@ -164,22 +169,26 @@ public class DownloadMP {
         response = call.execute();
         rsp = response.body().string();
         System.out.println(rsp);
-        JSONObject jsonObj = JSONObject.parseObject(rsp);
+         jsonObj = JSONObject.parseObject(rsp);
 
         if(jsonObj.getString("retDesc")!=null&&jsonObj.getString("retDesc").equals("outstanding")) {
 
             String str=new String(Base64.decode(jsonObj.getString("data").substring(6),Base64.DEFAULT));
             jsonObj.put("data", JSON.parse(str));
         }
+        if(jsonObj.getJSONObject("data").getString("video").indexOf("upos-sz-mirrorcos")==-1)continue;
 
         System.out.println(e);
+        return jsonObj;
+
+        }
         return jsonObj;
 
     }
 
     public static void main(String[] args) throws ScriptException, IOException, SQLException {
 
-        process();
+        syncData();
     }
 
 
@@ -191,7 +200,7 @@ public class DownloadMP {
         return  getObject(obj.getJSONObject(key),string.substring(string.indexOf(".")+1));
     }
 
-    public static void process() throws  IOException, SQLException {
+    public static void syncData() throws  IOException, SQLException {
 
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
@@ -205,94 +214,68 @@ public class DownloadMP {
         //Drive rootDriv = App.getDefaultRootDrive();
 
 
+        Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
+        Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         // cnn news video
         if(true){
 
-            int channelId=3;
-            String resp = get("https://edition.cnn.com/playlist/top-news-videos/index.json");
-            JSONArray jsonArr = JSONObject.parseArray(resp);
-            for(int i=0;i<jsonArr.size();i++) {
-                JSONObject item =(JSONObject) jsonArr.get(i);
-
-                String videoId = item.getString("videoId");
-                String title = item.getString("title");
-                String folderName = title.replaceAll("'","\"");
-
-                String imageUrl = "http:"+item.getString("imageUrl");
-
-                Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
-
-                if(folder!=null)continue;
-
-                resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
-                JSONObject obj = JSONObject.parseObject(resp);
-
-                String mediumId = obj.getString("mediumId");
-
-                resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
-
-                obj = JSONObject.parseObject(resp);
-
-                String url =  getObject(obj,"media.tv.unprotected.url");
-
-                System.out.println(url);
-
-
-                if(folder==null){
-                    folder = new Folder();
-                    folder.setTypeId(channelId);
-                    folder.setName(folderName);
-                    folder.setCoverUrl(imageUrl);
-                    folderDao.createOrUpdate(folder);
-                    VFile vf = new VFile();
-                    vf.setName(title);
-                    vf.setFolder(folder);
-                    vf.setdLink(url);
-                    vf.setOrderSeq(0);
-                    vFileDao.createOrUpdate(vf);
-                }
-
-
-            }
+            cnnVideos(folderDao, vFileDao);
 
         }
 
+        liveStream(folderDao, vFileDao, validFoldersMap);
+        bilibiliVideos(folderDao, vFileDao, validFoldersMap, validAidsMap);
+        updateScreenTabs();
 
+        // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
+       // deleteBuilder.where().isNull("p");
+       // deleteBuilder.delete();
+        try {
+            Aid.scanAllDrive(validFoldersMap,validAidsMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        List<Folder> folders = folderDao.queryForAll();
+        for(Folder folder:folders){
+            //if(!folder.exists()){
+                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1&& folder.getTypeId()!=3){
+                    vFileDao.delete(folder.getFiles());
+                    folderDao.delete(folder);
+                }
+            //}else
+          //  if(folder.getFiles().size()==0){
+            //    folderDao.delete(folder);
+          //  }
+        }
+
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putLong("lastSynTime", System.currentTimeMillis());
+        editor.apply();
+        //editor.apply();
+        sp.edit().commit();
+
+        //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
+    }
+
+    public static void updateScreenTabs() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                ArrayList<String> newList = new ArrayList<>();
+                newList.addAll(App.getInstance().getAllTypeMap().keySet());
+                MainActivity.mNavigationLinearLayout.setDataList(newList);
+
+            }});
+    }
+
+    public static void bilibiliVideos(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
-        String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
-                "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
-                "Bloomberg HT,https://ciner.daioncdn.net/bloomberght/bloomberght_720p.m3u8\n" +
-                "AKC TV ,https://video.blivenyc.com/broadcast/prod/2061/22/file-3192k.m3u8\n" +
-                "America’s Funniest Home Videos,https://linear-12.frequency.stream/dist/roku/12/hls/master/playlist.m3u8\n" +
-                "BYUtv,http://a.jsrdn.com/broadcast/d5b46/+0000/high/c.m3u8\n" +
-                "CBSN,https://cbsn-us-cedexis.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master.m3u8").split("\n");
-        Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
 
-        for(String zhb:zhiboList){
-           String[] tp= zhb.split(",");
-            Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", tp[0]).queryForFirst();
-            if(zhbFolder==null){
-                zhbFolder = new Folder();
-                zhbFolder.setTypeId(2);
-                zhbFolder.setName(tp[0]);
-                folderDao.createOrUpdate(zhbFolder);
-
-                VFile vf = new VFile();
-                vf.setFolder(zhbFolder);
-                vf.setdLink(tp[1]);
-                vf.setOrderSeq(0);
-                vFileDao.createOrUpdate(vf);
-            }else {
-                VFile vf=zhbFolder.getFiles().iterator().next();
-                vf.setdLink(tp[1]);
-                vFileDao.createOrUpdate(vf);
-            }
-            validFoldersMap.put(zhbFolder.getId(),true);
-        }
-
-        Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 
 
@@ -376,46 +359,87 @@ public class DownloadMP {
 
             }while (true);
         }
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
+    }
 
-            @Override
-            public void run() {
-                ArrayList<String> newList = new ArrayList<>();
-                newList.addAll(App.getInstance().getAllTypeMap().keySet());
-                MainActivity.mNavigationLinearLayout.setDataList(newList);
+    public static void liveStream(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException {
+        String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
+                "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
+                "Bloomberg HT,https://ciner.daioncdn.net/bloomberght/bloomberght_720p.m3u8\n" +
+                "AKC TV ,https://video.blivenyc.com/broadcast/prod/2061/22/file-3192k.m3u8\n" +
+                "America’s Funniest Home Videos,https://linear-12.frequency.stream/dist/roku/12/hls/master/playlist.m3u8\n" +
+                "BYUtv,http://a.jsrdn.com/broadcast/d5b46/+0000/high/c.m3u8\n" +
+                "CBSN,https://cbsn-us-cedexis.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master.m3u8").split("\n");
 
-            }});
+        for(String zhb:zhiboList){
+           String[] tp= zhb.split(",");
+            Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", tp[0]).queryForFirst();
+            if(zhbFolder==null){
+                zhbFolder = new Folder();
+                zhbFolder.setTypeId(2);
+                zhbFolder.setName(tp[0]);
+                folderDao.createOrUpdate(zhbFolder);
 
-       // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
-       // deleteBuilder.where().isNull("p");
-       // deleteBuilder.delete();
-        try {
-            Aid.scanAllDrive(validFoldersMap,validAidsMap);
-        } catch (Exception e) {
-            e.printStackTrace();
+                VFile vf = new VFile();
+                vf.setFolder(zhbFolder);
+                vf.setdLink(tp[1]);
+                vf.setOrderSeq(0);
+                vFileDao.createOrUpdate(vf);
+            }else {
+                VFile vf=zhbFolder.getFiles().iterator().next();
+                vf.setdLink(tp[1]);
+                vFileDao.createOrUpdate(vf);
+            }
+            validFoldersMap.put(zhbFolder.getId(),true);
         }
+    }
 
-        List<Folder> folders = folderDao.queryForAll();
-        for(Folder folder:folders){
-            //if(!folder.exists()){
-                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1&& folder.getTypeId()!=3){
-                    vFileDao.delete(folder.getFiles());
-                    folderDao.delete(folder);
-                }
-            //}else
-          //  if(folder.getFiles().size()==0){
-            //    folderDao.delete(folder);
-          //  }
+    public static void cnnVideos(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {
+        int channelId=3;
+        String resp = get("https://edition.cnn.com/playlist/top-news-videos/index.json");
+        JSONArray jsonArr = JSONObject.parseArray(resp);
+        for(int i=0;i<jsonArr.size();i++) {
+            JSONObject item =(JSONObject) jsonArr.get(i);
+
+            String videoId = item.getString("videoId");
+            String title = item.getString("title");
+            String folderName = title.replaceAll("'","\"");
+
+            String imageUrl = "http:"+item.getString("imageUrl");
+
+            Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
+
+            if(folder!=null)continue;
+
+            resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
+            JSONObject obj = JSONObject.parseObject(resp);
+
+            String mediumId = obj.getString("mediumId");
+
+            resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
+
+            obj = JSONObject.parseObject(resp);
+
+            String url =  getObject(obj,"media.tv.unprotected.url");
+
+            System.out.println(url);
+
+
+            if(folder==null){
+                folder = new Folder();
+                folder.setTypeId(channelId);
+                folder.setName(folderName);
+                folder.setCoverUrl(imageUrl);
+                folderDao.createOrUpdate(folder);
+                VFile vf = new VFile();
+                vf.setName(title);
+                vf.setFolder(folder);
+                vf.setdLink(url);
+                vf.setOrderSeq(0);
+                vFileDao.createOrUpdate(vf);
+            }
+
+
         }
-
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putLong("lastSynTime", System.currentTimeMillis());
-        editor.apply();
-        //editor.apply();
-        sp.edit().commit();
-
-        //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
     }
 
     public static ScriptEngine getJsEngine() throws IOException, ScriptException {

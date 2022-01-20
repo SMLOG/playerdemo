@@ -20,6 +20,7 @@ import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.news.NewsStarter;
 import com.usbtv.demo.r.InitChannel;
 import com.usbtv.demo.vurl.M3U;
 
@@ -177,7 +178,7 @@ public class App extends Application implements CacheListener {
 
 
 
-                    DownloadMP.process();
+                    DownloadMP.syncData();
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
                     editor.apply();
@@ -207,6 +208,14 @@ public class App extends Application implements CacheListener {
                     }});
             }
         }).start();
+
+        try {
+            NewsStarter.run();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     @Override

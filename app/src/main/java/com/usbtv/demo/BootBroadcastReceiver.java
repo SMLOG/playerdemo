@@ -11,24 +11,13 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
 
-            if(false){
+            if(true){
                 Intent mainActivityIntent = new Intent(context, MainActivity.class);
                 mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(mainActivityIntent);
             }
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            App.updateM3U(false);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
+
         }
 
     }

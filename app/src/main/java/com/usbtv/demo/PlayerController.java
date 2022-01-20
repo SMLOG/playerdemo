@@ -356,6 +356,9 @@ public final class PlayerController {
                                 queryBuilder().where()
                                 .gt("id", 0).queryForFirst();
                     }
+                    if(nextVf==null){
+                        break;
+                    }
                     if (nextVf != null) {
                         //vf.setId(vf.getId()+1);
                         play(nextVf);
