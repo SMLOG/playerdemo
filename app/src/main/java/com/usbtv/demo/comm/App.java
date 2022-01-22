@@ -1,4 +1,4 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import android.app.Application;
 import android.content.Context;
@@ -16,9 +16,7 @@ import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.comm.HttpGet;
-import com.usbtv.demo.comm.NetUtils;
-import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -49,9 +47,9 @@ public class App extends Application implements CacheListener {
 
     private Context mContext;
     private static App self;
-    private ServerManager mServer;
+    private SSLSocketClient.ServerManager mServer;
 
-    protected static List<Drive> diskList = new ArrayList<Drive>();
+    public static List<Drive> diskList = new ArrayList<Drive>();
 
     public static App getInstance() {
         return self;
@@ -153,7 +151,7 @@ public class App extends Application implements CacheListener {
 
     public static Uri getUri(VFile vf) {
 
-        String vremote = ServerManager.getServerHttpAddress()+"/api/vfile?id=" + vf.getId();
+        String vremote = SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vfile?id=" + vf.getId();
 
         String path = vf.getAbsPath();
 
@@ -184,21 +182,21 @@ public class App extends Application implements CacheListener {
                 // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                 //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
-                //if(true)return Uri.parse(vf.getdLink());
+                if(true)return Uri.parse(vf.getdLink());
                 if(true){
                     return Uri.parse(
-                            ServerManager.getServerHttpAddress()+"/api/m3u8proxy/"+vf.getdLink()
+                            SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/m3u8proxy/"+vf.getdLink()
                     );
                 }
                 return Uri.parse(
-                        ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
+                        SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
                                 +"/"+vf.getOrderSeq()+"/index.m3u8"
                                 +"?t="+System.currentTimeMillis()
                 );
 
 
             }else {
-                com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
+                com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
                 if (vidoInfo != null && null != vidoInfo.getString("video")) {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);
@@ -270,7 +268,7 @@ public class App extends Application implements CacheListener {
 
 
 
-                    DownloadMP.syncData();
+                    DownloadCenter.syncData();
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
                     editor.apply();
@@ -326,7 +324,7 @@ public class App extends Application implements CacheListener {
     }
     private void createAndStartWebServer(Context context) {
 
-        mServer = new ServerManager(context);
+        mServer = new SSLSocketClient.ServerManager(context);
         mServer.startServer();
 
     }

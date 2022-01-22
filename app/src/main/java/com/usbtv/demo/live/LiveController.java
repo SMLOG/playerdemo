@@ -1,7 +1,7 @@
 package com.usbtv.demo.live;
 
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;

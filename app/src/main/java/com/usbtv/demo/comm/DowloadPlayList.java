@@ -1,16 +1,11 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import com.alibaba.fastjson.JSON;
-import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.data.Drive;
-import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.data.VFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;

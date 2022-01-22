@@ -1,4 +1,4 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 
 import android.content.Context;
@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +27,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.comm.SSLSocketClient;
+import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
@@ -42,7 +39,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class DownloadMP {
+public class DownloadCenter {
 
     private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
@@ -401,92 +398,108 @@ public class DownloadMP {
 
     public static void cnnVideos(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {
         int channelId=3;
-        String resp = get("https://edition.cnn.com/playlist/top-news-videos/index.json");
-        JSONArray jsonArr = JSONObject.parseArray(resp);
 
-        Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
-        for(int i=0;i<jsonArr.size();i++) {
-            JSONObject item =(JSONObject) jsonArr.get(i);
+        String[] urls=new String[]{
+                "https://edition.cnn.com/playlist/top-news-videos/index.json",
+                "https://edition.cnn.com/video/data/3.0/video/business/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/health/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/politics/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/tech/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/world/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/economy/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/us/relateds.json",
+                "https://edition.cnn.com/video/data/3.0/video/uk/relateds.json",
 
-            String videoId = item.getString("videoId");
-            String title = item.getString("title");
-            String folderName = null;
+        };
+        for(String feedUrl:urls){
 
-            Matcher matcher = pattern.matcher(videoId);
-            int seq=0;
-            if(matcher.find()){
-                String dateStr = matcher.group();
-              /* seq =   Integer.parseInt(dateStr.replaceAll("/","").substring(0,6)+"31")
-                 - Integer.parseInt(dateStr.replaceAll("/",""));*/
+            String resp = get(feedUrl);
 
-                folderName = dateStr;
+            JSONArray jsonArr = null;
+            boolean isTop=feedUrl.indexOf("index.json")>-1;
 
-            }else continue;
+            if(isTop)jsonArr= JSONObject.parseArray(resp);
+            else jsonArr = JSON.parseObject(resp).getJSONArray("videos");
 
+            Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
+            for(int i=0;i<jsonArr.size();i++) {
+                JSONObject item =(JSONObject) jsonArr.get(i);
 
-            String imageUrl = "http:"+item.getString("imageUrl");
+                String videoId = item.getString(isTop?"videoId":"id");
+                String title = item.getString(isTop?"title":"headline");
+                String folderName = null;
 
-            Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
+                Matcher matcher = pattern.matcher(videoId);
+                int seq=0;
+                if(matcher.find()){
+                    String dateStr = matcher.group();
+                    folderName = dateStr;
 
-
-
-            resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
-            JSONObject obj = JSONObject.parseObject(resp);
-
-            String mediumId = obj.getString("mediumId");
-
-            resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
-
-            obj = JSONObject.parseObject(resp);
-
-            String url =  getObject(obj,"media.tv.unprotected.url");
-
-            System.out.println(url);
+                }else continue;
 
 
-            if(folder==null){
+                String imageUrl = "http:"+item.getString(isTop?"imageUrl":"endslate_url_small");
 
-                folder = new Folder();
-                folder.setTypeId(channelId);
-                folder.setName(folderName);
-                folder.setCoverUrl(imageUrl);
+                Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
+
+
+
+                resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
+                JSONObject obj = JSONObject.parseObject(resp);
+
+                String mediumId = obj.getString("mediumId");
+
+                resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
+
+                obj = JSONObject.parseObject(resp);
+
+                String url =  getObject(obj,"media.tv.unprotected.url");
+
+                System.out.println(url);
+
+
+                if(folder==null){
+
+                    folder = new Folder();
+                    folder.setTypeId(channelId);
+                    folder.setName(folderName);
+                    folder.setCoverUrl(imageUrl);
+                    folderDao.createOrUpdate(folder);
+
+                    Folder folder2 = new Folder();
+                    folder2.setTypeId(4);
+                    folder2.setName(folderName);
+                    folder2.setCoverUrl(imageUrl);
+                    folderDao.createOrUpdate(folder2);
+                    folder2.setCoverUrl(imageUrl);
+
+
+
+                    VFile vf2 = new VFile();
+                    vf2.setName(title);
+                    vf2.setFolder(folder2);
+
+                    vf2.setdLink(SSLSocketClient.ServerManager.getServerHttpAddress()+"/hls/vod.m3u8?folderId="+folder.getId());
+                    vf2.setOrderSeq(0);
+
+                    vFileDao.createOrUpdate(vf2);
+
+
+                }else folder.setCoverUrl(imageUrl);
+
                 folderDao.createOrUpdate(folder);
 
-                Folder folder2 = new Folder();
-                folder2.setTypeId(4);
-                folder2.setName(folderName);
-                folder2.setCoverUrl(imageUrl);
-                folderDao.createOrUpdate(folder2);
-                folder2.setCoverUrl(imageUrl);
+                VFile  vf =  vFileDao.queryBuilder().where().eq("folder_id",folder.getId()).and().eq("dLink",url).queryForFirst();
+                if(vf==null){
+                    vf = new VFile();
+                    vf.setName(title);
+                    vf.setFolder(folder);
+                    vf.setdLink(url);
+                    vf.setOrderSeq(seq);
+                    vFileDao.createOrUpdate(vf);
+                }
 
-
-
-                VFile vf2 = new VFile();
-                vf2.setName(title);
-                vf2.setFolder(folder2);
-
-                vf2.setdLink(ServerManager.getServerHttpAddress()+"/hls/vod.m3u8?folderId="+folder.getId());
-                vf2.setOrderSeq(0);
-
-                vFileDao.createOrUpdate(vf2);
-
-
-            }else folder.setCoverUrl(imageUrl);
-
-            folderDao.createOrUpdate(folder);
-
-            VFile  vf =  vFileDao.queryBuilder().where().eq("folder_id",folder.getId()).and().eq("dLink",url).queryForFirst();
-            if(vf==null){
-                vf = new VFile();
-                vf.setName(title);
-                vf.setFolder(folder);
-                vf.setdLink(url);
-                vf.setOrderSeq(seq);
-                vFileDao.createOrUpdate(vf);
             }
-
-
-
 
         }
     }

@@ -1,7 +1,11 @@
 package com.usbtv.demo.comm;
 
+import android.graphics.Color;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Random;
 
 import retrofit2.Call;
 import okhttp3.ResponseBody;
@@ -56,6 +60,24 @@ public class RetrofitUtil {
                 }
             }
         });
+    }
+
+    public static class Utils2 {
+        public static String inputStreamToString(InputStream inputStream) {
+            try {
+                byte[] bytes = new byte[inputStream.available()];
+                inputStream.read(bytes, 0, bytes.length);
+                String json = new String(bytes);
+                return json;
+            } catch (IOException e) {
+                return null;
+            }
+        }
+
+        public static int getRandColor() {
+            Random random = new Random();
+            return Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        }
     }
 }
 

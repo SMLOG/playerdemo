@@ -18,7 +18,7 @@ import androidx.tvprovider.media.tv.ChannelLogoUtils;
 import androidx.tvprovider.media.tv.PreviewProgram;
 import androidx.tvprovider.media.tv.TvContractCompat;
 
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.R;
 

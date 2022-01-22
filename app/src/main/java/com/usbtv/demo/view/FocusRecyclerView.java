@@ -9,8 +9,6 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.usbtv.demo.PlayerController;
-
 /**
  * @author: njb
  * @Date: 2020/6/30 17:57

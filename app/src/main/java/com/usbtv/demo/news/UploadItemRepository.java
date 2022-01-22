@@ -4,14 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 public class UploadItemRepository {
 

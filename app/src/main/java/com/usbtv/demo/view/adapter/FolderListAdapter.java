@@ -31,12 +31,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * @author: njb
- * @date: 2020/6/22 0022 0:54
- * @desc:游戏列表适配器
- */
-public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Folder> mList;
     private List<Folder> allList;
     private Context mContext;
@@ -46,7 +42,7 @@ public abstract class GameListAdapter extends RecyclerView.Adapter<RecyclerView.
     private String typeId="";
 
     private  RecyclerView moviesRecyclerView;
-    public GameListAdapter(RecyclerView moviesRecyclerView, List<Folder> mList, Context context, OnItemClickListener onItemClickListener) {
+    public FolderListAdapter(RecyclerView moviesRecyclerView, List<Folder> mList, Context context, OnItemClickListener onItemClickListener) {
         this.allList = mList;
         this.mContext = context;
         List<Folder> newList = new ArrayList<>();

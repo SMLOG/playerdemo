@@ -13,11 +13,10 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.R;
+import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.view.widget.MyNumRecyclerView;
 
 
 /**
@@ -26,7 +25,7 @@ import com.usbtv.demo.view.widget.MyNumRecyclerView;
  * @desc: 标题适配器
  */
 
-public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final RecyclerView recyclerView;
     private Context mContext;
     private Folder folder;
@@ -38,7 +37,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     private int defaultFocus = 0;
     private boolean needFocus = true;
 
-    public MyRecycleViewAdapter(Context context, RecyclerView numTabRecyclerView) {
+    public FolderNumListRecycleViewAdapter(Context context, RecyclerView numTabRecyclerView) {
         this.mContext = context;
         this.recyclerView = numTabRecyclerView;
         mLayoutInflater = LayoutInflater.from(mContext);
@@ -82,13 +81,13 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         viewHolder.tv.setText(position + 1 + "");
 
 
-        viewHolder.tv.setTextColor(position == PlayerController.getInstance().getCurIndex() ? Color.RED : Color.WHITE);
+        viewHolder.tv.setTextColor(position == Utils.PlayerController.getInstance().getCurIndex() ? Color.RED : Color.WHITE);
 
 
         viewHolder.tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]).hideMenu();
+                Utils.PlayerController.getInstance().play(folder.getFiles().toArray(new VFile[]{})[position]).hideMenu();
 
                 viewHolder.tv.setTextColor(Color.RED);
                 notifyDataSetChanged();

@@ -23,7 +23,7 @@
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
 
     <application
-        android:name="com.usbtv.demo.App"
+        android:name="com.usbtv.demo.comm.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -31,7 +31,7 @@
         android:usesCleartextTraffic="true"
         tools:replace="android:theme"
         android:theme="@style/AppTheme2">
-        <receiver android:name=".BootBroadcastReceiver" >
+        <receiver android:name=".comm.BootBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.intent.action.MEDIA_MOUNTED" />

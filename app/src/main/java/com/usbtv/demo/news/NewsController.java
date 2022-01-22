@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.alibaba.fastjson.JSON;
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.ResponseBody;

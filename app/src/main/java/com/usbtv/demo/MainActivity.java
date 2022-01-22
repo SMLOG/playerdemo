@@ -2,7 +2,6 @@ package com.usbtv.demo;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -17,7 +16,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -29,23 +27,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.j256.ormlite.dao.Dao;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.DocumentsUtils;
+import com.usbtv.demo.comm.MyBroadcastReceiver;
+import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.SpaceDecoration;
-import com.usbtv.demo.view.adapter.GameListAdapter;
-import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
-import com.usbtv.demo.view.widget.NavigationCursorView;
+import com.usbtv.demo.view.adapter.FolderListAdapter;
+import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
 import com.usbtv.demo.view.widget.NavigationLinearLayout;
 
 import java.io.File;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import butterknife.BindView;
 
@@ -55,66 +52,23 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.videoView)
     TvVideoView videoView;
 
-    RelativeLayout mInView;
 
-    @BindView(R.id.home)
-    View home;
+    @BindView(R.id.menuPanel)
+    View menuPanel;
     private List<Folder> movieList;
 
     public static NavigationLinearLayout mNavigationLinearLayout;
-    private NavigationCursorView mNavigationCursorView;
 
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            if (intent.getAction().equals(App.CMD)) {
-
-                String cmd = intent.getExtras().getString("cmd");
-                String val = intent.getExtras().getString("val");
-                if ("play".equals(cmd)) {
-                    PlayerController.getInstance().play(null);
-
-                }
-            }
-        }
-    };
+    private final BroadcastReceiver receiver = new MyBroadcastReceiver();
 
 
-    private Timer timer;
-    private TimerTask timerTask;
-    public static MyRecycleViewAdapter numTabAdapter;
+    public static FolderNumListRecycleViewAdapter numTabAdapter;
     private RecyclerView numTabRecyclerView;
-    private RecyclerView moviesRecyclerView;
-    public static GameListAdapter moviesRecyclerViewAdapter;
+    private RecyclerView foldersRecyclerView;
+    public static FolderListAdapter moviesRecyclerViewAdapter;
     private List<String> storagePathList;
-    private static List<String> getStoragePath(Context mContext, boolean is_removale) {
 
-        ArrayList<String> ret = new ArrayList<>();
-        String path = "";
-        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
-        Class<?> storageVolumeClazz = null;
-        try {
-            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
-            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
-            Method getPath = storageVolumeClazz.getMethod("getPath");
-            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
-            Object result = getVolumeList.invoke(mStorageManager);
-
-            for (int i = 0; i < Array.getLength(result); i++) {
-                Object storageVolumeElement = Array.get(result, i);
-                path = (String) getPath.invoke(storageVolumeElement);
-                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
-                if (is_removale == removable) {
-                    ret.add(path);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return ret;
-    }
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +79,46 @@ public class MainActivity extends AppCompatActivity {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
                     */
+        requestPermissionAndStorage();
+
+        setContentView(R.layout.activity_main);
+
+        registBroadcastReceiver();
+        bindElementViews();
+        initVideo();
+
+        continuePlayPrevious();
+    }
+
+    private void registBroadcastReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(App.URLACTION);
+        intentFilter.addAction(App.CMD);
+        registerReceiver(receiver, intentFilter);
+    }
+
+    private void continuePlayPrevious() {
+        Intent intent = getIntent();
+
+
+        long id = -1;
+        if (intent != null) id = intent.getLongExtra("Movie", -1l);
+        if (id > 0) {
+            Folder folder = null;
+            try {
+                Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
+                folder = dao.queryForId((int) id);
+                Utils.PlayerController.getInstance().play(folder.getFiles().iterator().next());
+
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        } else {
+            Utils.PlayerController.getInstance().playNext();
+        }
+    }
+
+    private void requestPermissionAndStorage() {
         //申请权限
         if (Build.VERSION.SDK_INT >= 23) {
             int REQUEST_CODE_CONTACT = 101;
@@ -143,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             this.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
 
-        storagePathList = getStoragePath(this, true);
+        storagePathList = Utils.getStoragePath(this, true);
 
         if (storagePathList != null) {
             for (int i = 0; i < storagePathList.size(); i++) {
@@ -151,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                 String rootPath = storagePathList.get(i);
                 if (DocumentsUtils.checkWritableRootPath(this, rootPath)) {   //检查sd卡路径是否有 权限 没有显示dialog
                     Intent intent = null;
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         StorageManager sm = getSystemService(StorageManager.class);
 
                         StorageVolume volume = sm.getStorageVolume(new File(rootPath));
@@ -167,34 +161,6 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + i);
                 }
             }
-        }
-
-        setContentView(R.layout.activity_main);
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(App.URLACTION);
-        intentFilter.addAction(App.CMD);
-        registerReceiver(receiver, intentFilter);
-        bindElementViews();
-        initVideo();
-
-        Intent intent = getIntent();
-
-
-        long id = -1;
-        if (intent != null) id = intent.getLongExtra("Movie", -1l);
-        if (id > 0) {
-            Folder folder = null;
-            try {
-                Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
-                folder = dao.queryForId((int) id);
-                PlayerController.getInstance().play(folder.getFiles().iterator().next());
-
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        } else {
-            PlayerController.getInstance().playNext();
         }
     }
 
@@ -218,22 +184,22 @@ public class MainActivity extends AppCompatActivity {
     private void bindElementViews() {
         videoView = findViewById(R.id.videoView);
 
-        home = findViewById(R.id.home);
-        home.setOnFocusChangeListener((view,hasFocus)->{
+        menuPanel = findViewById(R.id.menuPanel);
+        menuPanel.setOnFocusChangeListener((view, hasFocus)->{
             numTabRecyclerView.requestFocus();
         });
-        numTabRecyclerView = findViewById(R.id.rv_tab);
+        numTabRecyclerView = findViewById(R.id.numTabRV);
 
-        moviesRecyclerView = findViewById(R.id.rv_game_list);
+        foldersRecyclerView = findViewById(R.id.foldersRV);
 
-        numTabAdapter = new MyRecycleViewAdapter(this,numTabRecyclerView);
+        numTabAdapter = new FolderNumListRecycleViewAdapter(this,numTabRecyclerView);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         numTabRecyclerView.setLayoutManager(linearLayoutManager);
         numTabRecyclerView.setAdapter(numTabAdapter);
 
 
-        mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.mNavigationLinearLayout_id);
+        mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.folderCats);
         List<String> data = new ArrayList<>();
 
         data.addAll(App.getInstance().getAllTypeMap(true).keySet());
@@ -252,11 +218,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        moviesRecyclerViewAdapter = new GameListAdapter(moviesRecyclerView,movieList, this, new GameListAdapter.OnItemClickListener() {
+        moviesRecyclerViewAdapter = new FolderListAdapter(foldersRecyclerView,movieList, this, new FolderListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, List<Folder> mList, int position) {
-                PlayerController.getInstance().hideMenu();
-                PlayerController.getInstance().play(mList,position);
+                Utils.PlayerController.getInstance().hideMenu();
+                Utils.PlayerController.getInstance().play(mList,position);
             }
         }) {
             @Override
@@ -273,16 +239,16 @@ public class MainActivity extends AppCompatActivity {
                 view.setSelected(true);
             }
         };
-        moviesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        moviesRecyclerView.addItemDecoration(new SpaceDecoration(30));
-        moviesRecyclerView.setAdapter(moviesRecyclerViewAdapter);
+        foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        foldersRecyclerView.addItemDecoration(new SpaceDecoration(30));
+        foldersRecyclerView.setAdapter(moviesRecyclerViewAdapter);
 
 
         MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
         numTabAdapter.setOnFocusChangeListener(myListener);
         // adapter.setOnItemClickListener(myListener);
 
-        PlayerController.getInstance().setUIs(videoView, home);
+        Utils.PlayerController.getInstance().setUIs(videoView, menuPanel);
 
 
 
@@ -392,14 +358,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(Object mp) {
-                 PlayerController.getInstance().playNext();
+                Utils.PlayerController.getInstance().playNext();
 
             }
 
             @Override
             public boolean onError(Object mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                PlayerController.getInstance().playNext();
+                Utils.PlayerController.getInstance().playNext();
                 return true;
             }
         });
@@ -419,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        boolean isShowHome = home.getVisibility() == View.VISIBLE;
+        boolean isShowHome = menuPanel.getVisibility() == View.VISIBLE;
 
         if(isShowHome &&(keyCode!=KeyEvent.KEYCODE_ENTER&&KeyEvent.KEYCODE_DPAD_CENTER!=keyCode
                 &&KeyEvent.KEYCODE_BACK!=keyCode)){
@@ -436,9 +402,9 @@ public class MainActivity extends AppCompatActivity {
 
             case KeyEvent.KEYCODE_BACK:    //返回键
                 Log.d(TAG, "back--->");
-                home.setVisibility(home.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
-                if (home.getVisibility() == View.VISIBLE) {
-                    home.postDelayed(new Runnable() {
+                menuPanel.setVisibility(menuPanel.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                if (menuPanel.getVisibility() == View.VISIBLE) {
+                    menuPanel.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             numTabRecyclerView.requestFocus();
@@ -462,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
-                    PlayerController.getInstance().nextFolder();
+                    Utils.PlayerController.getInstance().nextFolder();
                 }
 
                 break;
@@ -471,12 +437,12 @@ public class MainActivity extends AppCompatActivity {
                 if (isShowHome) return false;
 
                 Log.d(TAG, "up--->");
-                PlayerController.getInstance().prev();
+                Utils.PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键
                 if (isShowHome) {
-                    home.onKeyDown(keyCode,event);
+                    menuPanel.onKeyDown(keyCode,event);
                     return false;
                 }
 
@@ -487,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
                 if (isShowHome){
-                    home.onKeyDown(keyCode,event);
+                    menuPanel.onKeyDown(keyCode,event);
                     return false;
                 }
                 Log.d(TAG, "right--->");

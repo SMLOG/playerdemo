@@ -1,7 +1,7 @@
 package com.usbtv.demo.r;
 
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.Folder;
 
 import java.sql.SQLException;

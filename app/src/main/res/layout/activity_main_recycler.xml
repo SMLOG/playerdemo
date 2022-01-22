@@ -40,7 +40,7 @@
                 android:textStyle="bold" />
 
             <RelativeLayout
-                android:id="@+id/home"
+                android:id="@+id/menuPanel"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/dp_150"
                 android:layout_alignParentBottom="true"
@@ -49,7 +49,7 @@
                 android:visibility="visible">
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_tab"
+                    android:id="@+id/numTabRV"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:descendantFocusability="afterDescendants"
@@ -60,13 +60,13 @@
                     />
 
                 <com.usbtv.demo.view.FocusRecyclerView
-                    android:id="@+id/rv_game_list"
+                    android:id="@+id/foldersRV"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/rv_tab"
+                    app:layout_constraintTop_toBottomOf="@+id/numTabRV"
                     android:focusable="true"
                     />
 

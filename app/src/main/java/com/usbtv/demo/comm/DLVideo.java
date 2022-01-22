@@ -1,6 +1,7 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
-import com.usbtv.demo.ServerManager;
+import com.usbtv.demo.comm.SSLSocketClient;
 
 import java.io.File;
 import java.net.URLEncoder;
@@ -83,7 +83,7 @@ public class Folder  {
 
     public String getCoverUrl() {
         String abPath = absPath();
-        return coverUrl==null&&abPath!=null? ServerManager.getServerHttpAddress()+ "/api/thumb?id="+id+"&path="+ URLEncoder.encode(abPath):coverUrl;
+        return coverUrl==null&&abPath!=null? SSLSocketClient.ServerManager.getServerHttpAddress()+ "/api/thumb?id="+id+"&path="+ URLEncoder.encode(abPath):coverUrl;
     }
 
     public void setCoverUrl(String coverUrl) {

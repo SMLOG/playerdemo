@@ -2,13 +2,13 @@ package com.usbtv.demo;
 
 import android.view.View;
 
-import com.usbtv.demo.view.adapter.GameListAdapter;
-import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
+import com.usbtv.demo.view.adapter.FolderListAdapter;
+import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
 
-public class MyListener implements MyRecycleViewAdapter.OnItemClickListener,MyRecycleViewAdapter.OnItemFocusChangeListener{
+public class MyListener implements FolderNumListRecycleViewAdapter.OnItemClickListener, FolderNumListRecycleViewAdapter.OnItemFocusChangeListener{
 
-    private GameListAdapter gameListAdapter;
-    public MyListener(GameListAdapter gameListAdapter) {
+    private FolderListAdapter gameListAdapter;
+    public MyListener(FolderListAdapter gameListAdapter) {
         this.gameListAdapter = gameListAdapter;
     }
 

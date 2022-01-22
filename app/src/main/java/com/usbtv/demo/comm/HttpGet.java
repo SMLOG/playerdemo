@@ -1,18 +1,13 @@
 package com.usbtv.demo.comm;
 
-import com.usbtv.demo.App;
-import com.usbtv.demo.DocumentsUtils;
 import com.usbtv.demo.data.VFile;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;

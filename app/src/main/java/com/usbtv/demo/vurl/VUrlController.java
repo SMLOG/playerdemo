@@ -5,19 +5,14 @@ import androidx.annotation.NonNull;
 
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.ForeignCollection;
-import com.usbtv.demo.App;
-import com.usbtv.demo.DocumentsUtils;
-import com.usbtv.demo.FileDownload;
-import com.usbtv.demo.PlayerController;
-import com.usbtv.demo.ServerManager;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.Cache;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.Interceptor;
 import com.yanzhenjie.andserver.annotation.PathVariable;
-import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.framework.HandlerInterceptor;
@@ -32,7 +27,6 @@ import com.yanzhenjie.andserver.util.MediaType;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.ByteArrayInputStream;
@@ -41,12 +35,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,10 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 import download.Log;
-import download.M3u8DownloadFactory;
 import download.M3u8DownloadProxy;
 import download.M3u8Exception;
-import download.M3u8Main;
 
 @RestController
 @Interceptor
@@ -445,7 +434,7 @@ public class VUrlController implements HandlerInterceptor {
                             } else {
                                 absUrl = url.substring(0, url.lastIndexOf("/") + 1) + line;
                             }
-                            sb.append(ServerManager.getServerHttpAddress()).append("/api/m3u8proxy?url=" + URLEncoder.encode(absUrl));
+                            sb.append(SSLSocketClient.ServerManager.getServerHttpAddress()).append("/api/m3u8proxy?url=" + URLEncoder.encode(absUrl));
                         }
 
                         sb.append("\n");

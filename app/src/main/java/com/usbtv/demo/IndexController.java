@@ -10,6 +10,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.usbtv.demo.comm.Aid;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.DLVideo;
+import com.usbtv.demo.comm.DownloadCenter;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
@@ -66,7 +70,7 @@ public class IndexController {
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
 
-        return JSON.toJSONString(PlayerController.getInstance());
+        return JSON.toJSONString(Utils.PlayerController.getInstance());
     }
 
 
@@ -102,7 +106,7 @@ public class IndexController {
             VFile item = null;
             try {
                 item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
-                PlayerController.getInstance().play(item);
+                Utils.PlayerController.getInstance().play(item);
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -110,25 +114,25 @@ public class IndexController {
 
         } else if ("next".equals(cmd)) {
 
-            PlayerController.getInstance().next();
+            Utils.PlayerController.getInstance().next();
 
         } else if ("pause".equals(cmd)) {
 
-            if (PlayerController.getInstance().isPlaying())
-                PlayerController.getInstance().pause();
+            if (Utils.PlayerController.getInstance().isPlaying())
+                Utils.PlayerController.getInstance().pause();
 
 
         } else if ("resume".equals(cmd)) {
 
-            if (!PlayerController.getInstance().isPlaying())
-                PlayerController.getInstance().start();
+            if (!Utils.PlayerController.getInstance().isPlaying())
+                Utils.PlayerController.getInstance().start();
 
         } else if ("toggle".equals(cmd)) {
 
-            if (PlayerController.getInstance().isPlaying())
-                PlayerController.getInstance().pause();
+            if (Utils.PlayerController.getInstance().isPlaying())
+                Utils.PlayerController.getInstance().pause();
             else
-                PlayerController.getInstance().start();
+                Utils.PlayerController.getInstance().start();
 
 
         } else if ("seekTo".equals(cmd)) {
@@ -136,14 +140,14 @@ public class IndexController {
             int progress = Integer.parseInt(val);
             if (progress < 0)
                 progress = 0;
-            else if (progress > PlayerController.getInstance().getDuration())
-                progress = (int) PlayerController.getInstance().getDuration();
+            else if (progress > Utils.PlayerController.getInstance().getDuration())
+                progress = (int) Utils.PlayerController.getInstance().getDuration();
 
-            PlayerController.getInstance().seekTo(progress);
+            Utils.PlayerController.getInstance().seekTo(progress);
 
         } else if ("mode".equals(cmd)) {
 
-            PlayerController.getInstance().setMode(Integer.parseInt(val));
+            Utils.PlayerController.getInstance().setMode(Integer.parseInt(val));
         } else if ("detach".equals(cmd)) {
 
             App.broadcastCMD(cmd, val);
@@ -481,7 +485,7 @@ public class IndexController {
             }
 
             com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
-            com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(data.getString("bvid"), this.curP);
+            com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(data.getString("bvid"), this.curP);
             if (vidoInfo == null || null == vidoInfo.getString("video")) {
                 this.curP = 1;
                 this.playIndex++;
@@ -549,7 +553,7 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-            com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+            com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 url = vidoInfo.getString("video");
             }
@@ -572,7 +576,7 @@ public class IndexController {
     @GetMapping(path = "/api/syncache")
     String mybi(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) throws SQLException, IOException {
 
-        DownloadMP.syncData();
+        DownloadCenter.syncData();
 
         //DLVideo.getList();
 
@@ -594,7 +598,7 @@ public class IndexController {
 
                     File file = new File(vfile.getAbsPath());
                     if (!file.exists() || file.length() == 0) {
-                        com.alibaba.fastjson.JSONObject info = DownloadMP.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+                        com.alibaba.fastjson.JSONObject info = DownloadCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
                         //if (info != null && info.getString("video") != null)
                            // oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
                     }

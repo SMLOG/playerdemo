@@ -19,7 +19,7 @@ import android.widget.TextView;
 import androidx.core.view.ViewCompat;
 
 import com.usbtv.demo.R;
-import com.usbtv.demo.SoundUtil;
+import com.usbtv.demo.comm.SSLSocketClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -192,7 +192,7 @@ public class NavigationLinearLayout extends LinearLayout {
                             mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                         }
                     }
-                    SoundUtil.playClickSound(this);
+                    SSLSocketClient.SoundUtil.playClickSound(this);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     if (mNowPos < getChildCount() - 1) {
@@ -206,7 +206,7 @@ public class NavigationLinearLayout extends LinearLayout {
                             mNavigationListener.onNavigationChange(mDataList.get(mNowPos), mNowPos, keyCode);
                         }
                     }
-                    SoundUtil.playClickSound(this);
+                    SSLSocketClient.SoundUtil.playClickSound(this);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_UP:
                 case KeyEvent.KEYCODE_DPAD_DOWN:

@@ -10,7 +10,7 @@ import android.util.Log;
 import androidx.core.content.FileProvider;
 
 import com.alibaba.fastjson.JSON;
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.Folder;
 
 import java.io.File;

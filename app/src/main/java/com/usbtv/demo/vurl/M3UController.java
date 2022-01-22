@@ -1,27 +1,14 @@
 package com.usbtv.demo.vurl;
 
 
-import com.usbtv.demo.App;
+import com.usbtv.demo.comm.App;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.Interceptor;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.http.HttpResponse;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @RestController
 @Interceptor

@@ -1,8 +1,8 @@
 package download;
 
 
-import com.usbtv.demo.App;
-import com.usbtv.demo.DocumentsUtils;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.DocumentsUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

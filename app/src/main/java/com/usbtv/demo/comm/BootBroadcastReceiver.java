@@ -1,8 +1,10 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import com.usbtv.demo.MainActivity;
 
 import java.io.IOException;
 

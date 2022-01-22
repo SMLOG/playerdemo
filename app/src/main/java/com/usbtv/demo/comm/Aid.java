@@ -1,8 +1,9 @@
-package com.usbtv.demo;
+package com.usbtv.demo.comm;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
