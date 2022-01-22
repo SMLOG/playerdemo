@@ -24,7 +24,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 33;
+    private static final int DATABASE_VERSION = 37;
 
     // the DAO object we use to access the SimpleData table
 
@@ -73,6 +73,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, Folder.class, true);
             TableUtils.dropTable(connectionSource, Drive.class, true);
             TableUtils.dropTable(connectionSource, Cache.class, true);
+            TableUtils.dropTable(connectionSource, UploadItem.class, true);
+
                //getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");
 
             //getDao(His.class).executeRaw("ALTER TABLE `His` ADD COLUMN orderN NUMBER default 0;");

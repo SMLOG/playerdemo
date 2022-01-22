@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.Feature;
 import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
@@ -33,6 +36,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class App extends Application implements CacheListener {
     public static final String URLACTION = "urlaction";
@@ -49,31 +53,54 @@ public class App extends Application implements CacheListener {
 
     protected static List<Drive> diskList = new ArrayList<Drive>();
 
-
-    private static boolean mediaMounted =false;
-
     public static App getInstance() {
         return self;
     }
 
-    public static LinkedHashMap<String, String>  getTypesMap() {
+    public static Map<String, String>  getTypesMap() {
+
+        if(typesMap==null){
+           typesMap = new LinkedHashMap<>();
+        }
+
         return typesMap;
     }
-    public static LinkedHashMap<String, String> getAllTypeMap() {
+
+    public static void saveTypesMap() {
+
+        SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+       String jsonStr = JSON.toJSONString(typesMap);
+        SharedPreferences.Editor ed = sp.edit();
+        ed.putString("typesMap",jsonStr);
+        ed.commit();
+
+    }
+
+    public static Map<String, String> getAllTypeMap(boolean b) {
 
         LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        map.put("其他","0");
-        map.putAll(typesMap);
-        map.put("电视电影","1");
+
+        SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+        String jsonStr = sp.getString("typesMap", "");
+        if(!jsonStr.equals("")){
+            Map<String, String> dummyMap =  JSON.parseObject(jsonStr,LinkedHashMap.class, Feature.OrderedField);
+             map.putAll(dummyMap);
+        }
+
+       // map.put("电视电影","1");
         map.put("直播","2");
+        map.put("CNN2","4");
         map.put("CNN","3");
+        map.put("其他","0");
 
         return map;
     }
 
     public static HttpProxyCacheServer proxy;
 
-    public static LinkedHashMap<String,String> typesMap = new LinkedHashMap<>();
+    public static Map<String,String> typesMap = null;
 
     public static HttpProxyCacheServer getProxy() {
         App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
@@ -122,6 +149,71 @@ public class App extends Application implements CacheListener {
         return null;
 
 
+    }
+
+    public static Uri getUri(VFile vf) {
+
+        String vremote = ServerManager.getServerHttpAddress()+"/api/vfile?id=" + vf.getId();
+
+        String path = vf.getAbsPath();
+
+        if (path == null || !new File(path).exists())
+            for (Drive d : App.diskList) {
+                vf.getFolder().setRoot(d);
+                if (vf.exists() && new File(vf.getAbsPath()).canRead()
+                ) {
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                        folderDao.update(vf.getFolder());
+
+                        //  path = vf.getAbsPath();
+                        break;
+
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
+                }
+            }
+
+        if (!vf.exists()) {
+
+            if(vf.getdLink()!=null&&vf.getdLink().indexOf(".m3u8")>-1){
+
+                // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
+                //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
+
+                //if(true)return Uri.parse(vf.getdLink());
+                if(true){
+                    return Uri.parse(
+                            ServerManager.getServerHttpAddress()+"/api/m3u8proxy/"+vf.getdLink()
+                    );
+                }
+                return Uri.parse(
+                        ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
+                                +"/"+vf.getOrderSeq()+"/index.m3u8"
+                                +"?t="+System.currentTimeMillis()
+                );
+
+
+            }else {
+                com.alibaba.fastjson.JSONObject vidoInfo = DownloadMP.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
+                if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                    vremote = vidoInfo.getString("video");
+                    vremote = App.cache2Disk(vf, vremote);
+                }
+            }
+
+
+        } else {
+            path = vf.getAbsPath();
+            if (new File(path).exists()) {
+                vremote = "file://" + path;
+            }
+        }
+        System.out.println(vremote);
+        return Uri.parse(App.getProxyUrl(vremote));
     }
 
     private HttpProxyCacheServer newProxy() {

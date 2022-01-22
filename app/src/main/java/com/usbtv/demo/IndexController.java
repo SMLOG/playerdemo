@@ -103,7 +103,6 @@ public class IndexController {
             try {
                 item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
                 PlayerController.getInstance().play(item);
-                PlayerController.getInstance().setTypeId(item.getFolder().getTypeId());
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

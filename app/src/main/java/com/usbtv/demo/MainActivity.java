@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -31,11 +30,9 @@ import com.j256.ormlite.dao.Dao;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.view.FocusFixedLinearLayoutManager;
 import com.usbtv.demo.view.SpaceDecoration;
 import com.usbtv.demo.view.adapter.GameListAdapter;
 import com.usbtv.demo.view.adapter.MyRecycleViewAdapter;
-import com.usbtv.demo.view.widget.MyNumRecyclerView;
 import com.usbtv.demo.view.widget.NavigationCursorView;
 import com.usbtv.demo.view.widget.NavigationLinearLayout;
 
@@ -96,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<String> ret = new ArrayList<>();
         String path = "";
-        //使用getSystemService(String)检索一个StorageManager用于访问系统存储功能。
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
         Class<?> storageVolumeClazz = null;
         try {
@@ -192,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
                 folder = dao.queryForId((int) id);
-                PlayerController.getInstance().setTypeId(folder.getTypeId());
                 PlayerController.getInstance().play(folder.getFiles().iterator().next());
 
             } catch (SQLException throwables) {
@@ -239,15 +234,12 @@ public class MainActivity extends AppCompatActivity {
 
 
         mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.mNavigationLinearLayout_id);
-        //mNavigationCursorView = (NavigationCursorView) findViewById(R.id.mNavigationCursorView_id);
         List<String> data = new ArrayList<>();
 
-        data.addAll(App.getInstance().getAllTypeMap().keySet());
+        data.addAll(App.getInstance().getAllTypeMap(true).keySet());
 
         mNavigationLinearLayout.setDataList(data);
         mNavigationLinearLayout.setNavigationListener(mNavigationListener);
-        //mNavigationLinearLayout.setNavigationCursorView(mNavigationCursorView);
-        //mNavigationLinearLayout.requestFocus();
 
 
         movieList = new ArrayList<>();
@@ -264,8 +256,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(View view, List<Folder> mList, int position) {
                 PlayerController.getInstance().hideMenu();
-                PlayerController.getInstance().setTypeId(mList.get(position).getTypeId());
-                PlayerController.getInstance().play(mList.get(position).getFiles().iterator().next());
+                PlayerController.getInstance().play(mList,position);
             }
         }) {
             @Override
@@ -310,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
+                            moviesRecyclerViewAdapter.update(App.getAllTypeMap(false).get(s));
 
                         }});
                     break;
@@ -471,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
-                    PlayerController.getInstance().next2();
+                    PlayerController.getInstance().nextFolder();
                 }
 
                 break;

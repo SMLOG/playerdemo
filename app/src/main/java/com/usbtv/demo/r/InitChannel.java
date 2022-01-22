@@ -15,8 +15,8 @@ import com.usbtv.demo.data.Folder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class InitChannel {
@@ -39,7 +39,7 @@ public class InitChannel {
 
         }
 
-        LinkedHashMap<String, String> map = App.getAllTypeMap();
+        Map<String, String> map = App.getAllTypeMap(false);
 
         List<Long> channelList = new ArrayList<>();
         int i = 0;

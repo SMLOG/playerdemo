@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,10 +207,7 @@ public class DownloadMP {
 
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        //if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<24*60*60*1000)return;
-
-
-
+       // if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
@@ -224,6 +224,7 @@ public class DownloadMP {
         }
 
         liveStream(folderDao, vFileDao, validFoldersMap);
+        App.getTypesMap().clear();
         bilibiliVideos(folderDao, vFileDao, validFoldersMap, validAidsMap);
         updateScreenTabs();
 
@@ -239,7 +240,11 @@ public class DownloadMP {
         List<Folder> folders = folderDao.queryForAll();
         for(Folder folder:folders){
             //if(!folder.exists()){
-                if(validFoldersMap.get(folder.getId())==null && folder.getTypeId()!=1&& folder.getTypeId()!=3){
+                if(validFoldersMap.get(folder.getId())==null
+                        && folder.getTypeId()!=1
+                        && folder.getTypeId()!=3
+                        && folder.getTypeId()!=4
+                ){
                     vFileDao.delete(folder.getFiles());
                     folderDao.delete(folder);
                 }
@@ -265,7 +270,8 @@ public class DownloadMP {
             @Override
             public void run() {
                 ArrayList<String> newList = new ArrayList<>();
-                newList.addAll(App.getInstance().getAllTypeMap().keySet());
+                newList.addAll(App.getInstance().getAllTypeMap(false).keySet());
+                App.saveTypesMap();
                 MainActivity.mNavigationLinearLayout.setDataList(newList);
 
             }});
@@ -397,18 +403,32 @@ public class DownloadMP {
         int channelId=3;
         String resp = get("https://edition.cnn.com/playlist/top-news-videos/index.json");
         JSONArray jsonArr = JSONObject.parseArray(resp);
+
+        Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
         for(int i=0;i<jsonArr.size();i++) {
             JSONObject item =(JSONObject) jsonArr.get(i);
 
             String videoId = item.getString("videoId");
             String title = item.getString("title");
-            String folderName = title.replaceAll("'","\"");
+            String folderName = null;
+
+            Matcher matcher = pattern.matcher(videoId);
+            int seq=0;
+            if(matcher.find()){
+                String dateStr = matcher.group();
+              /* seq =   Integer.parseInt(dateStr.replaceAll("/","").substring(0,6)+"31")
+                 - Integer.parseInt(dateStr.replaceAll("/",""));*/
+
+                folderName = dateStr;
+
+            }else continue;
+
 
             String imageUrl = "http:"+item.getString("imageUrl");
 
             Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
 
-            if(folder!=null)continue;
+
 
             resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
             JSONObject obj = JSONObject.parseObject(resp);
@@ -425,18 +445,47 @@ public class DownloadMP {
 
 
             if(folder==null){
+
                 folder = new Folder();
                 folder.setTypeId(channelId);
                 folder.setName(folderName);
                 folder.setCoverUrl(imageUrl);
                 folderDao.createOrUpdate(folder);
-                VFile vf = new VFile();
+
+                Folder folder2 = new Folder();
+                folder2.setTypeId(4);
+                folder2.setName(folderName);
+                folder2.setCoverUrl(imageUrl);
+                folderDao.createOrUpdate(folder2);
+                folder2.setCoverUrl(imageUrl);
+
+
+
+                VFile vf2 = new VFile();
+                vf2.setName(title);
+                vf2.setFolder(folder2);
+
+                vf2.setdLink(ServerManager.getServerHttpAddress()+"/hls/vod.m3u8?folderId="+folder.getId());
+                vf2.setOrderSeq(0);
+
+                vFileDao.createOrUpdate(vf2);
+
+
+            }else folder.setCoverUrl(imageUrl);
+
+            folderDao.createOrUpdate(folder);
+
+            VFile  vf =  vFileDao.queryBuilder().where().eq("folder_id",folder.getId()).and().eq("dLink",url).queryForFirst();
+            if(vf==null){
+                vf = new VFile();
                 vf.setName(title);
                 vf.setFolder(folder);
                 vf.setdLink(url);
-                vf.setOrderSeq(0);
+                vf.setOrderSeq(seq);
                 vFileDao.createOrUpdate(vf);
             }
+
+
 
 
         }

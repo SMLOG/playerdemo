@@ -234,20 +234,6 @@ public class VUrlController implements HandlerInterceptor {
     }
 
 
-    @PostMapping(path = "/api/vurl")
-    String pl(@RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
-              @RequestParam(name = "list", required = false, defaultValue = "") String list,
-              @RequestParam(name = "curIndex", required = false, defaultValue = "0") int curIndex
-    ) throws IOException {
-
-
-        VUrlList vUrlList = new VUrlList(keyword, curIndex, list.split(";"));
-        PlayerController.getInstance().play(vUrlList);
-
-        return "";
-    }
-
-
     @GetMapping(path = "/api/r/{fid}/{index}/index.m3u8")
     ResponseBody range2(
             HttpRequest request, HttpResponse response,

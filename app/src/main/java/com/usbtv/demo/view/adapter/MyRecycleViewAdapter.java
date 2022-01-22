@@ -30,6 +30,7 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     private final RecyclerView recyclerView;
     private Context mContext;
     private Folder folder;
+    private  VFile curVfile;
     private OnItemFocusChangeListener mOnFocusChangeListener;
     private OnItemClickListener mOnItemClickListener;
     private final LayoutInflater mLayoutInflater;
@@ -43,9 +44,9 @@ public class MyRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         mLayoutInflater = LayoutInflater.from(mContext);
     }
 
-    public void refresh(Folder f) {
-        if (f!=null&&folder!=null&&f.getId() == folder.getId()) return;
-        this.folder = f;
+    public void refresh(VFile f) {
+        this.folder = f.getFolder();
+        curVfile=f;
         this.notifyDataSetChanged();
     }
 
