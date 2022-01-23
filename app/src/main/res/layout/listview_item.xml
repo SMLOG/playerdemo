@@ -4,7 +4,9 @@
     android:layout_height="110dp"
     android:layout_gravity="center"
     android:focusable="true"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@drawable/bg_recyclerview_item"
+    >
 
     <ImageView
         android:id="@+id/iv_bg"
@@ -30,6 +32,8 @@
             android:singleLine="true"
             android:text="222222"
             android:textColor="@color/white"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:background="@drawable/bg_recyclerview_item"
+            />
     </RelativeLayout>
 </FrameLayout>

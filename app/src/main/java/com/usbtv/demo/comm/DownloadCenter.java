@@ -219,7 +219,9 @@ public class DownloadCenter {
         // cnn news video
         if(true){
 
-            cnnVideos(folderDao, vFileDao);
+            try {
+                cnnVideos(folderDao, vFileDao);
+            }catch (Throwable e){e.printStackTrace();}
 
         }
 
@@ -440,6 +442,7 @@ public class DownloadCenter {
                 if(matcher.find()){
                     String dateStr = matcher.group();
                     folderName = dateStr;
+                    seq = Integer.parseInt(dateStr);
 
                 }else continue;
 

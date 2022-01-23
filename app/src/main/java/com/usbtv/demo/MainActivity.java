@@ -28,6 +28,7 @@ import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DocumentsUtils;
 import com.usbtv.demo.comm.MyBroadcastReceiver;
+import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.SpaceDecoration;
@@ -110,13 +111,13 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
                 folder = dao.queryForId((int) id);
-                Utils.PlayerController.getInstance().play(folder.getFiles().iterator().next());
+                PlayerController.getInstance().play(folder.getFiles().iterator().next());
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
         } else {
-            Utils.PlayerController.getInstance().playNext();
+            PlayerController.getInstance().playNext();
         }
     }
 
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
 
         menuPanel = findViewById(R.id.menuPanel);
         menuPanel.setOnFocusChangeListener((view, hasFocus) -> {
-            folderCatsRV.requestFocus();
+            numTabRecyclerView.requestFocus();
         });
 
         numTabRecyclerView = findViewById(R.id.numTabRV);
@@ -208,8 +209,8 @@ public class MainActivity extends AppCompatActivity {
         moviesRecyclerViewAdapter = new FolderListAdapter(foldersRecyclerView, movieList, this, new FolderListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, List<Folder> mList, int position) {
-                Utils.PlayerController.getInstance().hideMenu();
-                Utils.PlayerController.getInstance().play(mList, position);
+                PlayerController.getInstance().hideMenu();
+                PlayerController.getInstance().play(mList, position);
             }
         }) {
             @Override
@@ -273,10 +274,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
-        numTabAdapter.setOnFocusChangeListener(myListener);
+       // MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
+       // numTabAdapter.setOnFocusChangeListener(myListener);
 
-        Utils.PlayerController.getInstance().setUIs(videoView, menuPanel);
+       PlayerController.getInstance().setUIs(videoView, menuPanel);
 
 
     }
@@ -360,14 +361,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(Object mp) {
-                Utils.PlayerController.getInstance().playNext();
+                PlayerController.getInstance().playNext();
 
             }
 
             @Override
             public boolean onError(Object mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                Utils.PlayerController.getInstance().playNext();
+                PlayerController.getInstance().playNext();
                 return true;
             }
         });
@@ -430,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
-                    Utils.PlayerController.getInstance().nextFolder();
+                    PlayerController.getInstance().nextFolder();
                 }
 
                 break;
@@ -439,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isShowHome) return false;
 
                 Log.d(TAG, "up--->");
-                Utils.PlayerController.getInstance().prev();
+                PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键

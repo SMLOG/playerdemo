@@ -14,6 +14,7 @@ import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.DownloadCenter;
+import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
@@ -70,7 +71,7 @@ public class IndexController {
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
 
-        return JSON.toJSONString(Utils.PlayerController.getInstance());
+        return JSON.toJSONString(PlayerController.getInstance());
     }
 
 
@@ -106,7 +107,7 @@ public class IndexController {
             VFile item = null;
             try {
                 item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
-                Utils.PlayerController.getInstance().play(item);
+                PlayerController.getInstance().play(item);
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -114,25 +115,25 @@ public class IndexController {
 
         } else if ("next".equals(cmd)) {
 
-            Utils.PlayerController.getInstance().next();
+            PlayerController.getInstance().next();
 
         } else if ("pause".equals(cmd)) {
 
-            if (Utils.PlayerController.getInstance().isPlaying())
-                Utils.PlayerController.getInstance().pause();
+            if (PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().pause();
 
 
         } else if ("resume".equals(cmd)) {
 
-            if (!Utils.PlayerController.getInstance().isPlaying())
-                Utils.PlayerController.getInstance().start();
+            if (!PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().start();
 
         } else if ("toggle".equals(cmd)) {
 
-            if (Utils.PlayerController.getInstance().isPlaying())
-                Utils.PlayerController.getInstance().pause();
+            if (PlayerController.getInstance().isPlaying())
+                PlayerController.getInstance().pause();
             else
-                Utils.PlayerController.getInstance().start();
+                PlayerController.getInstance().start();
 
 
         } else if ("seekTo".equals(cmd)) {
@@ -140,14 +141,14 @@ public class IndexController {
             int progress = Integer.parseInt(val);
             if (progress < 0)
                 progress = 0;
-            else if (progress > Utils.PlayerController.getInstance().getDuration())
-                progress = (int) Utils.PlayerController.getInstance().getDuration();
+            else if (progress > PlayerController.getInstance().getDuration())
+                progress = (int) PlayerController.getInstance().getDuration();
 
-            Utils.PlayerController.getInstance().seekTo(progress);
+            PlayerController.getInstance().seekTo(progress);
 
         } else if ("mode".equals(cmd)) {
 
-            Utils.PlayerController.getInstance().setMode(Integer.parseInt(val));
+            PlayerController.getInstance().setMode(Integer.parseInt(val));
         } else if ("detach".equals(cmd)) {
 
             App.broadcastCMD(cmd, val);

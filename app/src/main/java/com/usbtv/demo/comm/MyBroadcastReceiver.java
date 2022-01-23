@@ -13,7 +13,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
             String cmd = intent.getExtras().getString("cmd");
             String val = intent.getExtras().getString("val");
             if ("play".equals(cmd)) {
-                Utils.PlayerController.getInstance().play(null);
+                PlayerController.getInstance().play(null);
 
             }
         }

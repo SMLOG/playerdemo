@@ -16,31 +16,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
-
 
 import com.bumptech.glide.Glide;
 import com.usbtv.demo.R;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.view.util.GlideUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-/**
- * @author: njb
- * @date: 2020/6/22 0022 0:54
- * @desc:游戏列表适配器
- */
 public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Folder> mList;
     private List<Folder> allList;
     private Context mContext;
-    private OnItemFocusChangeListener mOnFocusChangeListener;
     private OnItemClickListener mOnItemClickListener;
     private final LayoutInflater mLayoutInflater;
     private String typeId="";
@@ -93,16 +83,6 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     public interface OnItemFocusChangeListener {
         void onItemFocusChange(View view, int position, boolean hasFocus);
     }
-
-
-    public final void setOnItemClickListener(@Nullable OnItemClickListener listener) {
-        mOnItemClickListener = listener;
-    }
-
-    public void setOnFocusChangeListener(@Nullable OnItemFocusChangeListener mOnFocusChangeListener) {
-        this.mOnFocusChangeListener = mOnFocusChangeListener;
-    }
-
 
     @NonNull
     @Override
@@ -179,17 +159,8 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
         holder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
-                    focusStatus(v,holder.getAdapterPosition());
-                }else {
-                    normalStatus(v);
-                }
 
                 if(hasFocus){
-                    int[] amount = getScrollAmount(moviesRecyclerView, v);//计算需要滑动的距离
-                    //滑动到指定距离
-                    scrollToAmount(moviesRecyclerView, amount[0], amount[1]);
-
                     holder.itemView.setTranslationZ(20);//阴影
                     ofFloatAnimator(holder.itemView,1f,1.3f);//放大
                 }else {
@@ -198,73 +169,6 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
                 }
             }
         });
-        holder.itemView.setOnHoverListener(new View.OnHoverListener() {
-            @Override
-            public boolean onHover(View v, MotionEvent event) {
-                int what =event.getAction();
-                switch (what) {
-                    case MotionEvent.ACTION_HOVER_ENTER:
-                        RecyclerView recyclerView = (RecyclerView) holder.itemView.getParent();
-                        int[] location = new int[2];
-                        recyclerView.getLocationOnScreen(location);
-                        int x = location[0];
-//                            LogUtil.i("swj","GalleryAdapter.onHover.x="+x +",width = "+(recyclerView.getWidth()+x));
-                        //为了防止滚动冲突，在滚动时候，获取焦点为了显示全，会回滚，这样会导致滚动停止
-                        if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
-                            //当超出RecyclerView的边缘时不去响应滚动
-                            if (event.getRawX() > recyclerView.getWidth() + x || event.getRawX() < x) {
-                                return true;
-                            }
-                            //鼠标进入view，争取到焦点
-                            v.requestFocusFromTouch();
-                            v.requestFocus();
-//                                LogUtil.i(this,"HomeTvAdapter.onHover.position:"+position);
-                            focusStatus(v, holder.getAdapterPosition());
-                        }
-                        break;
-                    case MotionEvent.ACTION_HOVER_MOVE:  //鼠标在view上移动
-                        break;
-                    case MotionEvent.ACTION_HOVER_EXIT:  //鼠标离开view
-                        normalStatus(v);
-                        break;
-                }
-                return false;
-            }
-        });
-
-        holder.itemView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                int action = event.getAction();
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_DPAD_LEFT:
-                        int positionUp  =  (int) v.getTag();
-                        if (action == KeyEvent.ACTION_DOWN) {
-                            if (positionUp <=  0) {
-                               // moviesRecyclerView.smoothScrollToPosition(getItemCount() - 1);
-                                holder.itemView.setTranslationZ(20);//阴影
-                                ofFloatAnimator(holder.itemView,1f,1.3f);//放大
-                                return true;
-                            }
-                        }
-                        break;
-
-                    case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        int positionDown = (int) v.getTag();
-                        if (action == KeyEvent.ACTION_DOWN) {
-                            if (positionDown >= getItemCount() - 1) {
-                               // moviesRecyclerView.smoothScrollToPosition(0);
-                                holder.itemView.setTranslationZ(20);//阴影
-                                ofFloatAnimator(holder.itemView,1f,1.3f);//放大
-                                return true;
-                            }
-                        }
-                        break;
-                }
-                return false;
-            };
-        }
-        );
 
 
     }
@@ -281,62 +185,8 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv_name);
             iv = (ImageView) itemView.findViewById(R.id.iv_bg);
-            itemView.setFocusable(true);
-            itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View view, boolean b) {
-                    if(b){
-                        int[] amount = getScrollAmount(moviesRecyclerView, view);//计算需要滑动的距离
-                        //滑动到指定距离
-                        scrollToAmount(moviesRecyclerView, amount[0], amount[1]);
-
-                        //itemView.setTranslationZ(20);//阴影
-                        //ofFloatAnimator(itemView,1f,1.3f);//放大
-                    }else {
-                        //itemView.setTranslationZ(0);
-                        //ofFloatAnimator(itemView,1.3f,1f);
-                    }
-                }
-
-            });
-        }
-        //根据坐标滑动到指定距离
-        private void scrollToAmount(RecyclerView recyclerView, int dx, int dy) {
-            //如果没有滑动速度等需求，可以直接调用这个方法，使用默认的速度
-//                recyclerView.smoothScrollBy(dx,dy);
-
-            //以下对滑动速度提出定制
-            try {
-                Class recClass = recyclerView.getClass();
-                Method smoothMethod = recClass.getDeclaredMethod("smoothScrollBy", int.class, int.class, Interpolator.class, int.class);
-                smoothMethod.invoke(recyclerView, dx, dy, new AccelerateDecelerateInterpolator(), 700);//时间设置为700毫秒，
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
         }
 
-        /**
-         * 计算需要滑动的距离,使焦点在滑动中始终居中
-         * @param recyclerView
-         * @param view
-         */
-        private int[] getScrollAmount(RecyclerView recyclerView, View view) {
-            int[] out = new int[2];
-            final int parentLeft = recyclerView.getPaddingLeft();
-            final int parentTop = recyclerView.getPaddingTop();
-            final int parentRight = recyclerView.getWidth() - recyclerView.getPaddingRight();
-            final int childLeft = view.getLeft() + 0 - view.getScrollX();
-            final int childTop = view.getTop() + 0 - view.getScrollY();
-
-            final int dx =childLeft - parentLeft - ((parentRight - view.getWidth()) / 2);//item左边距减去Recyclerview不在屏幕内的部分，加当前Recyclerview一半的宽度就是居中
-
-            final int dy = childTop - parentTop - (parentTop - view.getHeight()) / 2;//同上
-            out[0] = dx;
-            out[1] = dy;
-            return out;
-
-        }
     }
 
     /**
@@ -399,10 +249,6 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     protected abstract void onItemGetNormal(View itemView);
 
 
-    static class OrderNum{
-        public int id;
-        public int typeId;
-        public int seq;
-    }
+
 
 }

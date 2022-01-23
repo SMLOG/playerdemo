@@ -7,6 +7,7 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.Utils;
 
 public class MyNumRecyclerView extends RecyclerView {
@@ -38,7 +39,7 @@ public class MyNumRecyclerView extends RecyclerView {
         if (child != null) {
             int newPosition =   getChildViewHolder(child).getAdapterPosition();
             if(Math.abs(newPosition-mlastFocusPosition)>1){
-                mlastFocusPosition= Utils.PlayerController.getInstance().getCurIndex();
+                mlastFocusPosition= PlayerController.getInstance().getCurIndex();
 
                scrollToPosition(mlastFocusPosition);
                 final View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
@@ -58,7 +59,7 @@ public class MyNumRecyclerView extends RecyclerView {
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
 
-        mlastFocusPosition= Utils.PlayerController.getInstance().getCurIndex();
+        mlastFocusPosition= PlayerController.getInstance().getCurIndex();
         scrollToPosition(mlastFocusPosition);
         View lastFocusedview = getLayoutManager().findViewByPosition(mlastFocusPosition);
         if (lastFocusedview != null) {
