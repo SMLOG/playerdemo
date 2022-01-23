@@ -24,8 +24,6 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
     private final RecyclerView recyclerView;
     private final FolderListAdapter moviesRecyclerViewAdapter;
     private Context mContext;
-    private OnItemFocusChangeListener mOnFocusChangeListener;
-    private OnItemClickListener mOnItemClickListener;
     private final LayoutInflater mLayoutInflater;
 
     private int defaultFocus = 0;
@@ -58,22 +56,7 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
 
 
 
-    public interface OnItemClickListener {
-        void onItemClick(View view, int position);
-    }
 
-    public interface OnItemFocusChangeListener {
-        void onItemFocusChange(View view, String mString, int position, boolean hasFocus);
-    }
-
-
-    public final void setOnItemClickListener(@Nullable OnItemClickListener listener) {
-        mOnItemClickListener = listener;
-    }
-
-    public void setOnFocusChangeListener(@Nullable OnItemFocusChangeListener mOnFocusChangeListener) {
-        this.mOnFocusChangeListener = mOnFocusChangeListener;
-    }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -93,8 +76,9 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
         viewHolder.catText.setTextColor(position ==this.curPos ? Color.RED : Color.WHITE);
 
 
-        viewHolder.catText.setFocusable(true);
-        viewHolder.catText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        //viewHolder.catText.setFocusable(true);
+        viewHolder.itemView.setFocusable(true);
+        viewHolder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus && !recyclerView.isComputingLayout()) {
@@ -108,65 +92,8 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
                 } else {
                 }
             }});
-        /*viewHolder.tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                moviesRecyclerViewAdapter.update(App.getAllTypeMap(false).get(datas.get(position)));
-                viewHolder.tv.setTextColor(Color.RED);
-                curPos = position;
-                notifyDataSetChanged();
-            }
-        });
-
-        if (mOnFocusChangeListener != null) {
-            holder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-
-
-                    if (mOnFocusChangeListener != null) {
-                        // mOnFocusChangeListener.onItemFocusChange(v, mStrings[position],position, hasFocus);
-                    }
-                }
-            });
-        }*/
-
 
         holder.itemView.setFocusable(true);
-
-       /* if (needFocus) {
-            if (defaultFocus < 0) {
-                defaultFocus = 0;
-            }
-            if (defaultFocus >= getItemCount()) {
-                defaultFocus = getItemCount() - 1;
-            }
-            if (defaultFocus == position) {
-                if (!holder.itemView.isFocusable()) {
-                    defaultFocus++;
-                } else {
-                    holder.itemView.requestFocus();
-                }
-            }
-        } else {
-            //setNeedFocus(position == (getItemCount() - 1));
-        }*/
-
-        holder.itemView.setFocusable(true);
-        holder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-
-
-                if(hasFocus){
-                    int[] amount = getScrollAmount(recyclerView, v);//计算需要滑动的距离
-                    //滑动到指定距离
-                    scrollToAmount(recyclerView, amount[0], amount[1]);
-
-                }else {
-                }
-            }
-        });
 
     }
     //根据坐标滑动到指定距离

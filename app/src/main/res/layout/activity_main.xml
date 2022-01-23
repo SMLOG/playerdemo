@@ -47,7 +47,9 @@
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/folderCats"
                 android:layout_width="match_parent"
-                android:layout_height="50dp" />
+                android:layout_height="50dp"
+                android:focusable="false"
+                />
         </LinearLayout>
 
 

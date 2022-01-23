@@ -55,10 +55,10 @@ public class App extends Application implements CacheListener {
         return self;
     }
 
-    public static Map<String, String>  getTypesMap() {
+    public static Map<String, String> getTypesMap() {
 
-        if(typesMap==null){
-           typesMap = new LinkedHashMap<>();
+        if (typesMap == null) {
+            typesMap = new LinkedHashMap<>();
         }
 
         return typesMap;
@@ -68,9 +68,9 @@ public class App extends Application implements CacheListener {
 
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-       String jsonStr = JSON.toJSONString(typesMap);
+        String jsonStr = JSON.toJSONString(typesMap);
         SharedPreferences.Editor ed = sp.edit();
-        ed.putString("typesMap",jsonStr);
+        ed.putString("typesMap", jsonStr);
         ed.commit();
 
     }
@@ -82,23 +82,23 @@ public class App extends Application implements CacheListener {
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         String jsonStr = sp.getString("typesMap", "");
-        if(!jsonStr.equals("")){
-            Map<String, String> dummyMap =  JSON.parseObject(jsonStr,LinkedHashMap.class, Feature.OrderedField);
-             map.putAll(dummyMap);
+        if (!jsonStr.equals("")) {
+            Map<String, String> dummyMap = JSON.parseObject(jsonStr, LinkedHashMap.class, Feature.OrderedField);
+            map.putAll(dummyMap);
         }
 
-       // map.put("电视电影","1");
-        map.put("直播","2");
-        map.put("CNN2","4");
-        map.put("CNN","3");
-        map.put("其他","0");
+        // map.put("电视电影","1");
+        map.put("直播", "2");
+        map.put("CNN2", "4");
+        map.put("CNN", "3");
+        map.put("其他", "0");
 
         return map;
     }
 
     public static HttpProxyCacheServer proxy;
 
-    public static Map<String,String> typesMap = null;
+    public static Map<String, String> typesMap = null;
 
     public static HttpProxyCacheServer getProxy() {
         App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
@@ -121,13 +121,13 @@ public class App extends Application implements CacheListener {
 
 
         String lastUpdateM3U = "lastUpdateM3U";
-        if(force||System.currentTimeMillis()-sp.getLong(lastUpdateM3U,0l)>3600*24*15){
-            String[] filePaths= new String[]{
+        if (force || System.currentTimeMillis() - sp.getLong(lastUpdateM3U, 0l) > 3600 * 24 * 15) {
+            String[] filePaths = new String[]{
                     "/storage/36AC6142AC60FDAD/m3u/channels/us.m3u",
                     "/storage/36AC6142AC60FDAD/m3u/channels/uk.m3u"
             };
 
-            String filePath2="/storage/36AC6142AC60FDAD/m3u/channels/us_checked.m3u";
+            String filePath2 = "/storage/36AC6142AC60FDAD/m3u/channels/us_checked.m3u";
 
             StringBuilder sb = M3U.check(filePaths);
             OutputStream outputStream2 = App.getInstance().documentStream(filePath2);
@@ -151,7 +151,7 @@ public class App extends Application implements CacheListener {
 
     public static Uri getUri(VFile vf) {
 
-        String vremote = SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vfile?id=" + vf.getId();
+        String vremote = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vfile?id=" + vf.getId();
 
         String path = vf.getAbsPath();
 
@@ -177,25 +177,25 @@ public class App extends Application implements CacheListener {
 
         if (!vf.exists()) {
 
-            if(vf.getdLink()!=null&&vf.getdLink().indexOf(".m3u8")>-1){
+            if (vf.getdLink() != null && vf.getdLink().indexOf(".m3u8") > -1) {
 
                 // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                 //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
-                if(true)return Uri.parse(vf.getdLink());
-                if(true){
+                if (true) return Uri.parse(vf.getdLink());
+                if (true) {
                     return Uri.parse(
-                            SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/m3u8proxy/"+vf.getdLink()
+                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy/" + vf.getdLink()
                     );
                 }
                 return Uri.parse(
-                        SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/r/"+ vf.getFolder().getId()
-                                +"/"+vf.getOrderSeq()+"/index.m3u8"
-                                +"?t="+System.currentTimeMillis()
+                        SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/r/" + vf.getFolder().getId()
+                                + "/" + vf.getOrderSeq() + "/index.m3u8"
+                                + "?t=" + System.currentTimeMillis()
                 );
 
 
-            }else {
+            } else {
                 com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
                 if (vidoInfo != null && null != vidoInfo.getString("video")) {
                     vremote = vidoInfo.getString("video");
@@ -214,15 +214,27 @@ public class App extends Application implements CacheListener {
         return Uri.parse(App.getProxyUrl(vremote));
     }
 
+    public static List<Folder> getAllMovies() {
+        try {
+            return App.getHelper().getDao(Folder.class).queryBuilder()
+                    .orderBy("typeId", true)
+                    .orderBy("orderSeq", false)
+                    .query();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return new ArrayList<Folder>();
+    }
+
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(1024*1024*200)
+                .maxCacheSize(1024 * 1024 * 200)
                 .build();
     }
 
 
     public static String getProxyUrl(String url) {
-        if ( url.startsWith("http://") || url.startsWith("https://")) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
             if (App.proxy == null) {
                 proxy = getInstance().newProxy();
             }
@@ -243,7 +255,7 @@ public class App extends Application implements CacheListener {
 
 
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
-       // Log.d(TAG, ipaddr.getHostAddress());
+        // Log.d(TAG, ipaddr.getHostAddress());
         //DowloadPlayList.loadPlayList(true);
 
 
@@ -251,53 +263,47 @@ public class App extends Application implements CacheListener {
     }
 
 
-
-
-
     public void syncWithRemote() {
 
         SharedPreferences sp = getSharedPreferences("SP", Context.MODE_PRIVATE);
 
 
-        if(System.currentTimeMillis()-sp.getLong("lastSyncWithRemoteTime",0l)>3600*24)
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        if (System.currentTimeMillis() - sp.getLong("lastSyncWithRemoteTime", 0l) > 3600 * 24)
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
 
-                try {
+                    try {
+                        DownloadCenter.syncData();
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
+                        editor.apply();
+                        sp.edit().commit();
 
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
 
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
 
-                    DownloadCenter.syncData();
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
-                    editor.apply();
-                    sp.edit().commit();
+                        @Override
+                        public void run() {
+                            try {
+                                List<Folder> movies = App.getAllMovies();
+                                MainActivity.moviesRecyclerViewAdapter.update(movies);
+                                new InitChannel();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                }
+                            } catch (Exception throwables) {
+                                throwables.printStackTrace();
+                            }
 
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        List<Folder> movies = null;
-                        try {
-                            movies = App.getHelper().getDao(Folder.class).queryForAll();
-                            MainActivity.moviesRecyclerViewAdapter.update(movies);
-                            new InitChannel();
-
-                        } catch (SQLException throwables) {
-                            throwables.printStackTrace();
                         }
-
-                    }});
-            }
-        }).start();
+                    });
+                }
+            }).start();
 
         try {
             NewsStarter.run();
@@ -316,12 +322,14 @@ public class App extends Application implements CacheListener {
             databaseHelper = null;
         }
     }
+
     public static DatabaseHelper getHelper() {
         if (databaseHelper == null) {
             databaseHelper = OpenHelperManager.getHelper(App.getInstance(), DatabaseHelper.class);
         }
         return databaseHelper;
     }
+
     private void createAndStartWebServer(Context context) {
 
         mServer = new SSLSocketClient.ServerManager(context);
@@ -329,9 +337,9 @@ public class App extends Application implements CacheListener {
 
     }
 
-    public static Drive getDefaultRootDrive(){
+    public static Drive getDefaultRootDrive() {
 
-        if(diskList.size()==0 ) initDisks();
+        if (diskList.size() == 0) initDisks();
         return diskList.get(diskList.size() - 1);
     }
 
@@ -340,7 +348,7 @@ public class App extends Application implements CacheListener {
 
     }
 
-    public static synchronized void initDisks(){
+    public static synchronized void initDisks() {
         diskList.clear();
         List<Drive> drives = Utils.getSysAllDriveList();
         diskList.addAll(drives);
@@ -348,29 +356,28 @@ public class App extends Application implements CacheListener {
 
     }
 
-    public static synchronized Drive getDefaultRemoveableDrive(){
-        for (Drive drive:diskList){
-            if(drive.isRemoveable())return drive;
+    public static synchronized Drive getDefaultRemoveableDrive() {
+        for (Drive drive : diskList) {
+            if (drive.isRemoveable()) return drive;
         }
         return null;
     }
 
 
-
     public static String cache2Disk(VFile vfile, String url) {
         HttpGet oInstance = new HttpGet();
 
-        if( App.getDefaultRemoveableDrive()==null){
+        if (App.getDefaultRemoveableDrive() == null) {
             App.initDisks();
         }
 
 
-        if (url != null&&App.getDefaultRemoveableDrive()!=null) {
+        if (url != null && App.getDefaultRemoveableDrive() != null) {
 
-            for(Drive d:App.diskList){
+            for (Drive d : App.diskList) {
                 vfile.getFolder().setRoot(d);
-                if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
-                ){
+                if (vfile.exists() && new File(vfile.getAbsPath()).canRead()
+                ) {
                     try {
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
@@ -379,7 +386,7 @@ public class App extends Application implements CacheListener {
                         throwables.printStackTrace();
                     }
 
-                    return  "file://" + vfile.getAbsPath();
+                    return "file://" + vfile.getAbsPath();
                 }
             }
             String finalUrl = url;
@@ -412,22 +419,22 @@ public class App extends Application implements CacheListener {
 
     public OutputStream documentStream(String filePath) throws IOException {
 
-       // Log.i(TAG, filePath);
+        // Log.i(TAG, filePath);
         File file = new File(filePath);
-        if (!file.getParentFile().exists()){
-            if(DocumentsUtils.mkdirs(this,file.getParentFile())){
-                Log.i(TAG,"创建文件夹：" + file.getParentFile().getAbsolutePath());
-            }else{
-                Log.i(TAG,"创建文件夹失败：" + file.getParentFile().getAbsolutePath());
+        if (!file.getParentFile().exists()) {
+            if (DocumentsUtils.mkdirs(this, file.getParentFile())) {
+                Log.i(TAG, "创建文件夹：" + file.getParentFile().getAbsolutePath());
+            } else {
+                Log.i(TAG, "创建文件夹失败：" + file.getParentFile().getAbsolutePath());
             }
 
         }
 
-        String  fileWritePath = filePath ;
+        String fileWritePath = filePath;
         File fileWrite = new File(fileWritePath);
 
 
-        OutputStream outputStream = DocumentsUtils.getOutputStream(this,fileWrite);  //获取输出流
+        OutputStream outputStream = DocumentsUtils.getOutputStream(this, fileWrite);  //获取输出流
         //Toast.makeText(this,"路径：" + fileWritePath + "成功",Toast.LENGTH_SHORT ).show();
 
         return outputStream;
@@ -437,7 +444,7 @@ public class App extends Application implements CacheListener {
 
     public static InputStream documentInputStream(File file2) {
 
-        return DocumentsUtils.getInputStream(App.getInstance().getApplicationContext(),file2);  //获取输出流
+        return DocumentsUtils.getInputStream(App.getInstance().getApplicationContext(), file2);  //获取输出流
 
     }
 

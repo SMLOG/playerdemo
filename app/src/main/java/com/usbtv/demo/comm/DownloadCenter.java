@@ -272,7 +272,6 @@ public class DownloadCenter {
                 ArrayList<String> newList = new ArrayList<>();
                 newList.addAll(App.getInstance().getAllTypeMap(false).keySet());
                 App.saveTypesMap();
-
             }});
     }
 
@@ -451,7 +450,7 @@ public class DownloadCenter {
 
 
 
-
+                videoDao.queryForAll();
                 Video video = videoDao.queryBuilder().where().eq("videoId",videoId).queryForFirst();
                 if(video!=null) continue;
 
@@ -477,6 +476,7 @@ public class DownloadCenter {
                     folder.setTypeId(channelId);
                     folder.setName(folderName);
                     folder.setCoverUrl(imageUrl);
+                    folder.setOrderSeq(seq);
                     folderDao.createOrUpdate(folder);
 
                     Folder folder2 = new Folder();
@@ -485,6 +485,7 @@ public class DownloadCenter {
                     folder2.setCoverUrl(imageUrl);
                     folderDao.createOrUpdate(folder2);
                     folder2.setCoverUrl(imageUrl);
+                    folder2.setOrderSeq(seq);
 
 
 
@@ -513,6 +514,7 @@ public class DownloadCenter {
                 }
 
                 video = new Video();
+                video.setVideoId(videoId);
                 video.setTitle(title);
                 video.setCoverUrl(imageUrl);
                 video.setUrl(url);

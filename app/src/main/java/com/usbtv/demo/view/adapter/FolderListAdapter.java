@@ -81,8 +81,8 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
 
 
 
-    public void update(List<Folder> gameListBeans) {
-        this.allList = gameListBeans;
+    public void update(List<Folder> folderList) {
+        this.allList = folderList;
         this.update(this.typeId);
     }
 

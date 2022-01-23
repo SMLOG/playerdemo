@@ -10,15 +10,16 @@ import java.io.File;
 import java.net.URLEncoder;
 
 
-public class Folder  {
-
-
+public class Folder {
 
     @DatabaseField(generatedId = true)
     int id;
 
     @DatabaseField
     int typeId;
+
+    @DatabaseField
+    int orderSeq;
 
     String cat;
     @DatabaseField
@@ -38,7 +39,7 @@ public class Folder  {
     @DatabaseField(uniqueCombo = true)
     String aid;
 
-    @ForeignCollectionField(orderColumnName = "orderSeq",orderAscending = true)
+    @ForeignCollectionField(orderColumnName = "orderSeq", orderAscending = true)
     private ForeignCollection<VFile> files;
 
     @JSONField(serialize = false)
@@ -73,7 +74,7 @@ public class Folder  {
     }
 
     public String getP() {
-        if(p==null)return aid;
+        if (p == null) return aid;
         return p;
     }
 
@@ -83,7 +84,7 @@ public class Folder  {
 
     public String getCoverUrl() {
         String abPath = absPath();
-        return coverUrl==null&&abPath!=null? SSLSocketClient.ServerManager.getServerHttpAddress()+ "/api/thumb?id="+id+"&path="+ URLEncoder.encode(abPath):coverUrl;
+        return coverUrl == null && abPath != null ? SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/thumb?id=" + id + "&path=" + URLEncoder.encode(abPath) : coverUrl;
     }
 
     public void setCoverUrl(String coverUrl) {
@@ -154,19 +155,27 @@ public class Folder  {
         this.typeId = typeId;
     }
 
-    public String absPath(){
-        if(this.getRoot()==null)return null;
-        if(this.getP()==null)return null;
+    public String absPath() {
+        if (this.getRoot() == null) return null;
+        if (this.getP() == null) return null;
 
-        return  this.getRoot().getP()+"/"+this.getP();
+        return this.getRoot().getP() + "/" + this.getP();
     }
 
     public boolean exists() {
-        return  this.absPath()!=null && new File(this.absPath()).exists() ;
+        return this.absPath() != null && new File(this.absPath()).exists();
     }
 
-    public String  getShortName() {
+    public String getShortName() {
 
-       return getName().length()<10?getName():getName().substring(0,10);
+        return getName().length() < 10 ? getName() : getName().substring(0, 10);
+    }
+
+    public int getOrderSeq() {
+        return orderSeq;
+    }
+
+    public void setOrderSeq(int orderSeq) {
+        this.orderSeq = orderSeq;
     }
 }

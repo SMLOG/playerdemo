@@ -172,11 +172,13 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         videoView.resume();
     }
+
     @Override
     protected void onPause() {
         super.onPause();
         videoView.pause();
     }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -187,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
         videoView = findViewById(R.id.videoView);
 
         menuPanel = findViewById(R.id.menuPanel);
-        menuPanel.setOnFocusChangeListener((view, hasFocus)->{
+        menuPanel.setOnFocusChangeListener((view, hasFocus) -> {
             folderCatsRV.requestFocus();
         });
 
@@ -195,30 +197,19 @@ public class MainActivity extends AppCompatActivity {
 
         foldersRecyclerView = findViewById(R.id.foldersRV);
 
-        numTabAdapter = new FolderNumListRecycleViewAdapter(this,numTabRecyclerView);
+        numTabAdapter = new FolderNumListRecycleViewAdapter(this, numTabRecyclerView);
 
-       // numTabRecyclerView.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // numTabRecyclerView.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         numTabRecyclerView.setAdapter(numTabAdapter);
 
 
+        movieList = App.getAllMovies();
 
-
-
-        movieList = new ArrayList<>();
-
-        try {
-            movieList = App.getHelper().getDao(Folder.class).queryForAll();
-
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-
-
-        moviesRecyclerViewAdapter = new FolderListAdapter(foldersRecyclerView,movieList, this, new FolderListAdapter.OnItemClickListener() {
+        moviesRecyclerViewAdapter = new FolderListAdapter(foldersRecyclerView, movieList, this, new FolderListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, List<Folder> mList, int position) {
                 Utils.PlayerController.getInstance().hideMenu();
-                Utils.PlayerController.getInstance().play(mList,position);
+                Utils.PlayerController.getInstance().play(mList, position);
             }
         }) {
             @Override
@@ -235,70 +226,60 @@ public class MainActivity extends AppCompatActivity {
                 view.setSelected(true);
             }
         };
-        folderCatsRV =  findViewById(R.id.folderCats);
+        folderCatsRV = findViewById(R.id.folderCats);
 
-        folderCatsAdaper = new FolderCatsListRecycleViewAdapter(this, folderCatsRV,moviesRecyclerViewAdapter);
+        folderCatsAdaper = new FolderCatsListRecycleViewAdapter(this, folderCatsRV, moviesRecyclerViewAdapter);
 
 
-       // folderCatsRV.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
-        //folderCatsRV.addItemDecoration(new RecyclerItemDecoration(10, 10,5));
-
+        // folderCatsRV.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
         folderCatsRV.setAdapter(folderCatsAdaper);
         //folderCatsRV.setItemAnimator(null);
 
-       // foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        // foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         foldersRecyclerView.addItemDecoration(new SpaceDecoration(30));
         foldersRecyclerView.setAdapter(moviesRecyclerViewAdapter);
 
         menuPanel.setOnFocusSearchListener(new BrowseFrameLayout.OnFocusSearchListener() {
             @Override
             public View onFocusSearch(View focused, int direction) {
-                if(foldersRecyclerView.hasFocus()){
-                    switch (direction){
-                        case FOCUS_DOWN:folderCatsRV.requestFocus();
+                if (foldersRecyclerView.hasFocus()) {
+                    switch (direction) {
+                        case FOCUS_DOWN:
                             return folderCatsRV;
                         case FOCUS_UP:
                             return numTabRecyclerView;
                     }
+                } else if (folderCatsRV.hasFocus()) {
+
+                    switch (direction) {
+                        case FOCUS_DOWN:
+                            return folderCatsRV;
+                        case FOCUS_UP:
+                            return foldersRecyclerView;
+                    }
+
+                } else if (numTabRecyclerView.hasFocus()) {
+
+                    switch (direction) {
+                        case FOCUS_DOWN:
+                            return foldersRecyclerView;
+                        case FOCUS_UP:
+                            return numTabRecyclerView;
+                    }
+
                 }
-                else if(folderCatsRV.hasFocus() &&  direction == FOCUS_DOWN)return folderCatsRV;
-                else if(numTabRecyclerView.hasFocus() &&  direction == FOCUS_UP)return numTabRecyclerView;
                 return null;
             }
         });
 
-        //((RelativeLayout)menuPanel).addonk
-      /*  moviesRecyclerViewAdapter.setOnKeyDown(new View.OnKeyListener(){
-
-            @Override
-            public boolean onKey(View view, int keycode, KeyEvent keyEvent) {
-                if(keycode==KeyEvent.KEYCODE_DPAD_DOWN && keyEvent.getAction() == KeyEvent.ACTION_DOWN){
-                    view.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            folderCatsRV.requestFocus();
-                        }
-                    },1000);
-                    return true;
-                }
-                return false;
-            }
-        });*/
-
-
-
         MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
         numTabAdapter.setOnFocusChangeListener(myListener);
-        // adapter.setOnItemClickListener(myListener);
 
         Utils.PlayerController.getInstance().setUIs(videoView, menuPanel);
 
 
-
     }
-
 
 
     @Override
@@ -408,9 +389,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean isShowHome = menuPanel.getVisibility() == View.VISIBLE;
 
-        if(isShowHome &&(keyCode!=KeyEvent.KEYCODE_ENTER&&KeyEvent.KEYCODE_DPAD_CENTER!=keyCode
-                &&KeyEvent.KEYCODE_BACK!=keyCode)){
-            return super.onKeyDown(keyCode,event);
+        if (isShowHome && (keyCode != KeyEvent.KEYCODE_ENTER && KeyEvent.KEYCODE_DPAD_CENTER != keyCode
+                && KeyEvent.KEYCODE_BACK != keyCode)) {
+            return super.onKeyDown(keyCode, event);
         }
 
         switch (keyCode) {
@@ -430,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             numTabRecyclerView.requestFocus();
                         }
-                    },100);
+                    }, 100);
                 }
 
                 return false;
@@ -463,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键
                 if (isShowHome) {
-                    menuPanel.onKeyDown(keyCode,event);
+                    menuPanel.onKeyDown(keyCode, event);
                     return false;
                 }
 
@@ -473,8 +454,8 @@ public class MainActivity extends AppCompatActivity {
 
 
             case KeyEvent.KEYCODE_DPAD_RIGHT:  //向右键
-                if (isShowHome){
-                    menuPanel.onKeyDown(keyCode,event);
+                if (isShowHome) {
+                    menuPanel.onKeyDown(keyCode, event);
                     return false;
                 }
                 Log.d(TAG, "right--->");
@@ -499,7 +480,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
 
     }
-
 
 
     @Override
