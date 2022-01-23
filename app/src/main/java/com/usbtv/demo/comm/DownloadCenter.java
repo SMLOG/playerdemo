@@ -30,6 +30,7 @@ import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.data.Video;
 
 import okhttp3.Call;
 import okhttp3.FormBody;
@@ -194,6 +195,8 @@ public class DownloadCenter {
 
     private static String getObject(JSONObject obj, String string) {
 
+        if(obj==null) return null;
+
         if(string.indexOf(".")==-1)return obj.getString(string);
         String key = string.substring(0,string.indexOf("."));
 
@@ -204,7 +207,7 @@ public class DownloadCenter {
 
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-       // if(System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
+        if( System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
@@ -223,7 +226,7 @@ public class DownloadCenter {
         liveStream(folderDao, vFileDao, validFoldersMap);
         App.getTypesMap().clear();
         bilibiliVideos(folderDao, vFileDao, validFoldersMap, validAidsMap);
-        updateScreenTabs();
+
 
         // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");
@@ -256,7 +259,7 @@ public class DownloadCenter {
         editor.apply();
         //editor.apply();
         sp.edit().commit();
-
+        updateScreenTabs();
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
     }
 
@@ -269,7 +272,6 @@ public class DownloadCenter {
                 ArrayList<String> newList = new ArrayList<>();
                 newList.addAll(App.getInstance().getAllTypeMap(false).keySet());
                 App.saveTypesMap();
-                MainActivity.mNavigationLinearLayout.setDataList(newList);
 
             }});
     }
@@ -357,6 +359,8 @@ public class DownloadCenter {
 
                 }
 
+
+
                 if(pn*20>media_count)break;
                 pn++;
 
@@ -411,6 +415,9 @@ public class DownloadCenter {
                 "https://edition.cnn.com/video/data/3.0/video/uk/relateds.json",
 
         };
+
+        Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
+
         for(String feedUrl:urls){
 
             String resp = get(feedUrl);
@@ -444,6 +451,10 @@ public class DownloadCenter {
 
 
 
+
+                Video video = videoDao.queryBuilder().where().eq("videoId",videoId).queryForFirst();
+                if(video!=null) continue;
+
                 resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
                 JSONObject obj = JSONObject.parseObject(resp);
 
@@ -452,9 +463,11 @@ public class DownloadCenter {
                 resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
 
                 obj = JSONObject.parseObject(resp);
-
+                if(obj==null){
+                    continue;
+                }
                 String url =  getObject(obj,"media.tv.unprotected.url");
-
+                if(url==null) continue;
                 System.out.println(url);
 
 
@@ -499,6 +512,12 @@ public class DownloadCenter {
                     vFileDao.createOrUpdate(vf);
                 }
 
+                video = new Video();
+                video.setTitle(title);
+                video.setCoverUrl(imageUrl);
+                video.setUrl(url);
+                video.setDt(Integer.parseInt(folderName.replaceAll("/","")));
+                videoDao.createOrUpdate(video);
             }
 
         }

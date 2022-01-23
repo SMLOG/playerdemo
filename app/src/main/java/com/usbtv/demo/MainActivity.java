@@ -8,8 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.util.Log;
@@ -21,7 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.j256.ormlite.dao.Dao;
@@ -33,9 +31,9 @@ import com.usbtv.demo.comm.MyBroadcastReceiver;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.SpaceDecoration;
+import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
-import com.usbtv.demo.view.widget.NavigationLinearLayout;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -46,6 +44,9 @@ import java.util.List;
 
 import butterknife.BindView;
 
+import static android.view.View.FOCUS_DOWN;
+import static android.view.View.FOCUS_UP;
+
 public class MainActivity extends AppCompatActivity {
 
 
@@ -54,10 +55,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     @BindView(R.id.menuPanel)
-    View menuPanel;
+    BrowseFrameLayout menuPanel;
     private List<Folder> movieList;
 
-    public static NavigationLinearLayout mNavigationLinearLayout;
+    public static RecyclerView folderCatsRV;
 
 
     private final BroadcastReceiver receiver = new MyBroadcastReceiver();
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView foldersRecyclerView;
     public static FolderListAdapter moviesRecyclerViewAdapter;
     private List<String> storagePathList;
+    private FolderCatsListRecycleViewAdapter folderCatsAdaper;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -186,26 +188,20 @@ public class MainActivity extends AppCompatActivity {
 
         menuPanel = findViewById(R.id.menuPanel);
         menuPanel.setOnFocusChangeListener((view, hasFocus)->{
-            numTabRecyclerView.requestFocus();
+            folderCatsRV.requestFocus();
         });
+
         numTabRecyclerView = findViewById(R.id.numTabRV);
 
         foldersRecyclerView = findViewById(R.id.foldersRV);
 
         numTabAdapter = new FolderNumListRecycleViewAdapter(this,numTabRecyclerView);
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        numTabRecyclerView.setLayoutManager(linearLayoutManager);
+       // numTabRecyclerView.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         numTabRecyclerView.setAdapter(numTabAdapter);
 
 
-        mNavigationLinearLayout = (NavigationLinearLayout) findViewById(R.id.folderCats);
-        List<String> data = new ArrayList<>();
 
-        data.addAll(App.getInstance().getAllTypeMap(true).keySet());
-
-        mNavigationLinearLayout.setDataList(data);
-        mNavigationLinearLayout.setNavigationListener(mNavigationListener);
 
 
         movieList = new ArrayList<>();
@@ -239,9 +235,58 @@ public class MainActivity extends AppCompatActivity {
                 view.setSelected(true);
             }
         };
-        foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        folderCatsRV =  findViewById(R.id.folderCats);
+
+        folderCatsAdaper = new FolderCatsListRecycleViewAdapter(this, folderCatsRV,moviesRecyclerViewAdapter);
+
+
+       // folderCatsRV.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        //folderCatsRV.addItemDecoration(new RecyclerItemDecoration(10, 10,5));
+
+
+        folderCatsRV.setAdapter(folderCatsAdaper);
+        //folderCatsRV.setItemAnimator(null);
+
+       // foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         foldersRecyclerView.addItemDecoration(new SpaceDecoration(30));
         foldersRecyclerView.setAdapter(moviesRecyclerViewAdapter);
+
+        menuPanel.setOnFocusSearchListener(new BrowseFrameLayout.OnFocusSearchListener() {
+            @Override
+            public View onFocusSearch(View focused, int direction) {
+                if(foldersRecyclerView.hasFocus()){
+                    switch (direction){
+                        case FOCUS_DOWN:folderCatsRV.requestFocus();
+                            return folderCatsRV;
+                        case FOCUS_UP:
+                            return numTabRecyclerView;
+                    }
+                }
+                else if(folderCatsRV.hasFocus() &&  direction == FOCUS_DOWN)return folderCatsRV;
+                else if(numTabRecyclerView.hasFocus() &&  direction == FOCUS_UP)return numTabRecyclerView;
+                return null;
+            }
+        });
+
+        //((RelativeLayout)menuPanel).addonk
+      /*  moviesRecyclerViewAdapter.setOnKeyDown(new View.OnKeyListener(){
+
+            @Override
+            public boolean onKey(View view, int keycode, KeyEvent keyEvent) {
+                if(keycode==KeyEvent.KEYCODE_DPAD_DOWN && keyEvent.getAction() == KeyEvent.ACTION_DOWN){
+                    view.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            folderCatsRV.requestFocus();
+                        }
+                    },1000);
+                    return true;
+                }
+                return false;
+            }
+        });*/
+
 
 
         MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
@@ -254,31 +299,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private NavigationLinearLayout.NavigationListener mNavigationListener = new NavigationLinearLayout.NavigationListener() {
-        @Override
-        public void onNavigationChange(String s, int pos, int keyCode) {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                case KeyEvent.KEYCODE_DPAD_RIGHT: //模拟刷新内容区域
-                    //  moviesRecyclerViewAdapter.update(App.getAllTypeMap().get(s));
-                    //rvGameList.smoothScrollToPosition(0);
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
 
-                        @Override
-                        public void run() {
-                            moviesRecyclerViewAdapter.update(App.getAllTypeMap(false).get(s));
-
-                        }});
-                    break;
-                case KeyEvent.KEYCODE_DPAD_UP:
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                    break;
-                case KeyEvent.KEYCODE_MENU:
-                    break;
-            }
-        }
-    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

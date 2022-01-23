@@ -31,7 +31,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
+/**
+ * @author: njb
+ * @date: 2020/6/22 0022 0:54
+ * @desc:游戏列表适配器
+ */
 public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Folder> mList;
     private List<Folder> allList;

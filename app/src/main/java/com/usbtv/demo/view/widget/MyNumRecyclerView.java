@@ -28,6 +28,7 @@ public class MyNumRecyclerView extends RecyclerView {
         super(context, attrs, defStyle);
     }
 
+
     @Override
     public void requestChildFocus(View child, View focused) {
 

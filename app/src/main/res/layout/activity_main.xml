@@ -6,16 +6,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <com.nurmemet.nur.nurvideoplayer.TvVideoView
-        android:id="@+id/videoView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-</RelativeLayout>
+
     <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.nurmemet.nur.nurvideoplayer.TvVideoView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
+    <androidx.leanback.widget.BrowseFrameLayout
         android:id="@+id/menuPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,52 +25,33 @@
         android:background="#80000000"
         android:clipChildren="false"
         android:clipToPadding="false"
+        android:orientation="vertical"
         android:stateListAnimator="@null"
-        android:visibility="gone"
-        android:orientation="vertical">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/numTabRV"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:nextFocusDown="@id/numTabRV"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:visibility="visible">
 
-        <com.usbtv.demo.view.FocusRecyclerView
-            android:id="@+id/foldersRV"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/numTabRV"
-            android:nextFocusUp="@id/numTabRV"
-            android:nextFocusDown="@id/folderCats"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/numTabRV"
-            />
+            android:orientation="vertical">
 
-        <com.usbtv.demo.view.widget.NavigationLinearLayout
-            android:id="@+id/folderCats"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/dp_45"
-            android:layout_below="@id/foldersRV"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="0dp"
-            android:descendantFocusability="afterDescendants"
-            android:nextFocusUp="@id/foldersRV"
-            app:home_DefaultPos="1"
-            app:home_EnlargeRate="1.3"
-            app:home_FontColorLight="#cc0033"
-            app:home_FontColorNormal="#4EEE94"
-            app:home_FontColorSelect="#7777FF"
-            app:home_FontSize="8sp"
-            app:home_ItemSpace="20dp"
-            app:home_OrderMode="self"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/foldersRV"
-            />
-    </RelativeLayout>
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/numTabRV"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                />
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/foldersRV"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"/>
+
+            <androidx.leanback.widget.HorizontalGridView
+                android:id="@+id/folderCats"
+                android:layout_width="match_parent"
+                android:layout_height="50dp" />
+        </LinearLayout>
+
+
+    </androidx.leanback.widget.BrowseFrameLayout>
 
 
 </RelativeLayout>
