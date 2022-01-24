@@ -93,9 +93,9 @@ public class Aid {
 
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
-            typesMap.put("本地",0);
+            typesMap.put("本地", 0);
             for (File aidDir : aidDirs) {
-                scanFolder(0,root, aidDir,validFoldersMap,validAidsMap);
+                scanFolder(0, root, aidDir, validFoldersMap, validAidsMap);
             }
         }
 
@@ -104,7 +104,7 @@ public class Aid {
 
     public static void scanFolder(Integer typeId, Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
-        if(validAidsMap.get(aidDir.getName())!=null)return;
+        if (validAidsMap.get(aidDir.getName()) != null) return;
 
         String divfile = aidDir.getAbsolutePath() + File.separator + aidDir.getName() + ".dvi";
 
@@ -128,15 +128,15 @@ public class Aid {
             @Override
             public int compare(File f1, File f2) {
 
-                String n1=f1.getName();
-                String n2=f2.getName();
-                int maxLen=n1.length()>n2.length()?n1.length():n2.length();
+                String n1 = f1.getName();
+                String n2 = f2.getName();
+                int maxLen = n1.length() > n2.length() ? n1.length() : n2.length();
 
-                while (n1.length()<maxLen){
-                    n1=" "+n1;
+                while (n1.length() < maxLen) {
+                    n1 = " " + n1;
                 }
-                while (n2.length()<maxLen){
-                    n2=" "+n2;
+                while (n2.length() < maxLen) {
+                    n2 = " " + n2;
                 }
                 return n1.compareTo(n2);
 
@@ -162,45 +162,38 @@ public class Aid {
             folderDao.createOrUpdate(folder);
 
         }
-        validFoldersMap.put(folder.getId(),true);
-        validAidsMap.put(folder.getAid(),true);
+        validFoldersMap.put(folder.getId(), true);
+        validAidsMap.put(folder.getAid(), true);
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
-        int orderN=0;
+        int orderN = 0;
         for (File file : matchFiles) {
+            try {
+                String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
 
-            String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
+                VFile vfile = vFileDao.queryBuilder().where().eq("p", path.replaceAll("'", "\\'")).and()
+                        .eq("folder_id", folder.getId()).queryForFirst();
 
-            VFile vfile = vFileDao.queryBuilder().where().eq("p", path.replaceAll("'","\\'")).and()
-                    .eq("folder_id", folder.getId()).queryForFirst();
+                if (vfile == null) {
 
-            if (vfile == null) {
 
-                try {
                     vfile = new VFile();
                     vfile.setP(path);
                     vfile.setName(file.getName());
                     vfile.setFolder(folder);
 
-                    try{
-                        String num = path.split(File.separator)[0];
-                        vfile.setPage(Integer.parseInt(num));
-                    }catch (Exception e){
-
-                    }
+                    String num = path.split(File.separator)[0];
+                    vfile.setPage(Integer.parseInt(num));
 
 
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
                 }
+                vfile.setOrderSeq(orderN++);
+                vFileDao.createOrUpdate(vfile);
 
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
-            vfile.setOrderSeq(orderN++);
-            vFileDao.createOrUpdate(vfile);
-
-
         }
     }
 

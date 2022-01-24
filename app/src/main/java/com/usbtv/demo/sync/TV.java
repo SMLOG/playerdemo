@@ -173,7 +173,7 @@ public class TV {
     }
 
     public static List<Channel> checkM3uUrl(String[] urls) throws InterruptedException {
-        final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(30);
+        final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
 
         List<Channel> channelList = new ArrayList<Channel>();
 
