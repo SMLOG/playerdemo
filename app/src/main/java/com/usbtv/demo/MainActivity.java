@@ -277,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
        PlayerController.getInstance().setUIs(videoView, menuPanel);
+       videoView.setUp(this);
 
         PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter);
 
@@ -290,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         System.out.println("grant");
-        android.os.Environment.getExternalStorageDirectory();
         //new File(android.os.Environment.getExternalStorageDirectory()+File.separator+"test/abc").getParentFile().mkdirs();
 
     }

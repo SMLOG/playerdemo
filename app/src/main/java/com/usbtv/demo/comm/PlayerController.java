@@ -83,6 +83,7 @@ public final class PlayerController {
             Integer value = allMap.get(key);
             if (this.catMoviesMap.get(value) != null) {
                 this.cats.add(key);
+
             }
         }
 
@@ -224,15 +225,16 @@ public final class PlayerController {
             Dao<Folder, ?> folderDao = App.getHelper().getDao(Folder.class);
 
             Folder folder = folderDao.queryBuilder()
-                    .where().eq("typeId", curItem.getTypeId()).and().lt("orderSeq", curItem.getOrderSeq())
+                    .where().eq("typeId", curItem.getFolder().getTypeId()).and().lt("orderSeq", curItem.getOrderSeq())
                     .queryBuilder()
                     .orderBy("orderSeq", false)
                     .queryForFirst();
             if (folder == null)
                 folder = folderDao.queryBuilder()
-                        .where().eq("typeId", curItem.getTypeId())
+                        .where().eq("typeId", curItem.getFolder().getTypeId())
                         .queryBuilder()
                         .orderBy("orderSeq", false)
+                        .orderBy("id", false)
                         .queryForFirst();
 
             if (folder != null) {
@@ -356,6 +358,7 @@ public final class PlayerController {
 
     public PlayerController setCurIndex(int i) {
         this.curIndex = i;
+        if(this.numAdapter!=null)
         this.numAdapter.notifyDataSetChanged();
         return this;
     }

@@ -39,10 +39,10 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
         viewHolder.tv.setText(position + 1 + "");
-
+        holder.itemView.setFocusable(true);
+        holder.itemView.setClickable(true);
         viewHolder.tv.setTextColor(position == PlayerController.getInstance().getCurIndex() ? Color.RED : Color.WHITE);
-
-        viewHolder.tv.setOnClickListener(new View.OnClickListener() {
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PlayerController.getInstance().play(position).hideMenu();

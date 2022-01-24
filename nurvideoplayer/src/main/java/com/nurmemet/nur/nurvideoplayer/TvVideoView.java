@@ -108,7 +108,9 @@ public class TvVideoView extends LinearLayout implements View.OnClickListener {
     public void setUp(Activity activity, String rul) {
         setUp(activity, Uri.parse(rul), null);
     }
-
+    public void setUp(Activity activity) {
+        this.mActivity = activity;
+    }
     /**
      * 初始化播放器
      */
@@ -396,4 +398,6 @@ public class TvVideoView extends LinearLayout implements View.OnClickListener {
          mVideoView.seekTo(pos);
 
     }
+
+
 }

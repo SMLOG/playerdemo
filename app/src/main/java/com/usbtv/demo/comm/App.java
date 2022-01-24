@@ -93,7 +93,7 @@ public class App extends Application implements CacheListener {
 
 
         String lastUpdateM3U = "lastUpdateM3U";
-        if (force || System.currentTimeMillis() - sp.getLong(lastUpdateM3U, 0l) > 3600 * 24 * 15) {
+        if (force || System.currentTimeMillis() - sp.getLong(lastUpdateM3U, 0l) > 3600000 * 24 * 15) {
             String[] filePaths = new String[]{
                     "/storage/36AC6142AC60FDAD/m3u/channels/us.m3u",
                     "/storage/36AC6142AC60FDAD/m3u/channels/uk.m3u"

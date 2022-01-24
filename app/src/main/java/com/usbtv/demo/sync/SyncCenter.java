@@ -203,23 +203,33 @@ public class SyncCenter {
         Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
         Map<String,Integer> typesMap = new LinkedHashMap<>();
+
+        bilibiliVideos(typesMap,folderDao, vFileDao, validFoldersMap, validAidsMap);
+
+        updateScreenTabs(typesMap);
+
         // cnn news video
         if(true){
 
             try {
                 cnnVideos(typesMap,folderDao, vFileDao);
+
             }catch (Throwable e){e.printStackTrace();}
-            updateScreenTabs(typesMap);
 
         }
 
 
-        liveStream(typesMap,folderDao, vFileDao, validFoldersMap);
         updateScreenTabs(typesMap);
 
-        bilibiliVideos(typesMap,folderDao, vFileDao, validFoldersMap, validAidsMap);
-
+        try {
+            liveStream(force,typesMap,folderDao, vFileDao, validFoldersMap);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         updateScreenTabs(typesMap);
+
+
+
 
         // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");
@@ -369,37 +379,55 @@ public class SyncCenter {
         }
     }
 
-    public static void liveStream(Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException {
-        String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
-                "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
-                "Bloomberg HT,https://ciner.daioncdn.net/bloomberght/bloomberght_720p.m3u8\n" +
-                "AKC TV ,https://video.blivenyc.com/broadcast/prod/2061/22/file-3192k.m3u8\n" +
-                "America’s Funniest Home Videos,https://linear-12.frequency.stream/dist/roku/12/hls/master/playlist.m3u8\n" +
-                "BYUtv,http://a.jsrdn.com/broadcast/d5b46/+0000/high/c.m3u8\n" +
-                "CBSN,https://cbsn-us-cedexis.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master.m3u8").split("\n");
+    public static void liveStream(boolean force,Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
 
-        typesMap.put("TV",2);
-        for(String zhb:zhiboList){
-           String[] tp= zhb.split(",");
-            Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", tp[0]).queryForFirst();
-            if(zhbFolder==null){
-                zhbFolder = new Folder();
-                zhbFolder.setTypeId(2);
-                zhbFolder.setName(tp[0]);
-                folderDao.createOrUpdate(zhbFolder);
+       typesMap.put("TV",2);
 
-                VFile vf = new VFile();
-                vf.setFolder(zhbFolder);
-                vf.setdLink(tp[1]);
-                vf.setOrderSeq(0);
-                vFileDao.createOrUpdate(vf);
-            }else {
-                VFile vf=zhbFolder.getFiles().iterator().next();
-                vf.setdLink(tp[1]);
-                vFileDao.createOrUpdate(vf);
+        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        String lastUpdateM3U="lastUpdateM3UTV";
+
+        if (force||System.currentTimeMillis() - sp.getLong(lastUpdateM3U, 0l) > 3600 * 24*1000*10){
+
+            List<Channel> chs = TV.getChannels();
+
+            int i=chs.size();
+            for(Channel ch:chs){
+                Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title).queryForFirst();
+                if(zhbFolder==null){
+                    zhbFolder = new Folder();
+                    zhbFolder.setTypeId(2);
+                    zhbFolder.setName(ch.title);
+                    zhbFolder.setCoverUrl(ch.logo);
+                    folderDao.createOrUpdate(zhbFolder);
+
+                    VFile vf = new VFile();
+                    vf.setFolder(zhbFolder);
+                    vf.setdLink(ch.m3uUrl);
+                    vf.setOrderSeq(i);
+                    vFileDao.createOrUpdate(vf);
+                }else {
+                    VFile vf=zhbFolder.getFiles().iterator().next();
+                    vf.setdLink(ch.m3uUrl);
+                    vf.setName(ch.title);
+                    vf.setOrderSeq(i);
+                    vFileDao.createOrUpdate(vf);
+                }
+                i--;
+                validFoldersMap.put(zhbFolder.getId(),true);
             }
-            validFoldersMap.put(zhbFolder.getId(),true);
+
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putLong(lastUpdateM3U, System.currentTimeMillis());
+            editor.apply();
+
+        }else {
+            List<Folder> folders = folderDao.queryBuilder().where().eq("typeId", 2).query();
+            for(Folder f:folders){
+                validFoldersMap.put(f.getId(),true);
+            }
+
         }
+
     }
 
     public static void cnnVideos(Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {

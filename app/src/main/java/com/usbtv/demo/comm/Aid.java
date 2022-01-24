@@ -102,7 +102,6 @@ public class Aid {
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static void scanFolder(Integer typeId, Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         if(validAidsMap.get(aidDir.getName())!=null)return;
@@ -114,6 +113,7 @@ public class Aid {
         String title = aidDir.getName();
         String coverURL = null;
         String bvid = null;
+        int seq = matchFiles.size();
         if (matchFiles.size() > 0) {
             if (new File(divfile).exists()) {
                 String content = getStringFromFile(divfile);
@@ -158,6 +158,7 @@ public class Aid {
             folder.setAid(aidDir.getName());
             folder.setBvid(bvid);
             folder.setTypeId(typeId);
+            folder.setOrderSeq(seq--);
             folderDao.createOrUpdate(folder);
 
         }
@@ -171,7 +172,7 @@ public class Aid {
 
             String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
 
-            VFile vfile = vFileDao.queryBuilder().where().eq("p", path).and()
+            VFile vfile = vFileDao.queryBuilder().where().eq("p", path.replaceAll("'","\\'")).and()
                     .eq("folder_id", folder.getId()).queryForFirst();
 
             if (vfile == null) {
