@@ -1,4 +1,4 @@
-package com.usbtv.demo.comm;
+package com.usbtv.demo.sync;
 
 
 import android.content.Context;
@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.MainActivity;
+import com.usbtv.demo.comm.Aid;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.comm.SSLSocketClient;
+import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.data.Video;
@@ -40,9 +46,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class DownloadCenter {
+public class SyncCenter {
 
-    private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
     public static JSONObject getVidoInfo(String bvid, Integer p) {
 
@@ -59,13 +64,7 @@ public class DownloadCenter {
         return null;
     }
 
-    public static String join(String s, List<String> values) {
-        StringBuilder sb = new StringBuilder();
-        for (String v : values) {
-            sb.append(v).append(s);
-        }
-        return sb.toString();
-    }
+
 
     public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
         int i=5;
@@ -93,7 +92,7 @@ public class DownloadCenter {
         Request request = new Request
                 .Builder()
                 .url("https://bilibili.iiilab.com/")
-                .addHeader("User-Agent", AGENT)
+                .addHeader("User-Agent", Utils.AGENT)
                 .build();
 
         Call call = okHttpClient.newCall(request);
@@ -111,7 +110,7 @@ public class DownloadCenter {
         request = new Request
                 .Builder()
                 .url("https://wx.iiilab.com/static/js/human.min.js?v21")
-                .addHeader("User-Agent", AGENT)
+                .addHeader("User-Agent", Utils.AGENT)
                 .build();
 
         call = okHttpClient.newCall(request);
@@ -137,8 +136,8 @@ public class DownloadCenter {
         request = new Request.Builder().url(url)
                 .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .addHeader("Origin", "https://bilibili.iiilab.com/")
-                .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", AGENT)
-                .addHeader("Cookie", join(";", cookies))
+                .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                .addHeader("Cookie", Utils.join(";", cookies))
 
                 .post(requestBody).build();
         call = okHttpClient.newCall(request);
@@ -152,7 +151,6 @@ public class DownloadCenter {
         String rsp = response.body().string();
 
 
-        mediaType = MediaType.parse("application/x-www-form-urlencoded");
 
         requestBody = new FormBody.Builder().add("link", link).add("r", e)
                 .add("s", n).build();
@@ -161,8 +159,8 @@ public class DownloadCenter {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .addHeader("Origin", "https://bilibili.iiilab.com/")
                 .addHeader("Referer", "https://bilibili.iiilab.com/")
-                .addHeader("User-Agent", AGENT)
-                .addHeader("Cookie", join(";", cookies))
+                .addHeader("User-Agent", Utils.AGENT)
+                .addHeader("Cookie", Utils.join(";", cookies))
                 .addHeader("X-Client-Data", xclientdata)
 
                 .post(requestBody).build();
@@ -189,25 +187,13 @@ public class DownloadCenter {
 
     public static void main(String[] args) throws ScriptException, IOException, SQLException {
 
-        syncData();
+        syncData(false);
     }
 
-
-    private static String getObject(JSONObject obj, String string) {
-
-        if(obj==null) return null;
-
-        if(string.indexOf(".")==-1)return obj.getString(string);
-        String key = string.substring(0,string.indexOf("."));
-
-        return  getObject(obj.getJSONObject(key),string.substring(string.indexOf(".")+1));
-    }
-
-    public static void syncData() throws  IOException, SQLException {
-
+    public static void syncData(boolean force) throws  IOException, SQLException {
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        if( System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
+        if( ! force &&  System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
@@ -216,25 +202,30 @@ public class DownloadCenter {
 
         Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
+        Map<String,Integer> typesMap = new LinkedHashMap<>();
         // cnn news video
         if(true){
 
             try {
-                cnnVideos(folderDao, vFileDao);
+                cnnVideos(typesMap,folderDao, vFileDao);
             }catch (Throwable e){e.printStackTrace();}
+            updateScreenTabs(typesMap);
 
         }
 
-        liveStream(folderDao, vFileDao, validFoldersMap);
-        App.getTypesMap().clear();
-        bilibiliVideos(folderDao, vFileDao, validFoldersMap, validAidsMap);
 
+        liveStream(typesMap,folderDao, vFileDao, validFoldersMap);
+        updateScreenTabs(typesMap);
+
+        bilibiliVideos(typesMap,folderDao, vFileDao, validFoldersMap, validAidsMap);
+
+        updateScreenTabs(typesMap);
 
         // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");
        // deleteBuilder.delete();
         try {
-            Aid.scanAllDrive(validFoldersMap,validAidsMap);
+            Aid.scanAllDrive(typesMap,validFoldersMap,validAidsMap);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -259,46 +250,52 @@ public class DownloadCenter {
         SharedPreferences.Editor editor = sp.edit();
         editor.putLong("lastSynTime", System.currentTimeMillis());
         editor.apply();
-        //editor.apply();
-        sp.edit().commit();
-        updateScreenTabs();
+        editor.commit();
+        updateScreenTabs(typesMap);
         //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
     }
 
-    public static void updateScreenTabs() {
+    public static void updateScreenTabs(Map<String,Integer> typesMap) {
+        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sp.edit();
+        String jsonStr = JSON.toJSONString(typesMap);
+        editor.putString("typesMap", jsonStr);
+        editor.apply();
+        editor.commit();
+
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
 
             @Override
             public void run() {
-                ArrayList<String> newList = new ArrayList<>();
-                newList.addAll(App.getInstance().getAllTypeMap(false).keySet());
-                App.saveTypesMap();
+                PlayerController.getInstance().reloadMoviesList();
             }});
     }
 
-    public static void bilibiliVideos(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
-        String resp = get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
+    public static void bilibiliVideos(Map<String,Integer> typesMap , Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
+        String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
 
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 
 
+        int orderSeq=list.size()*20;
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
             Integer typeId2 = i+10;
             Integer media_count = (Integer) item.get("media_count");
 
-            if(media_count>0) App.getTypesMap().put(item.getString("title"),typeId2.toString());
+            if(media_count>0) typesMap.put(item.getString("title"),typeId2);
 
             System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
 
             int pn=1;
 
             do {
-                resp = get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + typeId + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
+                resp = Utils.get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + typeId + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
                 jsonObj = JSONObject.parseObject(resp);
                 JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
@@ -324,6 +321,7 @@ public class DownloadCenter {
                         folder.setBvid(bvid);
                         folder.setCoverUrl(cover);
                         folder.setTypeId(typeId2);
+                        folder.setOrderSeq(orderSeq);
                         folderDao.create(folder);
 
                         Map<String, Object> infoMap = new HashMap<String, Object>();
@@ -332,13 +330,17 @@ public class DownloadCenter {
                         infoMap.put("Title", "" + title);
                         infoMap.put("CoverURL", "" + cover);
 
+
                     } else {
                         folder.setTypeId(typeId2);
                         folder.setName(title);
                         folder.setCoverUrl(cover);
+                        folder.setOrderSeq(orderSeq);
+
                         folderDao.update(folder);
 
                     }
+                    orderSeq--;
 
                     validFoldersMap.put(folder.getId(),true);
                     validAidsMap.put(aid.toString(),true);
@@ -360,8 +362,6 @@ public class DownloadCenter {
 
                 }
 
-
-
                 if(pn*20>media_count)break;
                 pn++;
 
@@ -369,7 +369,7 @@ public class DownloadCenter {
         }
     }
 
-    public static void liveStream(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException {
+    public static void liveStream(Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException {
         String[] zhiboList=("Cheddar Big News,https://live.chdrstatic.com/cbn/index.m3u8\n" +
                 "Cheddar,https://live.chdrstatic.com/cheddar/index.m3u8\n" +
                 "Bloomberg HT,https://ciner.daioncdn.net/bloomberght/bloomberght_720p.m3u8\n" +
@@ -378,6 +378,7 @@ public class DownloadCenter {
                 "BYUtv,http://a.jsrdn.com/broadcast/d5b46/+0000/high/c.m3u8\n" +
                 "CBSN,https://cbsn-us-cedexis.cbsnstream.cbsnews.com/out/v1/55a8648e8f134e82a470f83d562deeca/master.m3u8").split("\n");
 
+        typesMap.put("TV",2);
         for(String zhb:zhiboList){
            String[] tp= zhb.split(",");
             Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", tp[0]).queryForFirst();
@@ -401,7 +402,7 @@ public class DownloadCenter {
         }
     }
 
-    public static void cnnVideos(Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {
+    public static void cnnVideos(Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {
         int channelId=3;
 
         String[] urls=new String[]{
@@ -418,10 +419,11 @@ public class DownloadCenter {
         };
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
-
+        typesMap.put("CNN2",channelId);
+        typesMap.put("CNN",4);
         for(String feedUrl:urls){
 
-            String resp = get(feedUrl);
+            String resp = Utils.get(feedUrl);
 
             JSONArray jsonArr = null;
             boolean isTop=feedUrl.indexOf("index.json")>-1;
@@ -442,7 +444,7 @@ public class DownloadCenter {
                 if(matcher.find()){
                     String dateStr = matcher.group();
                     folderName = dateStr;
-                    seq = Integer.parseInt(dateStr);
+                    seq = Integer.parseInt(dateStr.replaceAll("/",""));
 
                 }else continue;
 
@@ -457,18 +459,18 @@ public class DownloadCenter {
                 Video video = videoDao.queryBuilder().where().eq("videoId",videoId).queryForFirst();
                 if(video!=null) continue;
 
-                resp = get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
+                resp = Utils.get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
                 JSONObject obj = JSONObject.parseObject(resp);
 
                 String mediumId = obj.getString("mediumId");
 
-                resp = get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
+                resp = Utils.get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
 
                 obj = JSONObject.parseObject(resp);
                 if(obj==null){
                     continue;
                 }
-                String url =  getObject(obj,"media.tv.unprotected.url");
+                String url =  Utils.getObject(obj,"media.tv.unprotected.url");
                 if(url==null) continue;
                 System.out.println(url);
 
@@ -543,20 +545,6 @@ public class DownloadCenter {
     }
 
 
-    private static String get(String url) throws IOException {
-        OkHttpClient okHttpClient = new OkHttpClient();
 
-        Request.Builder reqBuild = new Request.Builder();
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url)
-                .newBuilder();
-        reqBuild.url(urlBuilder.build());
-        Request request = reqBuild.addHeader("User-Agent", AGENT).build();
-        final Call call = okHttpClient.newCall(request);
-        Response response = call.execute();
-
-        String resp = response.body().string();
-        System.out.println(resp);
-        return resp;
-    }
 
 }

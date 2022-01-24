@@ -10,13 +10,11 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.usbtv.demo.R;
-import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.PlayerController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,9 +24,6 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
     private Context mContext;
     private final LayoutInflater mLayoutInflater;
 
-    private int defaultFocus = 0;
-    private boolean needFocus = true;
-    private List<String> datas;
     private int curPos=0;
 
     public FolderCatsListRecycleViewAdapter(Context context, RecyclerView rv, FolderListAdapter moviesRecyclerViewAdapter) {
@@ -36,27 +31,12 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
         this.recyclerView = rv;
         mLayoutInflater = LayoutInflater.from(mContext);
         this.moviesRecyclerViewAdapter=moviesRecyclerViewAdapter;
-        this.refresh();
     }
 
     @Override
     public long getItemId(int position) {
         return position;
     }
-    public void refresh() {
-
-        List<String> data = new ArrayList<>();
-
-        data.addAll(App.getInstance().getAllTypeMap(true).keySet());
-
-        this.datas = data;
-
-        this.notifyDataSetChanged();
-    }
-
-
-
-
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -70,19 +50,18 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
-        viewHolder.catText.setText(this.datas.get(position));
+        String cat = PlayerController.getInstance().getCats().get(position);
+        viewHolder.catText.setText(cat);
 
 
-        viewHolder.catText.setTextColor(position ==this.curPos ? Color.RED : Color.WHITE);
+        viewHolder.catText.setTextColor(cat.equals( PlayerController.getInstance().getCurCat()) ? Color.RED : Color.WHITE);
 
-
-        //viewHolder.catText.setFocusable(true);
         viewHolder.itemView.setFocusable(true);
         viewHolder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus && !recyclerView.isComputingLayout()) {
-                    moviesRecyclerViewAdapter.update(App.getAllTypeMap(false).get(datas.get(position)));
+                    PlayerController.getInstance().setCurCat(viewHolder.catText.getText().toString());
                     viewHolder.catText.setTextColor(Color.RED);
                     int p = curPos;
                     curPos = position;
@@ -147,6 +126,8 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
 
     @Override
     public int getItemCount() {
+
+        List<String> datas = PlayerController.getInstance().getCats();
         if (datas != null)
             return datas.size();
         return 0;

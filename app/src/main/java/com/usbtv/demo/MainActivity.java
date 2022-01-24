@@ -39,7 +39,6 @@ import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
 import java.io.File;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -57,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.menuPanel)
     BrowseFrameLayout menuPanel;
-    private List<Folder> movieList;
 
     public static RecyclerView folderCatsRV;
 
@@ -65,12 +63,12 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver receiver = new MyBroadcastReceiver();
 
 
-    public static FolderNumListRecycleViewAdapter numTabAdapter;
+    public static FolderNumListRecycleViewAdapter numAdapter;
     private RecyclerView numTabRecyclerView;
     private RecyclerView foldersRecyclerView;
-    public static FolderListAdapter moviesRecyclerViewAdapter;
+    public static FolderListAdapter foldersAdapter;
     private List<String> storagePathList;
-    private FolderCatsListRecycleViewAdapter folderCatsAdaper;
+    private FolderCatsListRecycleViewAdapter catsAdaper;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -103,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
     private void continuePlayPrevious() {
         Intent intent = getIntent();
 
-
         long id = -1;
         if (intent != null) id = intent.getLongExtra("Movie", -1l);
         if (id > 0) {
@@ -111,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
                 folder = dao.queryForId((int) id);
-                PlayerController.getInstance().play(folder.getFiles().iterator().next());
+               if(folder!=null) PlayerController.getInstance().play(folder.getFiles().iterator().next());
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -187,6 +184,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindElementViews() {
+
+        PlayerController.getInstance().reloadMoviesList();
+
         videoView = findViewById(R.id.videoView);
 
         menuPanel = findViewById(R.id.menuPanel);
@@ -198,19 +198,18 @@ public class MainActivity extends AppCompatActivity {
 
         foldersRecyclerView = findViewById(R.id.foldersRV);
 
-        numTabAdapter = new FolderNumListRecycleViewAdapter(this, numTabRecyclerView);
+        numAdapter = new FolderNumListRecycleViewAdapter(this, numTabRecyclerView);
 
         // numTabRecyclerView.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        numTabRecyclerView.setAdapter(numTabAdapter);
+        numTabRecyclerView.setAdapter(numAdapter);
 
 
-        movieList = App.getAllMovies();
 
-        moviesRecyclerViewAdapter = new FolderListAdapter(foldersRecyclerView, movieList, this, new FolderListAdapter.OnItemClickListener() {
+        foldersAdapter = new FolderListAdapter(foldersRecyclerView, this, new FolderListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(View view, List<Folder> mList, int position) {
+            public void onItemClick(View view, Folder folder, int position) {
                 PlayerController.getInstance().hideMenu();
-                PlayerController.getInstance().play(mList, position);
+                PlayerController.getInstance().play(folder, position,0);
             }
         }) {
             @Override
@@ -229,17 +228,17 @@ public class MainActivity extends AppCompatActivity {
         };
         folderCatsRV = findViewById(R.id.folderCats);
 
-        folderCatsAdaper = new FolderCatsListRecycleViewAdapter(this, folderCatsRV, moviesRecyclerViewAdapter);
+        catsAdaper = new FolderCatsListRecycleViewAdapter(this, folderCatsRV, foldersAdapter);
 
 
         // folderCatsRV.setLayoutManager( new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        folderCatsRV.setAdapter(folderCatsAdaper);
+        folderCatsRV.setAdapter(catsAdaper);
         //folderCatsRV.setItemAnimator(null);
 
         // foldersRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         foldersRecyclerView.addItemDecoration(new SpaceDecoration(30));
-        foldersRecyclerView.setAdapter(moviesRecyclerViewAdapter);
+        foldersRecyclerView.setAdapter(foldersAdapter);
 
         menuPanel.setOnFocusSearchListener(new BrowseFrameLayout.OnFocusSearchListener() {
             @Override
@@ -278,6 +277,10 @@ public class MainActivity extends AppCompatActivity {
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
        PlayerController.getInstance().setUIs(videoView, menuPanel);
+
+        PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter);
+
+        PlayerController.getInstance().init();
 
 
     }
@@ -431,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
-                    PlayerController.getInstance().nextFolder();
+                    PlayerController.getInstance().playNextFolder();
                 }
 
                 break;

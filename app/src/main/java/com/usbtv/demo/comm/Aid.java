@@ -1,5 +1,9 @@
 package com.usbtv.demo.comm;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -74,7 +78,7 @@ public class Aid {
     }
 
 
-    public static void scanAllDrive(Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    public static void scanAllDrive(Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
@@ -89,15 +93,17 @@ public class Aid {
 
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
+            typesMap.put("本地",0);
             for (File aidDir : aidDirs) {
-                scanFolder(root, aidDir,validFoldersMap,validAidsMap);
+                scanFolder(0,root, aidDir,validFoldersMap,validAidsMap);
             }
         }
 
 
     }
 
-    public static void scanFolder(Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static void scanFolder(Integer typeId, Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         if(validAidsMap.get(aidDir.getName())!=null)return;
 
@@ -151,6 +157,7 @@ public class Aid {
             folder.setCoverUrl(coverURL);
             folder.setAid(aidDir.getName());
             folder.setBvid(bvid);
+            folder.setTypeId(typeId);
             folderDao.createOrUpdate(folder);
 
         }

@@ -3,14 +3,11 @@ package com.usbtv.demo.view.adapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.Interpolator;
+import android.graphics.Color;
 import android.os.Build;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,28 +18,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.usbtv.demo.R;
+import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.data.Folder;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private List<Folder> mList;
-    private List<Folder> allList;
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
     private final LayoutInflater mLayoutInflater;
-    private String typeId="";
 
     private  RecyclerView moviesRecyclerView;
-    public FolderListAdapter(RecyclerView moviesRecyclerView, List<Folder> mList, Context context, OnItemClickListener onItemClickListener) {
-        this.allList = mList;
+    public FolderListAdapter(RecyclerView moviesRecyclerView, Context context, OnItemClickListener onItemClickListener) {
         this.mContext = context;
-        List<Folder> newList = new ArrayList<>();
-        newList.addAll(allList);
-
-        this.mList = newList;
 
         this.moviesRecyclerView = moviesRecyclerView;
 
@@ -53,31 +41,12 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     public long getItemId(int position) {
         return position;
     }
-    public void update(String mString) {
-        List<Folder> newList = new ArrayList<>();
-
-        if("".equals(mString)){
-            newList.addAll(allList);
-        }else
-        for(Folder f:allList){
-           if( mString.equals(""+f.getTypeId())){
-               newList.add(f);
-           }
-        }
-        mList = newList;
-        this.typeId = mString;
-        notifyDataSetChanged();
-    }
 
 
 
-    public void update(List<Folder> folderList) {
-        this.allList = folderList;
-        this.update(this.typeId);
-    }
 
     public interface OnItemClickListener {
-        void onItemClick(View view, List<Folder> mList, int position);
+        void onItemClick(View view, Folder folder, int position);
     }
 
     public interface OnItemFocusChangeListener {
@@ -141,16 +110,20 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
-        viewHolder.tv.setText(mList.get(position).getShortName());
+        Folder folder = PlayerController.getInstance().getCurCatList().get(position);
+        viewHolder.tv.setText(folder.getShortName());
+
+        viewHolder.tv.setBackgroundColor(PlayerController.getInstance().isFolderPositionSelected(position)?Color.RED:Color.BLACK);
+
         holder.itemView.setTag(position);
         //GlideUtils.loadImg(mContext,mList.get(position).getCoverUrl(),viewHolder.iv);
-        Glide.with(mContext).load(mList.get(position).getCoverUrl()).into(viewHolder.iv);
+        Glide.with(mContext).load(folder.getCoverUrl()).into(viewHolder.iv);
 
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mOnItemClickListener.onItemClick(v, mList,position);
+                    mOnItemClickListener.onItemClick(v, folder,position);
 
                 }
             });
@@ -175,7 +148,7 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
 
     @Override
     public int getItemCount() {
-        return mList.size();
+        return PlayerController.getInstance().getCurCatList().size();
     }
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {

@@ -45,6 +45,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class Utils {
 
 
@@ -365,5 +371,40 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
     }
 
 
+    public static String join(String s, List<String> values) {
+        StringBuilder sb = new StringBuilder();
+        for (String v : values) {
+            sb.append(v).append(s);
+        }
+        return sb.toString();
+    }
 
+    public static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
+
+    public static String get(String url) throws IOException {
+        OkHttpClient okHttpClient = new OkHttpClient();
+
+        Request.Builder reqBuild = new Request.Builder();
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url)
+                .newBuilder();
+        reqBuild.url(urlBuilder.build());
+        Request request = reqBuild.addHeader("User-Agent", Utils.AGENT).build();
+        final Call call = okHttpClient.newCall(request);
+        Response response = call.execute();
+
+        String resp = response.body().string();
+        System.out.println(resp);
+        return resp;
+    }
+
+
+    public static String getObject(com.alibaba.fastjson.JSONObject obj, String string) {
+
+        if(obj==null) return null;
+
+        if(string.indexOf(".")==-1)return obj.getString(string);
+        String key = string.substring(0,string.indexOf("."));
+
+        return  getObject(obj.getJSONObject(key),string.substring(string.indexOf(".")+1));
+    }
 }

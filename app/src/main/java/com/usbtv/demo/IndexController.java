@@ -13,7 +13,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
-import com.usbtv.demo.comm.DownloadCenter;
+import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
@@ -77,8 +77,9 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping(path = "/api/reLoadPlayList")
-    String reLoadPlayList(RequestBody body) throws IOException {
+    String reLoadPlayList(RequestBody body) throws Exception {
 
+        SyncCenter.syncData(true);
 
         return "ok";
     }
@@ -486,7 +487,7 @@ public class IndexController {
             }
 
             com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
-            com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(data.getString("bvid"), this.curP);
+            com.alibaba.fastjson.JSONObject vidoInfo = SyncCenter.getVidoInfo(data.getString("bvid"), this.curP);
             if (vidoInfo == null || null == vidoInfo.getString("video")) {
                 this.curP = 1;
                 this.playIndex++;
@@ -554,7 +555,7 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-            com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+            com.alibaba.fastjson.JSONObject vidoInfo = SyncCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 url = vidoInfo.getString("video");
             }
@@ -577,7 +578,7 @@ public class IndexController {
     @GetMapping(path = "/api/syncache")
     String mybi(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) throws SQLException, IOException {
 
-        DownloadCenter.syncData();
+        SyncCenter.syncData(true);
 
         //DLVideo.getList();
 
@@ -599,7 +600,7 @@ public class IndexController {
 
                     File file = new File(vfile.getAbsPath());
                     if (!file.exists() || file.length() == 0) {
-                        com.alibaba.fastjson.JSONObject info = DownloadCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+                        com.alibaba.fastjson.JSONObject info = SyncCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
                         //if (info != null && info.getString("video") != null)
                            // oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
                     }

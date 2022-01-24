@@ -16,13 +16,13 @@ import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.news.NewsStarter;
 import com.usbtv.demo.r.InitChannel;
+import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.vurl.M3U;
 
 import java.io.File;
@@ -55,45 +55,18 @@ public class App extends Application implements CacheListener {
         return self;
     }
 
-    public static Map<String, String> getTypesMap() {
-
-        if (typesMap == null) {
-            typesMap = new LinkedHashMap<>();
-        }
-
-        return typesMap;
-    }
-
-    public static void saveTypesMap() {
-
-        SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
-
-        String jsonStr = JSON.toJSONString(typesMap);
-        SharedPreferences.Editor ed = sp.edit();
-        ed.putString("typesMap", jsonStr);
-        ed.commit();
-
-    }
-
     public static Map<String, String> getAllTypeMap(boolean b) {
-
-        LinkedHashMap<String, String> map = new LinkedHashMap<>();
 
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         String jsonStr = sp.getString("typesMap", "");
         if (!jsonStr.equals("")) {
             Map<String, String> dummyMap = JSON.parseObject(jsonStr, LinkedHashMap.class, Feature.OrderedField);
-            map.putAll(dummyMap);
+            return dummyMap;
         }
 
-        // map.put("电视电影","1");
-        map.put("直播", "2");
-        map.put("CNN2", "4");
-        map.put("CNN", "3");
-        map.put("其他", "0");
 
-        return map;
+        return new LinkedHashMap<>();
     }
 
     public static HttpProxyCacheServer proxy;
@@ -196,7 +169,7 @@ public class App extends Application implements CacheListener {
 
 
             } else {
-                com.alibaba.fastjson.JSONObject vidoInfo = DownloadCenter.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
+                com.alibaba.fastjson.JSONObject vidoInfo = SyncCenter.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
                 if (vidoInfo != null && null != vidoInfo.getString("video")) {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);
@@ -274,11 +247,7 @@ public class App extends Application implements CacheListener {
                 public void run() {
 
                     try {
-                        DownloadCenter.syncData();
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putLong("lastSyncWithRemoteTime", System.currentTimeMillis());
-                        editor.apply();
-                        sp.edit().commit();
+                        SyncCenter.syncData(false);
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -292,8 +261,7 @@ public class App extends Application implements CacheListener {
                         @Override
                         public void run() {
                             try {
-                                List<Folder> movies = App.getAllMovies();
-                                MainActivity.moviesRecyclerViewAdapter.update(movies);
+                                PlayerController.getInstance().reloadMoviesList();
                                 new InitChannel();
 
                             } catch (Exception throwables) {
@@ -310,7 +278,6 @@ public class App extends Application implements CacheListener {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-
 
     }
 
