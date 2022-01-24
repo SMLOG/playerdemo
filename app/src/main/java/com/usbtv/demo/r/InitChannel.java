@@ -39,14 +39,12 @@ public class InitChannel {
 
         }
 
-        Map<String, String> map = App.getAllTypeMap(false);
+        Map<String, Integer> map = App.getAllTypeMap();
 
         List<Long> channelList = new ArrayList<>();
         int i = 0;
         for (String key : map.keySet()) {
-            String val = map.get(key);
-            if ("".equals(val)) continue;
-
+            Integer val = map.get(key);
 
             i++;
             int contentId = 0;

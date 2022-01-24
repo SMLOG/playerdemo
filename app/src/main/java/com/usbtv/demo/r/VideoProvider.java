@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VideoProvider {
-    public static List<Folder> getMovieList(String val) {
+    public static List<Folder> getMovieList(Integer val) {
 
         try {
             Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);

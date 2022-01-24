@@ -55,16 +55,15 @@ public class App extends Application implements CacheListener {
         return self;
     }
 
-    public static Map<String, String> getAllTypeMap(boolean b) {
+    public static Map<String, Integer> getAllTypeMap() {
 
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         String jsonStr = sp.getString("typesMap", "");
         if (!jsonStr.equals("")) {
-            Map<String, String> dummyMap = JSON.parseObject(jsonStr, LinkedHashMap.class, Feature.OrderedField);
+            Map<String, Integer> dummyMap = JSON.parseObject(jsonStr, LinkedHashMap.class, Feature.OrderedField);
             return dummyMap;
         }
-
 
         return new LinkedHashMap<>();
     }

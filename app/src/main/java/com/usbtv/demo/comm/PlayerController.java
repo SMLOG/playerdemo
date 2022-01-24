@@ -41,7 +41,7 @@ public final class PlayerController {
     private String curCat;
 
     private List<Folder> allMovies;
-    private HashMap<String, List<Folder>> catMoviesMap;
+    private HashMap<Integer, List<Folder>> catMoviesMap;
     private FolderCatsListRecycleViewAdapter catsAdaper;
     private FolderListAdapter foldersAdapter;
     private FolderNumListRecycleViewAdapter numAdapter;
@@ -56,7 +56,7 @@ public final class PlayerController {
     public List<Folder> getCurCatList() {
 
         if (this.curCat == null) return new ArrayList<>();
-        String typeId = App.getAllTypeMap(false).get(this.curCat);
+        Integer typeId = App.getAllTypeMap().get(this.curCat);
         if (catMoviesMap.get(typeId) == null) return new ArrayList<>();
         return catMoviesMap.get(typeId);
     }
@@ -64,7 +64,7 @@ public final class PlayerController {
     public synchronized void reloadMoviesList() {
 
         this.allMovies = App.getAllMovies();
-        this.catMoviesMap = new HashMap<String, List<Folder>>();
+        this.catMoviesMap = new HashMap<Integer, List<Folder>>();
         List<Folder> list = null;
 
         int lastType = -1;
@@ -72,15 +72,15 @@ public final class PlayerController {
             if (folder.getTypeId() != lastType) {
                 lastType = folder.getTypeId();
                 list = new LinkedList<>();
-                catMoviesMap.put("" + lastType, list);
+                catMoviesMap.put(lastType, list);
             }
             list.add(folder);
         }
 
         this.cats = new ArrayList<String>();
-        Map<String, String> allMap = App.getInstance().getAllTypeMap(true);
+        Map<String, Integer> allMap = App.getInstance().getAllTypeMap();
         for (String key : allMap.keySet()) {
-            String value = allMap.get(key);
+            Integer value = allMap.get(key);
             if (this.catMoviesMap.get(value) != null) {
                 this.cats.add(key);
             }
@@ -371,8 +371,8 @@ public final class PlayerController {
     public void setCurCat(String curCat) {
 
         this.curCat = curCat;
-        String typeId = App.getAllTypeMap(false).get(curCat);
-        this.setCurCatId(Integer.parseInt(typeId));
+        Integer typeId = App.getAllTypeMap().get(curCat);
+        this.setCurCatId(typeId);
         this.foldersAdapter.notifyDataSetChanged();
     }
 

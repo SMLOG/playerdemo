@@ -419,8 +419,8 @@ public class SyncCenter {
         };
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
-        typesMap.put("CNN2",channelId);
-        typesMap.put("CNN",4);
+        typesMap.put("CNN2",4);
+        typesMap.put("CNN",channelId);
         for(String feedUrl:urls){
 
             String resp = Utils.get(feedUrl);

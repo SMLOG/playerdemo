@@ -24,7 +24,7 @@ public class UpdateRecommendationsService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
 
-        List<Folder> recommendations = VideoProvider.getMovieList("0");
+     /*   List<Folder> recommendations = VideoProvider.getMovieList("0");
         if (recommendations == null) return;
 
         int count = 0;
@@ -52,7 +52,7 @@ public class UpdateRecommendationsService extends IntentService {
             }
         } catch (IOException e) {
            // Log.e(TAG, "Unable to update recommendation", e);
-        }
+        }*/
     }
 
     private PendingIntent buildPendingIntent(Folder movie) {
