@@ -385,8 +385,11 @@ public final class PlayerController {
 
     public void play(Folder folder, int position, int i) {
         this.setFolderPosition(position);
-        this.setCurIndex(i);
-        this.play(folder.getFiles().toArray(new VFile[]{})[i]);
+        if(folder.getFiles().size()>i){
+            this.setCurIndex(i);
+            this.play(folder.getFiles().toArray(new VFile[]{})[i]);
+        }
+
     }
 
     public int getFolderPosition() {

@@ -196,7 +196,7 @@ public class TV {
 
 
     private static void checkUrl(String m3uUrl, final ExecutorService fixedThreadPool, List<Channel> channelList)
-            throws FileNotFoundException, IOException {
+            throws  IOException {
         String str = Utils.get(m3uUrl);
 
         String[] lines = str.split("\n");

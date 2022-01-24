@@ -206,7 +206,6 @@ public class SyncCenter {
 
         bilibiliVideos(typesMap,folderDao, vFileDao, validFoldersMap, validAidsMap);
 
-        updateScreenTabs(typesMap);
 
         // cnn news video
         if(true){
@@ -218,18 +217,11 @@ public class SyncCenter {
 
         }
 
-
-        updateScreenTabs(typesMap);
-
         try {
             liveStream(force,typesMap,folderDao, vFileDao, validFoldersMap);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        updateScreenTabs(typesMap);
-
-
-
 
         // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
        // deleteBuilder.where().isNull("p");

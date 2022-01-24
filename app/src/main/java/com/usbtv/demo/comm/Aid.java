@@ -172,7 +172,7 @@ public class Aid {
             try {
                 String path = file.getAbsolutePath().substring(aidDir.getAbsolutePath().length() + 1);
 
-                VFile vfile = vFileDao.queryBuilder().where().eq("p", path.replaceAll("'", "\\'")).and()
+                VFile vfile = vFileDao.queryBuilder().where().eq("p", path.replaceAll("'", "''")).and()
                         .eq("folder_id", folder.getId()).queryForFirst();
 
                 if (vfile == null) {
@@ -183,8 +183,19 @@ public class Aid {
                     vfile.setName(file.getName());
                     vfile.setFolder(folder);
 
-                    String num = path.split(File.separator)[0];
-                    vfile.setPage(Integer.parseInt(num));
+                    try {
+                        String num = path.split(File.separator)[0];
+                        vfile.setPage(Integer.parseInt(num));
+                    }catch (Throwable ee){
+
+                        try {
+                            String num = file.getName().replaceAll("\\..+","").replaceAll("[^\\d]","");
+                            vfile.setPage(Integer.parseInt(num));
+                        }catch (Throwable eee){
+
+                        }
+
+                    }
 
 
                 }
