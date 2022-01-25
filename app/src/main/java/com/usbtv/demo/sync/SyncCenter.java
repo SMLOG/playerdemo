@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -185,7 +186,6 @@ public class SyncCenter {
     }
 
 
-
     public static void syncData(String id) throws IOException, SQLException {
 
 
@@ -275,8 +275,9 @@ public class SyncCenter {
 
             @Override
             public long getPeriodDuration() {
-                return 1000*3600*2;
+                return 1000 * 3600 * 2;
             }
+
             @Override
             public void doRun() throws Throwable {
                 NewsStarter.run();
@@ -419,14 +420,116 @@ public class SyncCenter {
     public static void liveStream(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
 
 
-        List<Channel> chs = TV.getChannels();
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") > -1 &&
+                                  ch.groupTitle.indexOf("Kids") > -1
+                                  ;
+                      }
+                  }, 5, "TV(Kids)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        return (int) (o1.speech - o2.speech);
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  "CN".equals(ch.country);
+                      }
+                  }, 2, "电视",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
+                                o1.groupTitle.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                        );
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
+                                o2.groupTitle.indexOf("广东") > -1 || o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                        );
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") > -1
+                                  && ch.groupTitle.indexOf("Kids") == -1
+                                  ;
+                      }
+                  }, 6, "TV(English)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") == -1 &&
+                                  !ch.country.equals("CN")
+                                  ;
+                      }
+                  }, 7, "TV(other)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+    }
+
+    public static void channelTV(TV.ChannelFilter filter, int channelID, String channelname,
+                                 Comparator<Channel> sort,
+                                 ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
+        List<Channel> chs = TV.getChannels(
+                filter, sort
+        );
 
         int i = chs.size();
         for (Channel ch : chs) {
             Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title).queryForFirst();
             if (zhbFolder == null) {
                 zhbFolder = new Folder();
-                zhbFolder.setTypeId(2);
+                zhbFolder.setTypeId(channelID);
                 zhbFolder.setName(ch.title);
                 zhbFolder.setCoverUrl(ch.logo);
                 folderDao.createOrUpdate(zhbFolder);
@@ -447,10 +550,8 @@ public class SyncCenter {
             validFoldersMap.put(zhbFolder.getId(), true);
         }
 
-        typesMap.put("TV", 2);
-        housekeepTypeIdList.add(2);
-
-
+        typesMap.put(channelname, channelID);
+        housekeepTypeIdList.add(channelID);
     }
 
     public static void cnnVideos(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {

@@ -112,7 +112,7 @@ public class TV {
         };
     }
 
-    public static Runnable getCheckThread(String inf, String url, List<Channel> channelList) {
+    public static Runnable getCheckThread(String inf, String url, List<Channel> channelList, ChannelFilter filter) {
         return new Runnable() {
 
             @Override
@@ -121,15 +121,7 @@ public class TV {
                     Channel ch = new Channel(inf, 0, url);
 
                     long begin = System.currentTimeMillis();
-                    if (ch.title.indexOf("1080") >-1
-                            &&(
-                            "News".equals(ch.groupTitle)
-                                    ||"Kids".equals(ch.groupTitle)
-                                    || ch.groupTitle.indexOf("General")>-1
-                                    || ch.title.indexOf("广东")>-1
-                                    || ch.title.indexOf("卫视")>-1
-                    )
-                            && (ch.language.indexOf("Chinese")>-1 || ch.language.indexOf("English")>-1)
+                    if (filter.filter(ch)
                             && checkUrl(url)) {
 
                         ch = new Channel(inf, System.currentTimeMillis() - begin, url);
@@ -152,41 +144,33 @@ public class TV {
     public static void main(String[] args) throws Exception {
 
 
-        List<Channel> channels = getChannels();
+     //   List<Channel> channels = getChannels();
 
-        System.out.println(channels.size());
+     //   System.out.println(channels.size());
 
     }
 
+    public interface ChannelFilter{
 
-    public static List<Channel> getChannels() throws InterruptedException {
+       boolean filter(Channel ch);
+    }
+    public static List<Channel> getChannels(ChannelFilter filter,Comparator<Channel> sorter) throws InterruptedException {
         String[] urls = new String[] { "https://iptv-org.github.io/iptv/index.m3u" };
 
-        List<Channel> channels = checkM3uUrl(urls);
+        List<Channel> channels = checkM3uUrl(urls,filter);
 
-        Collections.sort(channels, new Comparator<Channel>() {
-            @Override
-            public int compare(Channel o1, Channel o2) {
-                int r = o1.country.compareTo(o2.country);
-                if (r == 0)
-                    r = o1.id.compareTo(o2.id);
-                if (r == 0)
-                    r = (int) (o1.speech - o2.speech);
-
-                return r;
-            }
-        });
+        Collections.sort(channels, sorter);
         return channels;
     }
 
-    public static List<Channel> checkM3uUrl(String[] urls) throws InterruptedException {
+    public static List<Channel> checkM3uUrl(String[] urls, ChannelFilter filter) throws InterruptedException {
         final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
 
         List<Channel> channelList = new ArrayList<Channel>();
 
         for (String url : urls) {
             try {
-                checkUrl(url, fixedThreadPool, channelList);
+                checkUrl(url, fixedThreadPool, channelList,filter);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -202,7 +186,7 @@ public class TV {
     }
 
 
-    private static void checkUrl(String m3uUrl, final ExecutorService fixedThreadPool, List<Channel> channelList)
+    private static void checkUrl(String m3uUrl, final ExecutorService fixedThreadPool, List<Channel> channelList,ChannelFilter filter)
             throws  IOException {
         String str = Utils.get(m3uUrl);
 
@@ -213,7 +197,7 @@ public class TV {
 
             if (line.startsWith("#EXT")) {
                 String url = lines[++i];
-                fixedThreadPool.submit(getCheckThread(line, url, channelList));
+                fixedThreadPool.submit(getCheckThread(line, url, channelList,filter));
 
             }
         }

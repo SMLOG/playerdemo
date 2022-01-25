@@ -27,7 +27,7 @@
         android:clipToPadding="false"
         android:orientation="vertical"
         android:stateListAnimator="@null"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"

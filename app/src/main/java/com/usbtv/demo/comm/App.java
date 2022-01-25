@@ -69,7 +69,6 @@ public class App extends Application implements CacheListener {
 
     public static HttpProxyCacheServer proxy;
 
-    public static Map<String, String> typesMap = null;
 
     public static HttpProxyCacheServer getProxy() {
         App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
