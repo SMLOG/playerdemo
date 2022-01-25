@@ -50,6 +50,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -632,6 +634,12 @@ public class IndexController {
                     List<File> matchFiles = Aid.searchFiles( new File(path), ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
 
                     if(matchFiles!=null&&matchFiles.size()>0){
+                        Collections.sort(matchFiles, new Comparator<File>() {
+                            public int compare(File f1, File f2) {
+                                return (int) (f1.length() - f2.length());
+
+                            }
+                        });
                         vPath = matchFiles.get(0).getAbsolutePath();
                     }
         }

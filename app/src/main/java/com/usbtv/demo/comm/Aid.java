@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +28,11 @@ import java.util.Map;
 
 public class Aid {
 
+    private  final static long minFileSize=5*1024*1024; //5M
     public static List<File> searchFiles(File folder, final String keyword) {
+
         List<File> result = new ArrayList<File>();
-        if (folder.isFile())
+        if (folder.isFile() && folder.length()>=minFileSize )
             result.add(folder);
 
         File[] subFolders = folder.listFiles(new FileFilter() {
@@ -47,7 +50,7 @@ public class Aid {
 
         if (subFolders != null) {
             for (File file : subFolders) {
-                if (file.isFile()) {
+                if (file.isFile() && file.length()>=minFileSize) {
                     result.add(file);
                 } else {
                     result.addAll(searchFiles(file, keyword));
@@ -93,7 +96,7 @@ public class Aid {
 
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
-            typesMap.put("本地", 0);
+            typesMap.put("Local", 0);
             for (File aidDir : aidDirs) {
                 scanFolder(0, root, aidDir, validFoldersMap, validAidsMap);
             }
@@ -124,7 +127,7 @@ public class Aid {
             }
         } else return;
 
-        matchFiles.sort(new Comparator<File>() {
+        Collections.sort(matchFiles, new Comparator<File>() {
             @Override
             public int compare(File f1, File f2) {
 
@@ -142,7 +145,6 @@ public class Aid {
 
             }
         });
-
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
