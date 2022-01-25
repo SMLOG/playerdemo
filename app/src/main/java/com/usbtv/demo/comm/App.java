@@ -20,7 +20,6 @@ import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.news.NewsStarter;
 import com.usbtv.demo.r.InitChannel;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.vurl.M3U;
@@ -55,7 +54,7 @@ public class App extends Application implements CacheListener {
         return self;
     }
 
-    public static Map<String, Integer> getAllTypeMap() {
+    public static Map<String, Integer> getStoreTypeMap() {
 
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
@@ -227,9 +226,6 @@ public class App extends Application implements CacheListener {
 
 
         InetAddress ipaddr = NetUtils.getLocalIPAddress();
-        // Log.d(TAG, ipaddr.getHostAddress());
-        //DowloadPlayList.loadPlayList(true);
-
 
         syncWithRemote();
     }
@@ -237,46 +233,32 @@ public class App extends Application implements CacheListener {
 
     public void syncWithRemote() {
 
-        SharedPreferences sp = getSharedPreferences("SP", Context.MODE_PRIVATE);
-
-
-        if (System.currentTimeMillis() - sp.getLong("lastSyncWithRemoteTime", 0l) > 3600 * 24)
             new Thread(new Runnable() {
                 @Override
                 public void run() {
 
                     try {
-                        SyncCenter.syncData(false);
+                        SyncCenter.syncData(null);
 
-                    } catch (IOException e) {
+                    } catch (Throwable e) {
                         e.printStackTrace();
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
                     }
 
                     Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(new Runnable() {
-
                         @Override
                         public void run() {
                             try {
                                 PlayerController.getInstance().reloadMoviesList();
                                 new InitChannel();
-
-                            } catch (Exception throwables) {
-                                throwables.printStackTrace();
+                            } catch (Throwable e) {
+                                e.printStackTrace();
                             }
 
                         }
                     });
                 }
             }).start();
-
-        try {
-            NewsStarter.run();
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
 
     }
 

@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ public final class PlayerController {
     private List<String> cats;
     private int folderPosition;
     private int curCatId;
+    private Map<String, Integer> allTypeMap;
+    private LinkedHashMap<Integer, String> typeIdMap;
 
 
     private PlayerController() {
@@ -56,7 +59,7 @@ public final class PlayerController {
     public List<Folder> getCurCatList() {
 
         if (this.curCat == null) return new ArrayList<>();
-        Integer typeId = App.getAllTypeMap().get(this.curCat);
+        Integer typeId = allTypeMap.get(this.curCat);
         if (catMoviesMap.get(typeId) == null) return new ArrayList<>();
         return catMoviesMap.get(typeId);
     }
@@ -78,20 +81,27 @@ public final class PlayerController {
         }
 
         this.cats = new ArrayList<String>();
-        Map<String, Integer> allMap = App.getInstance().getAllTypeMap();
+        Map<String, Integer> allMap = App.getInstance().getStoreTypeMap();
+        this.allTypeMap = new LinkedHashMap<>();
+        this.typeIdMap = new LinkedHashMap<>();
         for (String key : allMap.keySet()) {
             Integer value = allMap.get(key);
             if (this.catMoviesMap.get(value) != null) {
                 this.cats.add(key);
-
+                allTypeMap.put(key,value);
+                typeIdMap.put(value,key);
             }
         }
 
         if (catsAdaper != null) {
             catsAdaper.notifyDataSetChanged();
         }
+
         if(this.curItem == null && allMovies.size()>0){
-            play(allMovies.iterator().next(),0);
+            Folder folder = allMovies.iterator().next();
+             this.curCatId = folder.getTypeId();
+             this.curCat =typeIdMap.get(this.curCatId);
+            play(folder,0);
         }
 
     }
@@ -103,9 +113,7 @@ public final class PlayerController {
     }
 
     public void init() {
-        if (this.curCat == null && this.cats.size() > 0) {
-            setCurCat(this.cats.get(0));
-        }
+
     }
 
     public List<String> getCats() {
@@ -222,20 +230,36 @@ public final class PlayerController {
             return null;
         }
         try {
-            Dao<Folder, ?> folderDao = App.getHelper().getDao(Folder.class);
+            Folder folder =null;
 
-            Folder folder = folderDao.queryBuilder()
-                    .where().eq("typeId", curItem.getFolder().getTypeId()).and().lt("orderSeq", curItem.getOrderSeq())
-                    .queryBuilder()
-                    .orderBy("orderSeq", false)
-                    .queryForFirst();
-            if (folder == null)
+            List<Folder> catFolerList = this.getCurCatList();
+            int nextPos=this.folderPosition+1;
+            if(catFolerList.size()>0&&catFolerList.size()> nextPos&& nextPos>=0){
+                folder = this.getCurCatList().get(nextPos);
+                this.play(folder,nextPos,0);
+                return folder.getFiles().iterator().next();
+            }
+            if(folder==null){
+                Dao<Folder, ?> folderDao = App.getHelper().getDao(Folder.class);
+
+                int typeId = curItem.getFolder().getTypeId();
                 folder = folderDao.queryBuilder()
-                        .where().eq("typeId", curItem.getFolder().getTypeId())
+                        .where().eq("typeId", typeId)
+                        .and().lt("orderSeq", curItem.getOrderSeq())
                         .queryBuilder()
                         .orderBy("orderSeq", false)
                         .orderBy("id", false)
                         .queryForFirst();
+                if (folder == null){
+
+                    folder = folderDao.queryBuilder()
+                            .where().eq("typeId", typeId)
+                            .queryBuilder()
+                            .orderBy("orderSeq", false)
+                            .orderBy("id", false)
+                            .queryForFirst();
+                }
+            }
 
             if (folder != null) {
                 curItem = folder.getFiles().iterator().next();
@@ -374,7 +398,7 @@ public final class PlayerController {
     public void setCurCat(String curCat) {
 
         this.curCat = curCat;
-        Integer typeId = App.getAllTypeMap().get(curCat);
+        Integer typeId = allTypeMap.get(curCat);
         this.setCurCatId(typeId);
         this.foldersAdapter.notifyDataSetChanged();
     }
@@ -392,9 +416,6 @@ public final class PlayerController {
 
     }
 
-    public int getFolderPosition() {
-        return folderPosition;
-    }
 
     public void setFolderPosition(int folderPosition) {
         int p = this.folderPosition;

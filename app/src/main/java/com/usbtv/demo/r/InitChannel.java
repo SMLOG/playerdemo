@@ -39,7 +39,7 @@ public class InitChannel {
 
         }
 
-        Map<String, Integer> map = App.getAllTypeMap();
+        Map<String, Integer> map = App.getStoreTypeMap();
 
         List<Long> channelList = new ArrayList<>();
         int i = 0;

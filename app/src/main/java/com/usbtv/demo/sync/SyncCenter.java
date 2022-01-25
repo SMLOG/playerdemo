@@ -28,19 +28,20 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.MainActivity;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.data.Video;
+import com.usbtv.demo.news.NewsStarter;
 
 import okhttp3.Call;
 import okhttp3.FormBody;
-import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -65,203 +66,245 @@ public class SyncCenter {
     }
 
 
-
     public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
-        int i=5;
+        int i = 5;
         JSONObject jsonObj = null;
-        while(--i >0){
+        while (--i > 0) {
 
 
+            String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
 
-        String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
+            String n = (String) scriptEngine.eval("generateStr('" + link + "@" + e + "').toString(10)");
+            String o = "X-Client-Data";
+            String a = "https://service0.iiilab.com";
+            String site = "bilibili";
 
-        String n = (String) scriptEngine.eval("generateStr('" + link + "@" + e + "').toString(10)");
-        String o = "X-Client-Data";
-        String a = "https://service0.iiilab.com";
-        String site = "bilibili";
+            String xclientdata = (String) scriptEngine.eval("u('" + n + "', '" + site + "')");
 
-        String xclientdata = (String) scriptEngine.eval("u('" + n + "', '" + site + "')");
+            OkHttpClient okHttpClient = new OkHttpClient()
+                    .newBuilder()
+                    .connectTimeout(10, TimeUnit.SECONDS)//设置连接超时时间
+                    .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
+                    .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())//配置
+                    .hostnameVerifier(SSLSocketClient.getHostnameVerifier()).build();
 
-        OkHttpClient okHttpClient = new OkHttpClient()
-                .newBuilder()
-                .connectTimeout(10, TimeUnit.SECONDS)//设置连接超时时间
-                .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
-                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())//配置
-                .hostnameVerifier(SSLSocketClient.getHostnameVerifier()).build();
+            Request request = new Request
+                    .Builder()
+                    .url("https://bilibili.iiilab.com/")
+                    .addHeader("User-Agent", Utils.AGENT)
+                    .build();
 
-        Request request = new Request
-                .Builder()
-                .url("https://bilibili.iiilab.com/")
-                .addHeader("User-Agent", Utils.AGENT)
-                .build();
+            Call call = okHttpClient.newCall(request);
+            Response response = call.execute();
 
-        Call call = okHttpClient.newCall(request);
-        Response response = call.execute();
+            List<String> cookies = new ArrayList<String>();
+            for (String cookie :
+                    response.headers().values("Set-Cookie"))
+                cookies.add(cookie.split(";")[0]);
 
-        List<String> cookies = new ArrayList<String>();
-        for (String cookie :
-                response.headers().values("Set-Cookie"))
-            cookies.add(cookie.split(";")[0]);
+            //cookies.add("ppp0609=1");
+            //cookies.add("ppp0627=1");
+            // cookies.add("zzz0821=1");
 
-        //cookies.add("ppp0609=1");
-        //cookies.add("ppp0627=1");
-       // cookies.add("zzz0821=1");
+            request = new Request
+                    .Builder()
+                    .url("https://wx.iiilab.com/static/js/human.min.js?v21")
+                    .addHeader("User-Agent", Utils.AGENT)
+                    .build();
 
-        request = new Request
-                .Builder()
-                .url("https://wx.iiilab.com/static/js/human.min.js?v21")
-                .addHeader("User-Agent", Utils.AGENT)
-                .build();
+            call = okHttpClient.newCall(request);
+            response = call.execute();
+            String body = response.body().string();
 
-        call = okHttpClient.newCall(request);
-        response = call.execute();
-        String body = response.body().string();
+            Pattern p = Pattern.compile("setCookie\\(\"(.*?)\",(.*?),.*?\\)");
+            Matcher matcher = p.matcher(body);
+            while (matcher.find()) {
+                String name = matcher.group(1);
+                String value = matcher.group(2);
+                if (value.equals("new Date().getTime()")) value = "" + System.currentTimeMillis();
+                cookies.add(name + "=" + value);
 
-        Pattern p = Pattern.compile("setCookie\\(\"(.*?)\",(.*?),.*?\\)");
-        Matcher matcher = p.matcher(body);
-        while(matcher.find()) {
-            String name = matcher.group(1);
-            String value = matcher.group(2);
-            if(value.equals("new Date().getTime()"))value = ""+System.currentTimeMillis();
-            cookies.add(name+"="+value);
+            }
 
-        }
+            String url = "https://service0.iiilab.com/sponsor/getByPage";
 
-        String url = "https://service0.iiilab.com/sponsor/getByPage";
+            MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
 
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+            okhttp3.RequestBody requestBody = new FormBody.Builder().add("page", "bilibili").build();
 
-        okhttp3.RequestBody requestBody = new FormBody.Builder().add("page", "bilibili").build();
+            request = new Request.Builder().url(url)
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .addHeader("Origin", "https://bilibili.iiilab.com/")
+                    .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                    .addHeader("Cookie", Utils.join(";", cookies))
 
-        request = new Request.Builder().url(url)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                .addHeader("Origin", "https://bilibili.iiilab.com/")
-                .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
-                .addHeader("Cookie", Utils.join(";", cookies))
-
-                .post(requestBody).build();
-        call = okHttpClient.newCall(request);
-        response = call.execute();
-
-
-        for (String cookie :
-                response.headers().values("Set-Cookie"))
-            cookies.add(cookie.split(";")[0]);
-
-        String rsp = response.body().string();
+                    .post(requestBody).build();
+            call = okHttpClient.newCall(request);
+            response = call.execute();
 
 
+            for (String cookie :
+                    response.headers().values("Set-Cookie"))
+                cookies.add(cookie.split(";")[0]);
 
-        requestBody = new FormBody.Builder().add("link", link).add("r", e)
-                .add("s", n).build();
+            String rsp = response.body().string();
 
-        request = new Request.Builder().url(a + "/video/web/" + site)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                .addHeader("Origin", "https://bilibili.iiilab.com/")
-                .addHeader("Referer", "https://bilibili.iiilab.com/")
-                .addHeader("User-Agent", Utils.AGENT)
-                .addHeader("Cookie", Utils.join(";", cookies))
-                .addHeader("X-Client-Data", xclientdata)
 
-                .post(requestBody).build();
-        call = okHttpClient.newCall(request);
-        response = call.execute();
-        rsp = response.body().string();
-        System.out.println(rsp);
-         jsonObj = JSONObject.parseObject(rsp);
+            requestBody = new FormBody.Builder().add("link", link).add("r", e)
+                    .add("s", n).build();
 
-        if(jsonObj.getString("retDesc")!=null&&jsonObj.getString("retDesc").equals("outstanding")) {
+            request = new Request.Builder().url(a + "/video/web/" + site)
+                    .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                    .addHeader("Origin", "https://bilibili.iiilab.com/")
+                    .addHeader("Referer", "https://bilibili.iiilab.com/")
+                    .addHeader("User-Agent", Utils.AGENT)
+                    .addHeader("Cookie", Utils.join(";", cookies))
+                    .addHeader("X-Client-Data", xclientdata)
 
-            String str=new String(Base64.decode(jsonObj.getString("data").substring(6),Base64.DEFAULT));
-            jsonObj.put("data", JSON.parse(str));
-        }
-        if(jsonObj.getJSONObject("data").getString("video").indexOf("upos-sz-mirrorcos")==-1)continue;
+                    .post(requestBody).build();
+            call = okHttpClient.newCall(request);
+            response = call.execute();
+            rsp = response.body().string();
+            System.out.println(rsp);
+            jsonObj = JSONObject.parseObject(rsp);
 
-        System.out.println(e);
-        return jsonObj;
+            if (jsonObj.getString("retDesc") != null && jsonObj.getString("retDesc").equals("outstanding")) {
+
+                String str = new String(Base64.decode(jsonObj.getString("data").substring(6), Base64.DEFAULT));
+                jsonObj.put("data", JSON.parse(str));
+            }
+            if (jsonObj.getJSONObject("data").getString("video").indexOf("upos-sz-mirrorcos") == -1)
+                continue;
+
+            System.out.println(e);
+            return jsonObj;
 
         }
         return jsonObj;
 
     }
 
-    public static void main(String[] args) throws ScriptException, IOException, SQLException {
 
-        syncData(false);
-    }
 
-    public static void syncData(boolean force) throws  IOException, SQLException {
+    public static void syncData(String id) throws IOException, SQLException {
 
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        if( ! force &&  System.currentTimeMillis()-sp.getLong("lastSynTime",0l)<2*60*60*1000)return;
 
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
-        //Drive rootDriv = App.getDefaultRootDrive();
+
+        Map<Integer, Boolean> keepFoldersMap = new HashMap<Integer, Boolean>();
+        Map<String, Boolean> validAidsMap = new HashMap<String, Boolean>();
+        Map<String, Integer> typesMap = new LinkedHashMap<>();
+
+        ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "bili";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 3 * 24 * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                bilibiliVideos(housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
+            }
+        }, id);
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "cnn";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 2 * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                cnnVideos(housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+            }
+        }, id);
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "tv";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 15 * 24 * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                liveStream(housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+            }
+        }, id);
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "local";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 0;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                Aid.scanAllDrive(housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
+            }
+        }, id);
 
 
-        Map<Integer,Boolean> validFoldersMap = new HashMap<Integer,Boolean>();
-        Map<String, Boolean> validAidsMap = new HashMap<String,Boolean>();
-        Map<String,Integer> typesMap = new LinkedHashMap<>();
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "news";
+            }
 
-        bilibiliVideos(typesMap,folderDao, vFileDao, validFoldersMap, validAidsMap);
+            @Override
+            public long getPeriodDuration() {
+                return 1000*3600*2;
+            }
+            @Override
+            public void doRun() throws Throwable {
+                NewsStarter.run();
+            }
+        }, id);
 
-
-        // cnn news video
-        if(true){
-
-            try {
-                cnnVideos(typesMap,folderDao, vFileDao);
-
-            }catch (Throwable e){e.printStackTrace();}
+        QueryBuilder<Folder, Integer> folderBuilder = folderDao.queryBuilder();
+        folderBuilder.where().in("typeId", housekeepTypeIdList);
+        List<Folder> folders = folderBuilder.query();
+        for (Folder folder : folders) {
+            if (keepFoldersMap.get(folder.getId()) == null
+            ) {
+                vFileDao.delete(folder.getFiles());
+                folderDao.delete(folder);
+            }
 
         }
 
-        try {
-            liveStream(force,typesMap,folderDao, vFileDao, validFoldersMap);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
-        // DeleteBuilder<VFile, Integer> deleteBuilder = vFileDao.deleteBuilder();
-       // deleteBuilder.where().isNull("p");
-       // deleteBuilder.delete();
-        try {
-            Aid.scanAllDrive(typesMap,validFoldersMap,validAidsMap);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        List<Folder> folders = folderDao.queryForAll();
-        for(Folder folder:folders){
-            //if(!folder.exists()){
-                if(validFoldersMap.get(folder.getId())==null
-                        && folder.getTypeId()!=1
-                        && folder.getTypeId()!=3
-                        && folder.getTypeId()!=4
-                ){
-                    vFileDao.delete(folder.getFiles());
-                    folderDao.delete(folder);
-                }
-            //}else
-          //  if(folder.getFiles().size()==0){
-            //    folderDao.delete(folder);
-          //  }
-        }
-
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putLong("lastSynTime", System.currentTimeMillis());
-        editor.apply();
-        editor.commit();
         updateScreenTabs(typesMap);
-        //getVideoInfo(scriptEngine,"https://www.bilibili.com/video/BV1oA411s77k?p=13");
     }
 
-    public static void updateScreenTabs(Map<String,Integer> typesMap) {
+    public static void updateScreenTabs(Map<String, Integer> typesMap) {
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor = sp.edit();
-        String jsonStr = JSON.toJSONString(typesMap);
+        App.getStoreTypeMap().putAll(typesMap);
+        String jsonStr = JSON.toJSONString(App.getStoreTypeMap());
         editor.putString("typesMap", jsonStr);
         editor.apply();
         editor.commit();
@@ -272,10 +315,11 @@ public class SyncCenter {
             @Override
             public void run() {
                 PlayerController.getInstance().reloadMoviesList();
-            }});
+            }
+        });
     }
 
-    public static void bilibiliVideos(Map<String,Integer> typesMap , Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
+    public static void bilibiliVideos(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
@@ -283,25 +327,26 @@ public class SyncCenter {
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 
 
-        int orderSeq=list.size()*20;
+        int orderSeq = list.size() * 20;
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
-            Integer typeId2 = i+10;
+            Integer typeId2 = i + 10;
+            housekeepTypeIdList.add(typeId2);
             Integer media_count = (Integer) item.get("media_count");
 
-            if(media_count>0) typesMap.put(item.getString("title"),typeId2);
+            if (media_count > 0) typesMap.put(item.getString("title"), typeId2);
 
-            System.out.println("**目录 ："+item.getString("title")+" count:"+media_count);
+            System.out.println("**目录 ：" + item.getString("title") + " count:" + media_count);
 
-            int pn=1;
+            int pn = 1;
 
             do {
                 resp = Utils.get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + typeId + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
                 jsonObj = JSONObject.parseObject(resp);
                 JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
-                if(medias==null)break;
+                if (medias == null) break;
                 for (int j = 0; j < medias.size(); j++) {
                     JSONObject media = ((JSONObject) medias.get(j));
                     String title = media.getString("title");
@@ -344,8 +389,8 @@ public class SyncCenter {
                     }
                     orderSeq--;
 
-                    validFoldersMap.put(folder.getId(),true);
-                    validAidsMap.put(aid.toString(),true);
+                    validFoldersMap.put(folder.getId(), true);
+                    validAidsMap.put(aid.toString(), true);
 
                     for (int k = 0; k <= pages; k++) {
 
@@ -364,68 +409,54 @@ public class SyncCenter {
 
                 }
 
-                if(pn*20>media_count)break;
+                if (pn * 20 > media_count) break;
                 pn++;
 
-            }while (true);
+            } while (true);
         }
     }
 
-    public static void liveStream(boolean force,Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
+    public static void liveStream(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
 
-       typesMap.put("TV",2);
 
-        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        String lastUpdateM3U="lastUpdateM3UTV";
+        List<Channel> chs = TV.getChannels();
 
-        if (force||System.currentTimeMillis() - sp.getLong(lastUpdateM3U, 0l) > 3600 * 24*1000*10){
+        int i = chs.size();
+        for (Channel ch : chs) {
+            Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title).queryForFirst();
+            if (zhbFolder == null) {
+                zhbFolder = new Folder();
+                zhbFolder.setTypeId(2);
+                zhbFolder.setName(ch.title);
+                zhbFolder.setCoverUrl(ch.logo);
+                folderDao.createOrUpdate(zhbFolder);
 
-            List<Channel> chs = TV.getChannels();
-
-            int i=chs.size();
-            for(Channel ch:chs){
-                Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title).queryForFirst();
-                if(zhbFolder==null){
-                    zhbFolder = new Folder();
-                    zhbFolder.setTypeId(2);
-                    zhbFolder.setName(ch.title);
-                    zhbFolder.setCoverUrl(ch.logo);
-                    folderDao.createOrUpdate(zhbFolder);
-
-                    VFile vf = new VFile();
-                    vf.setFolder(zhbFolder);
-                    vf.setdLink(ch.m3uUrl);
-                    vf.setOrderSeq(i);
-                    vFileDao.createOrUpdate(vf);
-                }else {
-                    VFile vf=zhbFolder.getFiles().iterator().next();
-                    vf.setdLink(ch.m3uUrl);
-                    vf.setName(ch.title);
-                    vf.setOrderSeq(i);
-                    vFileDao.createOrUpdate(vf);
-                }
-                i--;
-                validFoldersMap.put(zhbFolder.getId(),true);
+                VFile vf = new VFile();
+                vf.setFolder(zhbFolder);
+                vf.setdLink(ch.m3uUrl);
+                vf.setOrderSeq(i);
+                vFileDao.createOrUpdate(vf);
+            } else {
+                VFile vf = zhbFolder.getFiles().iterator().next();
+                vf.setdLink(ch.m3uUrl);
+                vf.setName(ch.title);
+                vf.setOrderSeq(i);
+                vFileDao.createOrUpdate(vf);
             }
-
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putLong(lastUpdateM3U, System.currentTimeMillis());
-            editor.apply();
-
-        }else {
-            List<Folder> folders = folderDao.queryBuilder().where().eq("typeId", 2).query();
-            for(Folder f:folders){
-                validFoldersMap.put(f.getId(),true);
-            }
-
+            i--;
+            validFoldersMap.put(zhbFolder.getId(), true);
         }
+
+        typesMap.put("TV", 2);
+        housekeepTypeIdList.add(2);
+
 
     }
 
-    public static void cnnVideos(Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, SQLException {
-        int channelId=3;
+    public static void cnnVideos(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
+        int channelId = 3;
 
-        String[] urls=new String[]{
+        String[] urls = new String[]{
                 "https://edition.cnn.com/playlist/top-news-videos/index.json",
                 "https://edition.cnn.com/video/data/3.0/video/business/relateds.json",
                 "https://edition.cnn.com/video/data/3.0/video/health/relateds.json",
@@ -439,63 +470,61 @@ public class SyncCenter {
         };
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
-        typesMap.put("CNN2",4);
-        typesMap.put("CNN",channelId);
-        for(String feedUrl:urls){
+
+        for (String feedUrl : urls) {
 
             String resp = Utils.get(feedUrl);
 
             JSONArray jsonArr = null;
-            boolean isTop=feedUrl.indexOf("index.json")>-1;
+            boolean isTop = feedUrl.indexOf("index.json") > -1;
 
-            if(isTop)jsonArr= JSONObject.parseArray(resp);
+            if (isTop) jsonArr = JSONObject.parseArray(resp);
             else jsonArr = JSON.parseObject(resp).getJSONArray("videos");
 
             Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
-            for(int i=0;i<jsonArr.size();i++) {
-                JSONObject item =(JSONObject) jsonArr.get(i);
+            for (int i = 0; i < jsonArr.size(); i++) {
+                JSONObject item = (JSONObject) jsonArr.get(i);
 
-                String videoId = item.getString(isTop?"videoId":"id");
-                String title = item.getString(isTop?"title":"headline");
+                String videoId = item.getString(isTop ? "videoId" : "id");
+                String title = item.getString(isTop ? "title" : "headline");
                 String folderName = null;
 
                 Matcher matcher = pattern.matcher(videoId);
-                int seq=0;
-                if(matcher.find()){
+                int seq = 0;
+                if (matcher.find()) {
                     String dateStr = matcher.group();
                     folderName = dateStr;
-                    seq = Integer.parseInt(dateStr.replaceAll("/",""));
+                    seq = Integer.parseInt(dateStr.replaceAll("/", ""));
 
-                }else continue;
+                } else continue;
 
 
-                String imageUrl = "http:"+item.getString(isTop?"imageUrl":"endslate_url_small");
+                String imageUrl = "http:" + item.getString(isTop ? "imageUrl" : "endslate_url_small");
 
                 Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
 
 
-
                 videoDao.queryForAll();
-                Video video = videoDao.queryBuilder().where().eq("videoId",videoId).queryForFirst();
-                if(video!=null) continue;
+                Video video = videoDao.queryBuilder().where().eq("videoId", videoId).queryForFirst();
+                if (video != null) continue;
 
-                resp = Utils.get("https://fave.api.cnn.io/v1/video?id="+videoId+"&customer=cnn&edition=international&env=prod");
+                resp = Utils.get("https://fave.api.cnn.io/v1/video?id=" + videoId + "&customer=cnn&edition=international&env=prod");
                 JSONObject obj = JSONObject.parseObject(resp);
 
                 String mediumId = obj.getString("mediumId");
 
-                resp = Utils.get("https://medium.ngtv.io/media/"+mediumId+"?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
+                resp = Utils.get("https://medium.ngtv.io/media/" + mediumId + "?appId=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6ImNubi1jbm4td2ViLTk1am96MCIsIm5ldHdvcmsiOiJjbm4iLCJwbGF0Zm9ybSI6IndlYiIsInByb2R1Y3QiOiJjbm4iLCJpYXQiOjE1MjQ2ODQwMzB9.Uw8riFJwARLjeE35ffMwSa-37RNxCcQUEp2pqwG9TvM");
 
                 obj = JSONObject.parseObject(resp);
-                if(obj==null){
+                if (obj == null) {
                     continue;
                 }
-                String url =  Utils.getObject(obj,"media.tv.unprotected.url");
-                if(url==null) continue;
+                String url = Utils.getObject(obj, "media.tv.unprotected.url");
+                if (url == null) continue;
                 System.out.println(url);
 
 
-                if(folder==null){
+                if (folder == null) {
 
                     folder = new Folder();
                     folder.setTypeId(channelId);
@@ -513,23 +542,22 @@ public class SyncCenter {
                     folder2.setOrderSeq(seq);
 
 
-
                     VFile vf2 = new VFile();
                     vf2.setName(title);
                     vf2.setFolder(folder2);
 
-                    vf2.setdLink(SSLSocketClient.ServerManager.getServerHttpAddress()+"/hls/vod.m3u8?folderId="+folder.getId());
+                    vf2.setdLink(SSLSocketClient.ServerManager.getServerHttpAddress() + "/hls/vod.m3u8?folderId=" + folder.getId());
                     vf2.setOrderSeq(0);
 
                     vFileDao.createOrUpdate(vf2);
 
 
-                }else folder.setCoverUrl(imageUrl);
+                } else folder.setCoverUrl(imageUrl);
 
                 folderDao.createOrUpdate(folder);
 
-                VFile  vf =  vFileDao.queryBuilder().where().eq("folder_id",folder.getId()).and().eq("dLink",url).queryForFirst();
-                if(vf==null){
+                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", folder.getId()).and().eq("dLink", url).queryForFirst();
+                if (vf == null) {
                     vf = new VFile();
                     vf.setName(title);
                     vf.setFolder(folder);
@@ -543,11 +571,17 @@ public class SyncCenter {
                 video.setTitle(title);
                 video.setCoverUrl(imageUrl);
                 video.setUrl(url);
-                video.setDt(Integer.parseInt(folderName.replaceAll("/","")));
+                video.setDt(Integer.parseInt(folderName.replaceAll("/", "")));
                 videoDao.createOrUpdate(video);
             }
 
         }
+
+        typesMap.put("CNN2", 4);
+        typesMap.put("CNN", channelId);
+        // housekeepTypeIdList.add(3);
+        // housekeepTypeIdList.add(4);
+
     }
 
     public static ScriptEngine getJsEngine() throws IOException, ScriptException {
@@ -563,8 +597,6 @@ public class SyncCenter {
         scriptEngine.eval(new InputStreamReader(fd));
         return scriptEngine;
     }
-
-
 
 
 }

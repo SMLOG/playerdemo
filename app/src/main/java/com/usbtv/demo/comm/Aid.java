@@ -81,7 +81,7 @@ public class Aid {
     }
 
 
-    public static void scanAllDrive(Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    public static void scanAllDrive(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
@@ -97,6 +97,7 @@ public class Aid {
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
             typesMap.put("Local", 0);
+            housekeepTypeIdList.add(0);
             for (File aidDir : aidDirs) {
                 scanFolder(0, root, aidDir, validFoldersMap, validAidsMap);
             }

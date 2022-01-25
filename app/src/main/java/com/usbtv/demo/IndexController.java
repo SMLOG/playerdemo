@@ -81,7 +81,7 @@ public class IndexController {
     @GetMapping(path = "/api/reLoadPlayList")
     String reLoadPlayList(RequestBody body) throws Exception {
 
-        SyncCenter.syncData(true);
+        SyncCenter.syncData(null);
 
         return "ok";
     }
@@ -577,46 +577,9 @@ public class IndexController {
 
 
     @ResponseBody
-    @GetMapping(path = "/api/syncache")
-    String mybi(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) throws SQLException, IOException {
-
-        SyncCenter.syncData(true);
-
-        //DLVideo.getList();
-
-        if (download) {
-            Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
-            List<VFile> vfiles = dao.queryBuilder()
-                    .where().isNull("p").query();
-
-            for (VFile vfile : vfiles) {
-
-                try {
-                    if (vfile.getFolder().getRoot() == null) {
-                        vfile.getFolder().setRoot(App.getDefaultRootDrive());
-                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-                        folderDao.update(vfile.getFolder());
-                    }
-
-                    if (vfile.getFolder().getRoot() == null) continue;
-
-                    File file = new File(vfile.getAbsPath());
-                    if (!file.exists() || file.length() == 0) {
-                        com.alibaba.fastjson.JSONObject info = SyncCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
-                        //if (info != null && info.getString("video") != null)
-                           // oInstance.saveToFile(info.getString("video"), vfile.getAbsPath());
-                    }
-                    vfile.setP(vfile.getRelativePath());
-                    dao.update(vfile);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-        }
-
+    @GetMapping(path = "/api/sync")
+    String mybi(@RequestParam(name = "id", required = false, defaultValue = "") String id) throws SQLException, IOException {
+        SyncCenter.syncData(id);
         return "ok";
     }
 
