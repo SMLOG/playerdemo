@@ -122,8 +122,14 @@ public class TV {
 
                     long begin = System.currentTimeMillis();
                     if (ch.title.indexOf("1080") >-1
-                            &&("News".equals(ch.groupTitle) || ch.groupTitle.indexOf("General")>-1)
-                            && (ch.language.indexOf("Chinese")>-1 || ch.language.equals("English"))
+                            &&(
+                            "News".equals(ch.groupTitle)
+                                    ||"Kids".equals(ch.groupTitle)
+                                    || ch.groupTitle.indexOf("General")>-1
+                                    || ch.title.indexOf("广东")>-1
+                                    || ch.title.indexOf("卫视")>-1
+                    )
+                            && (ch.language.indexOf("Chinese")>-1 || ch.language.indexOf("English")>-1)
                             && checkUrl(url)) {
 
                         ch = new Channel(inf, System.currentTimeMillis() - begin, url);
@@ -151,6 +157,7 @@ public class TV {
         System.out.println(channels.size());
 
     }
+
 
     public static List<Channel> getChannels() throws InterruptedException {
         String[] urls = new String[] { "https://iptv-org.github.io/iptv/index.m3u" };
@@ -242,7 +249,7 @@ public class TV {
 
                     String contentType = httpURLConnection.getHeaderField("Content-Type").toLowerCase();
                     System.out.println(contentType);
-
+                    long length = Long.parseLong(httpURLConnection.getHeaderField("Content-Length"));
                     if (contentType.contains("mpegurl")) {
 
                         String line;
@@ -279,7 +286,7 @@ public class TV {
                         bufferedReader.close();
                         inputStream.close();
 
-                    } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg")) {
+                    } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg") ||length > 300*1024) {
                         InputStream inputStream = httpURLConnection.getInputStream();
 
                         byte[] buf = new byte[1024];

@@ -7,6 +7,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.j256.ormlite.dao.Dao;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.usbtv.demo.data.Folder;
@@ -51,6 +53,7 @@ public final class PlayerController {
     private int curCatId;
     private Map<String, Integer> allTypeMap;
     private LinkedHashMap<Integer, String> typeIdMap;
+    private RecyclerView numTabRecyclerView;
 
 
     private PlayerController() {
@@ -186,6 +189,9 @@ public final class PlayerController {
             }
             i++;
         }
+
+        this.numTabRecyclerView.setVisibility(this.curItem.getFolder().getFiles().size()>1?View.VISIBLE:View.GONE);
+
         PlayerController.getInstance().setCurIndex(i);
 
         new Thread(new Runnable() {
@@ -352,9 +358,10 @@ public final class PlayerController {
     }
 
     public void setUIs(TvVideoView videoView,
-                       View gridView) {
+                       View gridView, RecyclerView numTabRecyclerView) {
         this.videoView = videoView;
         this.girdView = gridView;
+        this.numTabRecyclerView = numTabRecyclerView;
     }
 
     public String getCoverUrl() {

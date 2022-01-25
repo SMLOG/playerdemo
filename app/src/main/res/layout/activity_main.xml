@@ -39,10 +39,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 />
+
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/foldersRV"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"/>
+                android:layout_height="120dp"
+                android:paddingTop="@dimen/dp_5" />
 
             <androidx.leanback.widget.HorizontalGridView
                 android:id="@+id/folderCats"

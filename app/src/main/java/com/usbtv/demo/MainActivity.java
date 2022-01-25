@@ -46,6 +46,7 @@ import butterknife.BindView;
 
 import static android.view.View.FOCUS_DOWN;
 import static android.view.View.FOCUS_UP;
+import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -185,14 +186,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindElementViews() {
 
-        PlayerController.getInstance().reloadMoviesList();
 
         videoView = findViewById(R.id.videoView);
 
         menuPanel = findViewById(R.id.menuPanel);
-        menuPanel.setOnFocusChangeListener((view, hasFocus) -> {
-            numTabRecyclerView.requestFocus();
-        });
+
 
         numTabRecyclerView = findViewById(R.id.numTabRV);
 
@@ -210,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(View view, Folder folder, int position) {
                 PlayerController.getInstance().hideMenu();
                 PlayerController.getInstance().play(folder, position,0);
+
             }
         }) {
             @Override
@@ -248,7 +247,9 @@ public class MainActivity extends AppCompatActivity {
                         case FOCUS_DOWN:
                             return folderCatsRV;
                         case FOCUS_UP:
+                            if(numTabRecyclerView.getVisibility()==VISIBLE)
                             return numTabRecyclerView;
+                            else return foldersRecyclerView;
                     }
                 } else if (folderCatsRV.hasFocus()) {
 
@@ -276,12 +277,12 @@ public class MainActivity extends AppCompatActivity {
        // MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
-       PlayerController.getInstance().setUIs(videoView, menuPanel);
+       PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView);
        videoView.setUp(this);
 
         PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter);
+        PlayerController.getInstance().reloadMoviesList();
 
-        PlayerController.getInstance().init();
 
 
     }
@@ -413,7 +414,7 @@ public class MainActivity extends AppCompatActivity {
                     menuPanel.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            numTabRecyclerView.requestFocus();
+                            menuPanel.requestFocus();
                         }
                     }, 100);
                 }
