@@ -49,11 +49,12 @@ public final class PlayerController {
     private FolderListAdapter foldersAdapter;
     private FolderNumListRecycleViewAdapter numAdapter;
     private List<String> cats;
-    private int folderPosition;
+    private int curFocusFolderIndex;
     private int curCatId;
     private Map<String, Integer> allTypeMap;
     private LinkedHashMap<Integer, String> typeIdMap;
     private RecyclerView numTabRecyclerView;
+    private Folder curFolder;
 
 
     private PlayerController() {
@@ -189,7 +190,6 @@ public final class PlayerController {
             }
             i++;
         }
-        this.numTabRecyclerView.setVisibility(this.curItem.getFolder().getFiles().size()>1?View.VISIBLE:View.GONE);
 
         PlayerController.getInstance().setCurIndex(i);
 
@@ -238,7 +238,7 @@ public final class PlayerController {
             Folder folder =null;
 
             List<Folder> catFolerList = this.getCurCatList();
-            int nextPos=this.folderPosition+1;
+            int nextPos=this.curFocusFolderIndex +1;
             if(catFolerList.size()>0&&catFolerList.size()> nextPos&& nextPos>=0){
                 folder = this.getCurCatList().get(nextPos);
                 this.play(folder,nextPos,0);
@@ -414,7 +414,7 @@ public final class PlayerController {
     }
 
     public void play(Folder folder, int position, int i) {
-        this.setFolderPosition(position);
+        this.setCurFocusFolderIndex(position);
         if(folder.getFiles().size()>i){
             this.setCurIndex(i);
             this.play(folder.getFiles().toArray(new VFile[]{})[i]);
@@ -423,15 +423,20 @@ public final class PlayerController {
     }
 
 
-    public void setFolderPosition(int folderPosition) {
-        int p = this.folderPosition;
-        this.folderPosition = folderPosition;
+    public void setCurFocusFolderIndex(int folderPosition) {
+        int p = this.curFocusFolderIndex;
+        this.curFocusFolderIndex = folderPosition;
+        this.curFolder = this.getCurCatList()!=null&& this.getCurCatList().size()>p?this.getCurCatList().get(folderPosition):null;
         this.foldersAdapter.notifyItemChanged(p);
         this.foldersAdapter.notifyItemChanged(folderPosition);
+        this.numAdapter.notifyDataSetChanged();
+        this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
+
     }
 
     public Folder getCurFolder() {
-        if (this.curItem != null) return this.curItem.getFolder();
+
+        if (this.curFolder != null) return this.curFolder;
         return null;
     }
 
@@ -444,12 +449,7 @@ public final class PlayerController {
     public boolean isFolderPositionSelected(int position) {
 
         if (this.curCat != null && this.curItem != null) {
-            int typeId = this.getCurCatId();
-            if (typeId == this.curItem.getFolder().getTypeId()) {
-                return position == folderPosition;
-            }
-
-
+            return getCurCatList().get(position).getId() == this.curItem.getFolder().getId();
         }
         return false;
     }
@@ -460,5 +460,10 @@ public final class PlayerController {
 
     public void setCurCatId(int curCatId) {
         this.curCatId = curCatId;
+    }
+
+
+    public boolean isNumberSelect(int i) {
+        return  (this.curItem!=null && this.curFolder!=null&&this.curItem.getFolder().getId()==this.curFolder.getId() && i == this.curIndex);
     }
 }
