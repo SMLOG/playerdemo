@@ -116,6 +116,7 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
         viewHolder.tv.setBackgroundColor(PlayerController.getInstance().isFolderPositionSelected(position)?Color.RED:Color.BLACK);
 
         holder.itemView.setTag(position);
+        viewHolder.indexNum.setText(""+(position+1));
         //GlideUtils.loadImg(mContext,mList.get(position).getCoverUrl(),viewHolder.iv);
         Glide.with(mContext).load(folder.getCoverUrl()).into(viewHolder.iv);
 
@@ -152,12 +153,15 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     }
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {
+        TextView indexNum;
         TextView tv;
         ImageView iv;
+
         RecyclerViewHolder(View itemView) {
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv_name);
             iv = (ImageView) itemView.findViewById(R.id.iv_bg);
+            indexNum=(TextView) itemView.findViewById(R.id.indexNum);
         }
 
     }

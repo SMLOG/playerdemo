@@ -14,7 +14,25 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:scaleType="fitXY" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#aa000000">
 
+        <TextView
+            android:id="@+id/indexNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:lines="1"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+    </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="30dp"
