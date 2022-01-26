@@ -189,7 +189,6 @@ public final class PlayerController {
             }
             i++;
         }
-
         this.numTabRecyclerView.setVisibility(this.curItem.getFolder().getFiles().size()>1?View.VISIBLE:View.GONE);
 
         PlayerController.getInstance().setCurIndex(i);

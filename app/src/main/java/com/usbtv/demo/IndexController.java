@@ -13,6 +13,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
+import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SpeechUtils;
@@ -489,7 +490,7 @@ public class IndexController {
             }
 
             com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
-            com.alibaba.fastjson.JSONObject vidoInfo = SyncCenter.getVidoInfo(data.getString("bvid"), this.curP);
+            com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(data.getString("bvid"), this.curP);
             if (vidoInfo == null || null == vidoInfo.getString("video")) {
                 this.curP = 1;
                 this.playIndex++;
@@ -557,7 +558,7 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-            com.alibaba.fastjson.JSONObject vidoInfo = SyncCenter.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 url = vidoInfo.getString("video");
             }

@@ -1,27 +1,25 @@
 package com.usbtv.demo.sync;
 
 
+import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -86,32 +84,6 @@ class Channel {
 }
 
 public class TV {
-
-    public static Runnable getCheckThread(String inf, String url, Set<Channel> channelList) {
-        return new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-
-                    long begin = System.currentTimeMillis();
-                    if (checkUrl(url)) {
-                        System.out.println("OK:" + url);
-                        synchronized (channelList) {
-                            channelList.add(new Channel(inf, System.currentTimeMillis() - begin, url));
-                        }
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                System.out.println("Not OK:" + url);
-
-            }
-
-        };
-    }
-
     public static Runnable getCheckThread(String inf, String url, List<Channel> channelList, ChannelFilter filter) {
         return new Runnable() {
 
@@ -122,7 +94,8 @@ public class TV {
 
                     long begin = System.currentTimeMillis();
                     if (filter.filter(ch)
-                            && checkUrl(url)) {
+                        //    && checkUrl(url)
+                    ) {
 
                         ch = new Channel(inf, System.currentTimeMillis() - begin, url);
                         System.out.println("OK:" + url);
@@ -144,20 +117,21 @@ public class TV {
     public static void main(String[] args) throws Exception {
 
 
-     //   List<Channel> channels = getChannels();
+        //   List<Channel> channels = getChannels();
 
-     //   System.out.println(channels.size());
+        //   System.out.println(channels.size());
 
     }
 
-    public interface ChannelFilter{
+    public interface ChannelFilter {
 
-       boolean filter(Channel ch);
+        boolean filter(Channel ch);
     }
-    public static List<Channel> getChannels(ChannelFilter filter,Comparator<Channel> sorter) throws InterruptedException {
-        String[] urls = new String[] { "https://iptv-org.github.io/iptv/index.m3u" };
 
-        List<Channel> channels = checkM3uUrl(urls,filter);
+    public static List<Channel> getChannels(ChannelFilter filter, Comparator<Channel> sorter) throws InterruptedException {
+        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
+
+        List<Channel> channels = checkM3uUrl(urls, filter);
 
         Collections.sort(channels, sorter);
         return channels;
@@ -170,7 +144,7 @@ public class TV {
 
         for (String url : urls) {
             try {
-                checkUrl(url, fixedThreadPool, channelList,filter);
+                checkM3U8(url, fixedThreadPool, channelList, filter);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -186,8 +160,8 @@ public class TV {
     }
 
 
-    private static void checkUrl(String m3uUrl, final ExecutorService fixedThreadPool, List<Channel> channelList,ChannelFilter filter)
-            throws  IOException {
+    private static void checkM3U8(String m3uUrl, final ExecutorService fixedThreadPool, List<Channel> channelList, ChannelFilter filter)
+            throws IOException {
         String str = Utils.get(m3uUrl);
 
         String[] lines = str.split("\n");
@@ -197,12 +171,11 @@ public class TV {
 
             if (line.startsWith("#EXT")) {
                 String url = lines[++i];
-                fixedThreadPool.submit(getCheckThread(line, url, channelList,filter));
+                fixedThreadPool.submit(getCheckThread(line, url, channelList, filter));
 
             }
         }
     }
-
 
 
     private static boolean checkUrl(String urls) {
@@ -270,7 +243,7 @@ public class TV {
                         bufferedReader.close();
                         inputStream.close();
 
-                    } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg") ||length > 300*1024) {
+                    } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg") || length > 300 * 1024) {
                         InputStream inputStream = httpURLConnection.getInputStream();
 
                         byte[] buf = new byte[1024];
@@ -298,4 +271,144 @@ public class TV {
         return false;
     }
 
+    public static void channelTV(TV.ChannelFilter filter, int channelID, String channelname,
+                                 Comparator<Channel> sort,
+                                 ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
+       try {
+           List<Channel> chs = TV.getChannels(
+                   filter, sort
+           );
+
+           int i = chs.size();
+           for (Channel ch : chs) {
+               Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title.replaceAll("'","''")).queryForFirst();
+               if (zhbFolder == null) {
+                   zhbFolder = new Folder();
+                   zhbFolder.setTypeId(channelID);
+                   zhbFolder.setName(ch.title);
+                   zhbFolder.setCoverUrl(ch.logo);
+                   folderDao.createOrUpdate(zhbFolder);
+
+                   VFile vf = new VFile();
+                   vf.setFolder(zhbFolder);
+                   vf.setdLink(ch.m3uUrl);
+                   vf.setOrderSeq(i);
+                   vFileDao.createOrUpdate(vf);
+               } else {
+                   VFile vf = zhbFolder.getFiles().iterator().next();
+                   vf.setdLink(ch.m3uUrl);
+                   vf.setName(ch.title);
+                   vf.setOrderSeq(i);
+                   vFileDao.createOrUpdate(vf);
+               }
+               i--;
+               validFoldersMap.put(zhbFolder.getId(), true);
+           }
+
+           typesMap.put(channelname, channelID);
+           housekeepTypeIdList.add(channelID);
+       }catch (Throwable e){
+           e.printStackTrace();
+       }
+    }
+
+    public static void liveStream(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
+
+
+       channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") > -1 &&
+                                  ch.groupTitle.indexOf("Kids") > -1
+                                  ;
+                      }
+                  }, 5, "TV(Kids)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        return (int) (o1.speech - o2.speech);
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  "CN".equals(ch.country);
+                      }
+                  }, 2, "电视",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
+                                o1.groupTitle.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                        );
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
+                                o2.groupTitle.indexOf("广东") > -1 || o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                        );
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") > -1
+                                  && ch.groupTitle.indexOf("Kids") == -1
+                                  ;
+                      }
+                  }, 6, "TV(English)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+        channelTV(new TV.ChannelFilter() {
+                      @Override
+                      public boolean filter(Channel ch) {
+                          return ch.title.indexOf("1080") > -1 &&
+                                  ch.language.indexOf("English") == -1 &&
+                                  !ch.country.equals("CN")
+                                  ;
+                      }
+                  }, 7, "TV(other)",
+                new Comparator<Channel>() {
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int r = w1 - w2;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+
+    }
 }
