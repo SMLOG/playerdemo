@@ -103,12 +103,6 @@ public final class PlayerController {
             catsAdaper.notifyDataSetChanged();
         }
 
-        if (this.curItem == null && allMovies.size() > 0) {
-            Folder folder = allMovies.iterator().next();
-            this.curCatId = folder.getTypeId();
-            this.curCat = typeIdMap.get(this.curCatId);
-            play(folder, 0);
-        }
 
     }
 
@@ -116,10 +110,6 @@ public final class PlayerController {
         this.catsAdaper = catsAdaper;
         this.foldersAdapter = foldersAdapter;
         this.numAdapter = numAdapter;
-    }
-
-    public void init() {
-
     }
 
     public List<String> getCats() {
@@ -382,15 +372,22 @@ public final class PlayerController {
 
     public void playVFile(VFile vfile) {
         String curCat = this.typeIdMap.get( vfile.getFolder().getTypeId());
+        if(curCat==null){
+            curCat = this.typeIdMap.values().iterator().next();
+        }
         if(curCat!=null){
             this.setCurCat(curCat);
+            int curFolderIndex=0;
+
             int curfolderId = vfile.getFolder().getId();
-            for(int i=0;i< this.getCurCatList().size();i++){
-                if( this.getCurCatList().get(i).getId()==curfolderId){
-                    this.setCurFocusFolderIndex(i);
+            for(int i=0;i< this.curCatList.size();i++){
+                if( this.curCatList.get(i).getId()==curfolderId){
+                    curFolderIndex=i;
                     break;
                 }
             }
+            this.setCurFocusFolderIndex(curFolderIndex);
+
         }
 
         this.play(vfile);

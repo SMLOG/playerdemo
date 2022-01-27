@@ -286,8 +286,12 @@ public class TV {
                     zhbFolder.setName(ch.title);
                     zhbFolder.setAid(ch.id);
                     zhbFolder.setCoverUrl(ch.logo);
+                    zhbFolder.setOrderSeq(i);
                     folderDao.createOrUpdate(zhbFolder);
 
+                }else {
+                    zhbFolder.setOrderSeq(i);
+                    folderDao.createOrUpdate(zhbFolder);
                 }
                 VFile vf = vFileDao.queryBuilder().where().eq("folder_id", zhbFolder.getTypeId()).and().eq("dLink", ch.m3uUrl.replaceAll("'", "''")).queryForFirst();
 
@@ -338,10 +342,10 @@ public class TV {
                             @Override
                             public int compare(Channel o1, Channel o2) {
                                 int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o1.groupTitle.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                        o1.title.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o2.groupTitle.indexOf("广东") > -1 || o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                        o2.title.indexOf("广东") > -1 || o2.title.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int r = w2 - w1;
                                 if (r == 0)
@@ -363,10 +367,10 @@ public class TV {
                             @Override
                             public int compare(Channel o1, Channel o2) {
                                 int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                         o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                         o1.title.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                         o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                         o2.title.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int r = w2 - w1;
                                 if (r == 0)
@@ -456,7 +460,7 @@ public class TV {
     }
 
     public static boolean isGongDong(Channel ch) {
-        return contains(ch.groupTitle,"深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
+        return contains(ch.title,"广东,深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
     }
 
     private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {

@@ -30,7 +30,7 @@
             android:lines="1"
             android:singleLine="true"
             android:text=""
-            android:textColor="@color/white"
+            android:textColor="@color/gray"
             android:textSize="12sp" />
     </RelativeLayout>
     <RelativeLayout

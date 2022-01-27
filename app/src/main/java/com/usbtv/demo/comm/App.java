@@ -191,7 +191,7 @@ public class App extends Application implements CacheListener {
                     .orderBy("typeId", true)
                     .orderBy("orderSeq", false)
                     .query();
-        } catch (SQLException throwables) {
+        } catch (Throwable throwables) {
             throwables.printStackTrace();
         }
         return new ArrayList<Folder>();

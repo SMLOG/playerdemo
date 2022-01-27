@@ -38,15 +38,17 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
-        if(PlayerController.getInstance().getNumFiles()[position].getName()==null){
-            viewHolder.tv.setText( ""+(position+1));
+        if(PlayerController.getInstance().getNumFiles()[position].getName()!=null){
+            viewHolder.tv.setText( PlayerController.getInstance().getNumFiles()[position].getName());
         }else{
-            viewHolder.tv.setText( (position+1)+","+PlayerController.getInstance().getNumFiles()[position].getName());
+            viewHolder.tv.setText("");
         }
-
+        viewHolder.numPos.setText(""+(position+1));
         holder.itemView.setFocusable(true);
         holder.itemView.setClickable(true);
-        viewHolder.tv.setTextColor(PlayerController.getInstance().isNumberSelect(position) ? Color.RED : Color.WHITE);
+        boolean isSelect = PlayerController.getInstance().isNumberSelect(position);
+        viewHolder.numPos.setTextColor(isSelect? Color.RED : Color.GRAY);
+        viewHolder.tv.setTextColor(isSelect? Color.RED : Color.WHITE);
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,10 +68,12 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {
         TextView tv;
+        TextView numPos;
 
         RecyclerViewHolder(View itemView) {
             super(itemView);
             tv = (TextView) itemView.findViewById(R.id.tv);
+            numPos = (TextView) itemView.findViewById(R.id.numPos);
         }
     }
 }
