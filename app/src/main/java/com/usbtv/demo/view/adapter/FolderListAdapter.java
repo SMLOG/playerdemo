@@ -19,6 +19,8 @@ import com.usbtv.demo.R;
 import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.data.Folder;
 
+import java.util.List;
+
 public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
@@ -114,7 +116,8 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
 
     @Override
     public int getItemCount() {
-        return PlayerController.getInstance().getCurCatList().size();
+        List<Folder> curCatList = PlayerController.getInstance().getCurCatList();
+        return curCatList!=null?curCatList.size():0;
     }
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {

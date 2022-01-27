@@ -17,11 +17,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
 
 
 class Channel {
@@ -125,17 +130,13 @@ public class TV {
 
     public interface ChannelFilter {
 
+        String getChannelName();
+
         boolean filter(Channel ch);
+
+        int compare(Channel o1, Channel o2);
     }
 
-    public static List<Channel> getChannels(ChannelFilter filter, Comparator<Channel> sorter) throws InterruptedException {
-        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
-
-        List<Channel> channels = checkM3uUrl(urls, filter);
-
-        Collections.sort(channels, sorter);
-        return channels;
-    }
 
     public static List<Channel> checkM3uUrl(String[] urls, ChannelFilter filter) throws InterruptedException {
         final ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
@@ -271,144 +272,242 @@ public class TV {
         return false;
     }
 
-    public static void channelTV(TV.ChannelFilter filter, int channelID, String channelname,
-                                 Comparator<Channel> sort,
+    public static void channelTV(List<Channel> channels, int channelID, String channelname,
                                  ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
-       try {
-           List<Channel> chs = TV.getChannels(
-                   filter, sort
-           );
+        try {
 
-           int i = chs.size();
-           for (Channel ch : chs) {
-               Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", 2).and().eq("name", ch.title.replaceAll("'","''")).queryForFirst();
-               if (zhbFolder == null) {
-                   zhbFolder = new Folder();
-                   zhbFolder.setTypeId(channelID);
-                   zhbFolder.setName(ch.title);
-                   zhbFolder.setCoverUrl(ch.logo);
-                   folderDao.createOrUpdate(zhbFolder);
 
-                   VFile vf = new VFile();
-                   vf.setFolder(zhbFolder);
-                   vf.setdLink(ch.m3uUrl);
-                   vf.setOrderSeq(i);
-                   vFileDao.createOrUpdate(vf);
-               } else {
-                   VFile vf = zhbFolder.getFiles().iterator().next();
-                   vf.setdLink(ch.m3uUrl);
-                   vf.setName(ch.title);
-                   vf.setOrderSeq(i);
-                   vFileDao.createOrUpdate(vf);
-               }
-               i--;
-               validFoldersMap.put(zhbFolder.getId(), true);
-           }
+            int i = channels.size();
+            for (Channel ch : channels) {
+                Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", channelID).and().eq("aid", ch.id.replaceAll("'", "''")).queryForFirst();
+                if (zhbFolder == null) {
+                    zhbFolder = new Folder();
+                    zhbFolder.setTypeId(channelID);
+                    zhbFolder.setName(ch.title);
+                    zhbFolder.setAid(ch.id);
+                    zhbFolder.setCoverUrl(ch.logo);
+                    folderDao.createOrUpdate(zhbFolder);
 
-           typesMap.put(channelname, channelID);
-           housekeepTypeIdList.add(channelID);
-       }catch (Throwable e){
-           e.printStackTrace();
-       }
+                }
+                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", zhbFolder.getTypeId()).and().eq("dLink", ch.m3uUrl.replaceAll("'", "''")).queryForFirst();
+
+                if (vf == null) {
+                    vf = new VFile();
+                    vf.setFolder(zhbFolder);
+                    vf.setdLink(ch.m3uUrl);
+                    Pattern p = Pattern.compile("\\d+p");
+                    Matcher m = Pattern.compile("\\d+p", Pattern.CASE_INSENSITIVE).matcher(ch.title);
+                    if (m.find()) {
+                        vf.setName(m.group());
+                    }
+                    vf.setOrderSeq(i);
+                    vFileDao.createOrUpdate(vf);
+                }
+
+                i--;
+                validFoldersMap.put(zhbFolder.getId(), true);
+            }
+
+            typesMap.put(channelname, channelID);
+            housekeepTypeIdList.add(channelID);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void liveStream(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException {
+    public static boolean contains(String title,String[] es){
+        for(String e:es){
+            if(title.indexOf(e)>-1)return true;
+        }
+        return false;
+    }
+    public static void liveStream(int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
+
+        LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
+                new ChannelFilter[]{
+                        new ChannelFilter() {
+                            @Override
+                            public String getChannelName() {
+                                return "广东";
+                            }
+                            @Override
+                            public boolean filter(Channel ch) {
+                                return isGongDong(ch);
+
+                            }
+                            @Override
+                            public int compare(Channel o1, Channel o2) {
+                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
+                                        o1.groupTitle.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                );
+                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
+                                        o2.groupTitle.indexOf("广东") > -1 || o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                );
+                                int r = w2 - w1;
+                                if (r == 0)
+                                    r = o1.id.compareTo(o2.id);
+                                if (r == 0)
+                                    r = (int) (o1.speech - o2.speech);
+                                return r;
+                            }
+                        },
+                        new ChannelFilter() {
+                            @Override
+                            public String getChannelName() {
+                                return "电视";
+                            }
+                            @Override
+                            public boolean filter(Channel ch) {
+                                return ch.language.indexOf("Chinese")>-1 && ! isGongDong(ch);
+                            }
+                            @Override
+                            public int compare(Channel o1, Channel o2) {
+                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
+                                         o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                );
+                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
+                                         o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
+                                );
+                                int r = w2 - w1;
+                                if (r == 0)
+                                    r = o1.id.compareTo(o2.id);
+                                if (r == 0)
+                                    r = (int) (o1.speech - o2.speech);
+                                return r;
+                            }
+                        },
+                        new ChannelFilter() {
+                            @Override
+                            public String getChannelName() {
+                                return "TV(Kids)";
+                            }
+                            @Override
+                            public boolean filter(Channel ch) {
+                                return
+                                        ch.language.indexOf("English") > -1 &&
+                                                ch.groupTitle.indexOf("Kids") > -1
+                                        ;
+                            }
+
+                            @Override
+                            public int compare(Channel o1, Channel o2) {
+                                return (int) (o1.speech - o2.speech);
+                            }
+                        },
+                        new ChannelFilter() {
+                            @Override
+                            public String getChannelName() {
+                                return "TV(English)";
+                            }
+                            @Override
+                            public boolean filter(Channel ch) {
+                                return
+                                        ch.language.indexOf("English") > -1
+                                                && ch.groupTitle.indexOf("Kids") == -1;
+                            }
+                            @Override
+                            public int compare(Channel o1, Channel o2) {
+                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                int r = w2 - w1;
+                                if (r == 0)
+                                    r = o1.id.compareTo(o2.id);
+                                if (r == 0)
+                                    r = (int) (o1.speech - o2.speech);
+
+                                return r;
+                            }
+                        },
+                        new ChannelFilter() {
+                            @Override
+                            public String getChannelName() {
+                                return "TV(other)";
+                            }
+                            @Override
+                            public boolean filter(Channel ch) {
+                                return
+                                        ch.language.indexOf("English") == -1 &&
+                                                !ch.country.equals("CN")
+                                        ;
+                            }
+                            @Override
+                            public int compare(Channel o1, Channel o2) {
+                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                int r = w2 - w1;
+                                if (r == 0)
+                                    r = o1.id.compareTo(o2.id);
+                                if (r == 0)
+                                    r = (int) (o1.speech - o2.speech);
+                                return r;
+                            }
+                        }
+                }
+        );
+
+        int startTypeId = tvStartTypeId;
+        for (String name : map.keySet()) {
+            channelTV(map.get(name), startTypeId++, name, housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+            updateScreenTabs(typesMap);
+        }
+
+        System.out.println("done");
+
+    }
+
+    public static boolean isGongDong(Channel ch) {
+        return contains(ch.groupTitle,"深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
+    }
+
+    private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {
 
 
-       channelTV(new TV.ChannelFilter() {
-                      @Override
-                      public boolean filter(Channel ch) {
-                          return ch.title.indexOf("1080") > -1 &&
-                                  ch.language.indexOf("English") > -1 &&
-                                  ch.groupTitle.indexOf("Kids") > -1
-                                  ;
-                      }
-                  }, 5, "TV(Kids)",
-                new Comparator<Channel>() {
-                    @Override
-                    public int compare(Channel o1, Channel o2) {
-                        return (int) (o1.speech - o2.speech);
-                    }
-                },
-                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
+        List<Channel> channels = new ArrayList<>();
+        for (String m3uUrl : urls) {
+            String str = Utils.get(m3uUrl);
 
+            String[] lines = str.split("\n");
 
-        channelTV(new TV.ChannelFilter() {
-                      @Override
-                      public boolean filter(Channel ch) {
-                          return ch.title.indexOf("1080") > -1 &&
-                                  "CN".equals(ch.country);
-                      }
-                  }, 2, "电视",
-                new Comparator<Channel>() {
-                    @Override
-                    public int compare(Channel o1, Channel o2) {
-                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                o1.groupTitle.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
-                        );
-                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                o2.groupTitle.indexOf("广东") > -1 || o2.groupTitle.indexOf("卫视") > -1 ? 5 : 0
-                        );
-                        int r = w1 - w2;
-                        if (r == 0)
-                            r = o1.id.compareTo(o2.id);
-                        if (r == 0)
-                            r = (int) (o1.speech - o2.speech);
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
 
-                        return r;
-                    }
-                },
-                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+                if (line.startsWith("#EXTINF")) {
+                    String url = lines[++i];
 
-        channelTV(new TV.ChannelFilter() {
-                      @Override
-                      public boolean filter(Channel ch) {
-                          return ch.title.indexOf("1080") > -1 &&
-                                  ch.language.indexOf("English") > -1
-                                  && ch.groupTitle.indexOf("Kids") == -1
-                                  ;
-                      }
-                  }, 6, "TV(English)",
-                new Comparator<Channel>() {
-                    @Override
-                    public int compare(Channel o1, Channel o2) {
-                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int r = w1 - w2;
-                        if (r == 0)
-                            r = o1.id.compareTo(o2.id);
-                        if (r == 0)
-                            r = (int) (o1.speech - o2.speech);
+                    Channel ch = new Channel(line, 0, url);
+                    channels.add(ch);
 
-                        return r;
-                    }
-                },
-                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+                }
+            }
+        }
 
-        channelTV(new TV.ChannelFilter() {
-                      @Override
-                      public boolean filter(Channel ch) {
-                          return ch.title.indexOf("1080") > -1 &&
-                                  ch.language.indexOf("English") == -1 &&
-                                  !ch.country.equals("CN")
-                                  ;
-                      }
-                  }, 7, "TV(other)",
-                new Comparator<Channel>() {
-                    @Override
-                    public int compare(Channel o1, Channel o2) {
-                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int r = w1 - w2;
-                        if (r == 0)
-                            r = o1.id.compareTo(o2.id);
-                        if (r == 0)
-                            r = (int) (o1.speech - o2.speech);
+        Map<String, List<Channel>> mapList = new LinkedHashMap<>();
 
-                        return r;
-                    }
-                },
-                housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+        for (ChannelFilter def : channelFilters) {
+            mapList.put(def.getChannelName(), new ArrayList<>());
 
+        }
+
+        for (Channel ch : channels) {
+            for (ChannelFilter def : channelFilters) {
+                if (def.filter(ch)) {
+                    mapList.get(def.getChannelName()).add(ch);
+                }
+            }
+        }
+
+        for (ChannelFilter def : channelFilters) {
+            Collections.sort(mapList.get(def.getChannelName()), new Comparator<Channel>() {
+                @Override
+                public int compare(Channel t1, Channel t2) {
+                    return def.compare(t1, t2);
+
+                }
+            });
+
+        }
+
+        return mapList;
     }
 }

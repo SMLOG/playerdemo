@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.usbtv.demo.R;
 import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.data.Folder;
-
+import com.usbtv.demo.data.VFile;
 
 
 public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -38,7 +38,12 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
-        viewHolder.tv.setText(position + 1 + "");
+        if(PlayerController.getInstance().getNumFiles()[position].getName()==null){
+            viewHolder.tv.setText( ""+(position+1));
+        }else{
+            viewHolder.tv.setText( (position+1)+","+PlayerController.getInstance().getNumFiles()[position].getName());
+        }
+
         holder.itemView.setFocusable(true);
         holder.itemView.setClickable(true);
         viewHolder.tv.setTextColor(PlayerController.getInstance().isNumberSelect(position) ? Color.RED : Color.WHITE);
@@ -53,9 +58,9 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
 
     @Override
     public int getItemCount() {
-        Folder folder = PlayerController.getInstance().getCurFolder();
-        if (folder != null)
-            return folder.getFiles().size();
+        VFile[] files = PlayerController.getInstance().getNumFiles();
+        if (files != null)
+            return files.length;
         return 0;
     }
 

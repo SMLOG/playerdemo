@@ -55,17 +55,19 @@ public final class PlayerController {
     private LinkedHashMap<Integer, String> typeIdMap;
     private RecyclerView numTabRecyclerView;
     private Folder curFolder;
+    private VFile[] numFiles;
+    private List<Folder> curCatList;
 
 
     private PlayerController() {
     }
 
     public List<Folder> getCurCatList() {
+        return this.curCatList;
+    }
 
-        if (this.curCat == null) return new ArrayList<>();
-        Integer typeId = allTypeMap.get(this.curCat);
-        if (catMoviesMap.get(typeId) == null) return new ArrayList<>();
-        return catMoviesMap.get(typeId);
+    public void setCurCatList(List<Folder> curCatList) {
+        this.curCatList = curCatList;
     }
 
     public synchronized void reloadMoviesList() {
@@ -92,8 +94,8 @@ public final class PlayerController {
             Integer value = allMap.get(key);
             if (this.catMoviesMap.get(value) != null) {
                 this.cats.add(key);
-                allTypeMap.put(key,value);
-                typeIdMap.put(value,key);
+                allTypeMap.put(key, value);
+                typeIdMap.put(value, key);
             }
         }
 
@@ -101,11 +103,11 @@ public final class PlayerController {
             catsAdaper.notifyDataSetChanged();
         }
 
-        if(this.curItem == null && allMovies.size()>0){
+        if (this.curItem == null && allMovies.size() > 0) {
             Folder folder = allMovies.iterator().next();
-             this.curCatId = folder.getTypeId();
-             this.curCat =typeIdMap.get(this.curCatId);
-            play(folder,0);
+            this.curCatId = folder.getTypeId();
+            this.curCat = typeIdMap.get(this.curCatId);
+            play(folder, 0);
         }
 
     }
@@ -235,16 +237,16 @@ public final class PlayerController {
             return null;
         }
         try {
-            Folder folder =null;
+            Folder folder = null;
 
             List<Folder> catFolerList = this.getCurCatList();
-            int nextPos=this.curFocusFolderIndex +1;
-            if(catFolerList.size()>0&&catFolerList.size()> nextPos&& nextPos>=0){
+            int nextPos = this.curFocusFolderIndex + 1;
+            if (catFolerList.size() > 0 && catFolerList.size() > nextPos && nextPos >= 0) {
                 folder = this.getCurCatList().get(nextPos);
-                this.play(folder,nextPos,0);
+                this.play(folder, nextPos, 0);
                 return folder.getFiles().iterator().next();
             }
-            if(folder==null){
+            if (folder == null) {
                 Dao<Folder, ?> folderDao = App.getHelper().getDao(Folder.class);
 
                 int typeId = curItem.getFolder().getTypeId();
@@ -255,7 +257,7 @@ public final class PlayerController {
                         .orderBy("orderSeq", false)
                         .orderBy("id", false)
                         .queryForFirst();
-                if (folder == null){
+                if (folder == null) {
 
                     folder = folderDao.queryBuilder()
                             .where().eq("typeId", typeId)
@@ -282,15 +284,14 @@ public final class PlayerController {
     }
 
     public void next() {
+
+        if (mode == MODE_LOOP && curItem != null) {
+            play(curItem);
+            return;
+        }
+
         try {
             Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
-
-            if (curItem == null) {
-
-                firstPlay();
-                return;
-            }
-
 
             VFile vf = curItem;
 
@@ -327,33 +328,72 @@ public final class PlayerController {
         }
     }
 
-    public boolean firstPlay() throws SQLException {
 
-        Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
+    public void playByVFileId(int id) {
 
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-        int id = sp.getInt("id", 1);
-        VFile file = vfDao.queryForId(id);
-        if (file != null) {
-        } else {
-            file = vfDao.queryBuilder().queryForFirst();
+        VFile item = null;
+        try {
+            item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
+            playVFile(item);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
-        if (file != null) {
-            play(file);
-            return true;
-        }
-        return false;
     }
 
-    public void playNext() {
+    public void init(long folderId) {
 
-        if (mode == MODE_LOOP && curItem != null) {
-            play(curItem);
-            return;
+        try {
+
+            if (folderId > 0) {
+                Folder folder = null;
+
+                Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
+                folder = dao.queryForId((int) folderId);
+                if (folder != null) this.curItem = folder.getFiles().iterator().next();
+
+
+            }
+            if (this.curItem == null) {
+
+                Dao<VFile, Integer> vfDao = App.getHelper().getDao(VFile.class);
+
+                SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+                int id = sp.getInt("id", 1);
+                this.curItem = vfDao.queryForId(id);
+                if (this.curItem != null) {
+                } else {
+                    this.curItem = vfDao.queryBuilder().queryForFirst();
+                }
+
+            }
+
+            if(this.curItem!=null){
+                playVFile(this.curItem);
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
-        next();
 
+
+    }
+
+    public void playVFile(VFile vfile) {
+        String curCat = this.typeIdMap.get( vfile.getFolder().getTypeId());
+        if(curCat!=null){
+            this.setCurCat(curCat);
+            int curfolderId = vfile.getFolder().getId();
+            for(int i=0;i< this.getCurCatList().size();i++){
+                if( this.getCurCatList().get(i).getId()==curfolderId){
+                    this.setCurFocusFolderIndex(i);
+                    break;
+                }
+            }
+        }
+
+        this.play(vfile);
     }
 
     public void setUIs(TvVideoView videoView,
@@ -388,8 +428,8 @@ public final class PlayerController {
 
     public PlayerController setCurIndex(int i) {
         this.curIndex = i;
-        if(this.numAdapter!=null)
-        this.numAdapter.notifyDataSetChanged();
+        if (this.numAdapter != null)
+            this.numAdapter.notifyDataSetChanged();
         return this;
     }
 
@@ -406,8 +446,11 @@ public final class PlayerController {
         this.curCat = curCat;
         Integer typeId = allTypeMap.get(curCat);
         this.setCurCatId(typeId);
+        this.setCurCatList(catMoviesMap.get(typeId));
+
         this.foldersAdapter.notifyDataSetChanged();
     }
+
 
     public String getCurCat() {
         return curCat;
@@ -415,23 +458,31 @@ public final class PlayerController {
 
     public void play(Folder folder, int position, int i) {
         this.setCurFocusFolderIndex(position);
-        if(folder.getFiles().size()>i){
+        if (folder.getFiles().size() > i) {
             this.setCurIndex(i);
             this.play(folder.getFiles().toArray(new VFile[]{})[i]);
         }
 
     }
 
-
     public void setCurFocusFolderIndex(int folderPosition) {
         int p = this.curFocusFolderIndex;
         this.curFocusFolderIndex = folderPosition;
-        this.curFolder = this.getCurCatList()!=null&& this.getCurCatList().size()>p?this.getCurCatList().get(folderPosition):null;
+        this.curFolder = this.getCurCatList().get(folderPosition);
         this.foldersAdapter.notifyItemChanged(p);
         this.foldersAdapter.notifyItemChanged(folderPosition);
+        this.setNumFiles(this.curFolder != null ? this.curFolder.getFiles().toArray(new VFile[]{}) : null);
         this.numAdapter.notifyDataSetChanged();
-        this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
+        // this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
 
+    }
+
+    public VFile[] getNumFiles() {
+        return numFiles;
+    }
+
+    public void setNumFiles(VFile[] numFiles) {
+        this.numFiles = numFiles;
     }
 
     public Folder getCurFolder() {
@@ -464,6 +515,13 @@ public final class PlayerController {
 
 
     public boolean isNumberSelect(int i) {
-        return  (this.curItem!=null && this.curFolder!=null&&this.curItem.getFolder().getId()==this.curFolder.getId() && i == this.curIndex);
+        return (this.curItem != null && this.curFolder != null && this.curItem.getFolder().getId() == this.curFolder.getId() && i == this.curIndex);
     }
+
+    public void play() {
+        if(this.curItem!=null)
+             this.play(this.curItem);
+    }
+
+
 }

@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.j256.ormlite.dao.Dao;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.comm.App;
@@ -37,7 +36,6 @@ import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -104,19 +102,9 @@ public class MainActivity extends AppCompatActivity {
 
         long id = -1;
         if (intent != null) id = intent.getLongExtra("Movie", -1l);
-        if (id > 0) {
-            Folder folder = null;
-            try {
-                Dao<Folder, Integer> dao = App.getHelper().getDao(Folder.class);
-                folder = dao.queryForId((int) id);
-               if(folder!=null) PlayerController.getInstance().play(folder.getFiles().iterator().next());
 
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-        } else {
-            PlayerController.getInstance().playNext();
-        }
+        PlayerController.getInstance().init(id);
+
     }
 
     private void requestPermissionAndStorage() {
@@ -365,14 +353,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(Object mp) {
-                PlayerController.getInstance().playNext();
+                PlayerController.getInstance().next();
 
             }
 
             @Override
             public boolean onError(Object mp, int what, int extra) {
                 Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                PlayerController.getInstance().playNext();
+                PlayerController.getInstance().next();
                 return true;
             }
         });

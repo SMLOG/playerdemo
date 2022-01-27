@@ -108,14 +108,9 @@ public class IndexController {
     ) {
 
         if ("play".equals(cmd)) {
-            VFile item = null;
-            try {
-                item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
-                PlayerController.getInstance().play(item);
 
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
+            PlayerController.getInstance().playByVFileId(id);
+
 
         } else if ("next".equals(cmd)) {
 

@@ -189,7 +189,7 @@ public class BiLi {
 
     }
 
-    public static void bilibiliVideos(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
+    public static void bilibiliVideos(final int startTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
@@ -201,7 +201,7 @@ public class BiLi {
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
-            Integer typeId2 = i + 10;
+            Integer typeId2 = i + startTypeId;
             housekeepTypeIdList.add(typeId2);
             Integer media_count = (Integer) item.get("media_count");
 
