@@ -113,7 +113,7 @@ public class Cnn {
                     vf2.setName(title);
                     vf2.setFolder(folder2);
 
-                    vf2.setdLink(SSLSocketClient.ServerManager.getServerHttpAddress() + "/hls/vod.m3u8?folderId=" + folder.getId());
+                    vf2.setdLink(":/hls/vod.m3u8?folderId=" + folder.getId());
                     vf2.setOrderSeq(0);
 
                     vFileDao.createOrUpdate(vf2);

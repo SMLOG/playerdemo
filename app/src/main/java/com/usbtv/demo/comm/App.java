@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -148,15 +149,24 @@ public class App extends Application implements CacheListener {
 
         if (!vf.exists()) {
 
-            if (vf.getdLink() != null && vf.getdLink().indexOf(".m3u8") > -1) {
+            String dlink = vf.getdLink();
+            if (dlink != null && dlink.indexOf(".m3u8") > -1) {
 
                 // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
                 //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
 
-                if (true) return Uri.parse(vf.getdLink());
+                String rate = PlayerController.getInstance().getRate();
+                if (dlink.startsWith(":/")) return Uri.parse(SSLSocketClient.ServerManager.getServerHttpAddress()+dlink+"&rate="+ rate);
+
                 if (true) {
                     return Uri.parse(
-                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy/" + vf.getdLink()
+                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy?url=" +  URLEncoder.encode(dlink)+"&rate="+ rate
+                    );
+                }
+
+                if (true) {
+                    return Uri.parse(
+                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy/" + dlink
                     );
                 }
                 return Uri.parse(

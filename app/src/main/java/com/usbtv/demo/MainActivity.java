@@ -34,6 +34,7 @@ import com.usbtv.demo.view.SpaceDecoration;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
+import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -183,6 +184,9 @@ public class MainActivity extends AppCompatActivity {
         numTabRecyclerView = findViewById(R.id.numTabRV);
 
         foldersRecyclerView = findViewById(R.id.foldersRV);
+        RecyclerView qTabRecyclerView = findViewById(R.id.qTab);
+        QtabListRecycleViewAdapter qAdapter = new QtabListRecycleViewAdapter(this, qTabRecyclerView);
+        qTabRecyclerView.setAdapter(qAdapter);
 
         numAdapter = new FolderNumListRecycleViewAdapter(this, numTabRecyclerView);
 
@@ -254,10 +258,21 @@ public class MainActivity extends AppCompatActivity {
                         case FOCUS_DOWN:
                             return foldersRecyclerView;
                         case FOCUS_UP:
-                            return numTabRecyclerView;
+                            return qTabRecyclerView.getVisibility()==VISIBLE?qTabRecyclerView: numTabRecyclerView;
                     }
 
                 }
+                    else if (qTabRecyclerView.hasFocus()) {
+
+                    switch (direction) {
+                        case FOCUS_DOWN:
+                            return numTabRecyclerView;
+                        case FOCUS_UP:
+                            return qTabRecyclerView;
+                    }
+
+                }
+
                 return null;
             }
         });
@@ -265,10 +280,10 @@ public class MainActivity extends AppCompatActivity {
        // MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
-       PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView);
+       PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView,qTabRecyclerView);
        videoView.setUp(this);
 
-        PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter);
+        PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter,qAdapter);
         PlayerController.getInstance().reloadMoviesList();
 
 

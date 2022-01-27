@@ -46,13 +46,17 @@ public class LiveController {
     }
     
     @GetMapping("/hls/vod.m3u8")
-    public String hlsLive(HttpRequest request, HttpResponse response, @RequestParam(name = "folderId", required = false, defaultValue = "0") int folderId)
+    public String hlsLive(HttpRequest request,
+                          HttpResponse response,
+                          @RequestParam(name = "folderId", required = false, defaultValue = "0") int folderId,
+                           @RequestParam(name = "rate", required = false, defaultValue = "1080") int rate
+    )
             throws IOException {
 
         response.setHeader("Content-Type", "application/x-mpegURL");
         
 
-        List<String> urls = getUrls(folderId);
+        List<String> urls = getUrls(folderId,rate);
 
         StringBuilder sb = new StringBuilder();
 
@@ -96,7 +100,7 @@ public class LiveController {
     }
 
 
-    private List<String> getUrls(int folderId) {
+    private List<String> getUrls(int folderId, int rate) {
 
 
         List<String> ret=new ArrayList<>();
@@ -114,9 +118,10 @@ public class LiveController {
                     .orderBy("id", false)
                     .query();
 
+            int fileId = rate>=1080?7:(rate>=720?6:5);
             for(VFile vfile:list){
                 String url = vfile.getdLink();
-                ret.add(url.substring(0, url.lastIndexOf("/") + 1) + "media-7/iframes.m3u8");
+                ret.add(url.substring(0, url.lastIndexOf("/") + 1) + "media-"+fileId+"/iframes.m3u8");
             }
        
         } catch (SQLException throwables) {

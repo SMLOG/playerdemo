@@ -16,6 +16,7 @@ import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
+import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -57,6 +58,8 @@ public final class PlayerController {
     private Folder curFolder;
     private VFile[] numFiles;
     private List<Folder> curCatList;
+    private RecyclerView qTabRecyclerView;
+    private QtabListRecycleViewAdapter qAdapter;
 
 
     private PlayerController() {
@@ -106,10 +109,11 @@ public final class PlayerController {
 
     }
 
-    public void setRVAdapts(FolderCatsListRecycleViewAdapter catsAdaper, FolderListAdapter foldersAdapter, FolderNumListRecycleViewAdapter numAdapter) {
+    public void setRVAdapts(FolderCatsListRecycleViewAdapter catsAdaper, FolderListAdapter foldersAdapter, FolderNumListRecycleViewAdapter numAdapter, QtabListRecycleViewAdapter qAdapter) {
         this.catsAdaper = catsAdaper;
         this.foldersAdapter = foldersAdapter;
         this.numAdapter = numAdapter;
+        this.qAdapter=qAdapter;
     }
 
     public List<String> getCats() {
@@ -394,10 +398,11 @@ public final class PlayerController {
     }
 
     public void setUIs(TvVideoView videoView,
-                       View gridView, RecyclerView numTabRecyclerView) {
+                       View gridView, RecyclerView numTabRecyclerView, RecyclerView qTabRecyclerView) {
         this.videoView = videoView;
         this.girdView = gridView;
         this.numTabRecyclerView = numTabRecyclerView;
+        this.qTabRecyclerView = qTabRecyclerView;
     }
 
     public String getCoverUrl() {
@@ -470,6 +475,8 @@ public final class PlayerController {
         this.foldersAdapter.notifyItemChanged(folderPosition);
         this.setNumFiles(this.curFolder != null ? this.curFolder.getFiles().toArray(new VFile[]{}) : null);
         this.numAdapter.notifyDataSetChanged();
+        qTabRecyclerView.setVisibility(this.curFolder.getTypeId()>=200&& this.curFolder.getTypeId() <300?View.VISIBLE:View.GONE);
+
         // this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
 
     }
@@ -520,5 +527,25 @@ public final class PlayerController {
              this.play(this.curItem);
     }
 
+    private String[] rates = new String[]{"1080","720","540"};
 
+    private int curRateIndex=0;
+    public String[] getRates() {
+        return  rates;
+    }
+
+    public boolean getRate(int position) {
+        return  curRateIndex == position;
+    }
+
+    public PlayerController setCurRateIndex(int position) {
+        this.curRateIndex = position;
+        qAdapter.notifyDataSetChanged();
+        this.play();
+        return this;
+    }
+
+    public String getRate() {
+        return rates[curRateIndex];
+    }
 }
