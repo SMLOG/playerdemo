@@ -453,6 +453,11 @@ public final class PlayerController {
         this.foldersAdapter.notifyDataSetChanged();
     }
 
+    public Map<String, Integer> getAllTypeMap() {
+        return allTypeMap;
+    }
+
+
 
     public String getCurCat() {
         return curCat;

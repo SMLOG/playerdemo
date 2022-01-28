@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
@@ -241,6 +242,23 @@ public class IndexController {
         return 0;
     }
 
+
+    @GetMapping(path = "/api/channels")
+    @ResponseBody
+    String channels() {
+
+        try {
+
+            Map<String, Integer> map = PlayerController.getInstance().getAllTypeMap();
+
+          return   JSON.toJSONString(map);
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @GetMapping(path = "/api/manRes")
     @ResponseBody
     String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId, @RequestParam(name = "searchValue", required = false, defaultValue = "") String searchValue) {
@@ -252,22 +270,21 @@ public class IndexController {
             result.put("pageSize", pageSize);
             result.put("page", page);
 
-            if (typeId == 3) {
+            Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
+            where.gt("typeId",0);
 
-                QueryBuilder<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder();
-                if (searchValue != null && !searchValue.trim().equals("")) {
-                    where = where.where().like("name", "%" + searchValue + "%").queryBuilder();
-                }
-                long total = where.countOf();
-                where.query();
-                result.put("total", total);
-                List<Folder> list = where
-                        .offset((long) ((page - 1) * pageSize))
-                        .limit(20l).query();
-                result.put("datas", list);
-
+            if(typeId>0){
+                where.and().eq("typeId",typeId);
             }
-
+            if (searchValue != null && !searchValue.trim().equals("")) {
+                where.and().like("name", "%" + searchValue + "%").queryBuilder();
+            }
+            long total = where.countOf();
+            result.put("total", total);
+            List<Folder> list = where.queryBuilder()
+                    .offset((long) ((page - 1) * pageSize))
+                    .limit(20l).query();
+            result.put("datas", list);
 
             return JSON.toJSONString(result);
 

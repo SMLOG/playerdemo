@@ -159,9 +159,8 @@ public class App extends Application implements CacheListener {
                 if (dlink.startsWith(":/")) return Uri.parse(SSLSocketClient.ServerManager.getServerHttpAddress()+dlink+"&rate="+ rate);
 
                 if (true) {
-                    return Uri.parse(
-                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy?url=" +  URLEncoder.encode(dlink)+"&rate="+ rate
-                    );
+                    return Uri.parse(dlink);
+
                 }
 
                 if (true) {
