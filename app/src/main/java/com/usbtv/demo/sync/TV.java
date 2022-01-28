@@ -34,7 +34,7 @@ class Channel {
     private String getTagV(String inf, String tag) {
         int begin = inf.indexOf(tag + "=\"");
         if (begin == -1)
-            return null;
+            return "";
         begin = begin + tag.length() + 2;
 
         int last = inf.indexOf("\"", begin);
@@ -279,7 +279,10 @@ public class TV {
 
             int i = channels.size();
             for (Channel ch : channels) {
-                Folder zhbFolder = folderDao.queryBuilder().where().eq("typeId", channelID).and().eq("aid", ch.id.replaceAll("'", "''")).queryForFirst();
+                Folder zhbFolder = folderDao.queryBuilder().where()
+                        .eq("typeId", channelID).and()
+                        .eq("aid", ch.id.replaceAll("'", "''"))
+                        .queryForFirst();
                 if (zhbFolder == null) {
                     zhbFolder = new Folder();
                     zhbFolder.setTypeId(channelID);
