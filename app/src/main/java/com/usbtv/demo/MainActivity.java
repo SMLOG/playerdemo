@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -22,12 +25,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.king.zxing.util.CodeUtils;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DocumentsUtils;
 import com.usbtv.demo.comm.MyBroadcastReceiver;
 import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.SpaceDecoration;
@@ -174,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindElementViews() {
+
 
 
         videoView = findViewById(R.id.videoView);
@@ -424,8 +430,24 @@ public class MainActivity extends AppCompatActivity {
 
                 return false;
 
-            case KeyEvent.KEYCODE_SETTINGS: //设置键
-                Log.d(TAG, "setting--->");
+            case KeyEvent.KEYCODE_MENU: //设置键
+                Log.d(TAG, "KEYCODE_MENU--->");
+                View menu = findViewById(R.id.menu);
+                if(menu.getVisibility()==View.GONE){
+                    ImageView erm = findViewById(R.id.erm);
+
+                    String ip = Utils.getIPAddress();
+                    TextView ermText = findViewById(R.id.ermText);
+
+                    if(ip!=null){
+                        ermText.setText("本机:"+ip);
+                        Bitmap qrCode = CodeUtils.createQRCode(SSLSocketClient.ServerManager.getServerHttpAddress().replaceAll("127.0.0.1",ip), 120, null);
+                        erm.setImageBitmap(qrCode);
+                        menu.setVisibility(VISIBLE);
+                    }
+                }else{
+                    menu.setVisibility(View.GONE);
+                }
 
                 break;
 

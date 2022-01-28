@@ -62,4 +62,5 @@ dependencies {
     //implementation 'com.gitee.nurApplication:NurVideoPlayer:2.1.9'
     implementation project(':nurvideoplayer')
 
+    implementation 'com.king.zxing:zxing-lite:1.1.7-androidx'
 }
