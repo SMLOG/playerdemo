@@ -21,6 +21,9 @@ public class Video {
     @DatabaseField
     Integer dt;
 
+    @DatabaseField
+    Integer ymd;
+
 
     public Video() {
     }
@@ -71,5 +74,13 @@ public class Video {
 
     public void setDt(Integer dt) {
         this.dt = dt;
+    }
+
+    public Integer getYmd() {
+        return ymd;
+    }
+
+    public void setYmd(Integer ymd) {
+        this.ymd = ymd;
     }
 }

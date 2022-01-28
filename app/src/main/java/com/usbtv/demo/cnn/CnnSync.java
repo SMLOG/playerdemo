@@ -1,11 +1,10 @@
-package com.usbtv.demo.sync;
+package com.usbtv.demo.cnn;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -18,7 +17,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Cnn {
+public class CnnSync {
 
     public static void cnnVideos(int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
         int channelId = cnnStartTypeId;
@@ -113,7 +112,7 @@ public class Cnn {
                     vf2.setName(title);
                     vf2.setFolder(folder2);
 
-                    vf2.setdLink(":/hls/vod.m3u8?folderId=" + folder.getId());
+                    vf2.setdLink(":/cnn/vod.m3u8?ymd=" + seq);
                     vf2.setOrderSeq(0);
 
                     vFileDao.createOrUpdate(vf2);
@@ -123,23 +122,26 @@ public class Cnn {
 
                 folderDao.createOrUpdate(folder);
 
-                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", folder.getId()).and().eq("dLink", url).queryForFirst();
-                if (vf == null) {
-                    vf = new VFile();
-                    vf.setName(title);
-                    vf.setFolder(folder);
-                    vf.setdLink(url);
-                    vf.setOrderSeq(seq);
-                    vFileDao.createOrUpdate(vf);
-                }
-
                 video = new Video();
                 video.setVideoId(videoId);
                 video.setTitle(title);
                 video.setCoverUrl(imageUrl);
                 video.setUrl(url);
+                video.setYmd(seq);
                 video.setDt(Integer.parseInt(folderName.replaceAll("/", "")));
                 videoDao.createOrUpdate(video);
+
+                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", folder.getId()).and().eq("dLink", url).queryForFirst();
+                if (vf == null) {
+                    vf = new VFile();
+                    vf.setName(title);
+                    vf.setFolder(folder);
+                    vf.setdLink(":/cnn/video.m3u8?videoId="+videoId);
+                    vf.setOrderSeq(seq);
+                    vFileDao.createOrUpdate(vf);
+                }
+
+
             }
 
         }

@@ -9,6 +9,7 @@ import android.os.Looper;
 import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.usbtv.demo.cnn.CnnSync;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.PlayerController;
@@ -72,7 +73,7 @@ public class SyncCenter {
 
             @Override
             public void doRun() throws Throwable {
-                Cnn.cnnVideos(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                CnnSync.cnnVideos(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
