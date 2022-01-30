@@ -80,26 +80,4 @@ public class InitChannel {
 
     }
 
-    private Uri getUSBCardImageFileUri() {
-        String sdPath = Environment.getExternalStorageDirectory().getPath();
-        File file = new File(sdPath + "/Pictures/mediachannel/usb_thumbnail.jpg");
-        Uri uri = FileProvider.getUriForFile(App.getInstance().getApplicationContext(), "com.rogera.mediaplaychannel.fileprovider", file);
-        //Log.v(TAG, "uri:" + uri.toString());
-        return uri;
-    }
-
-    private Uri getPVRCardImageFileUri() {
-        String sdPath = Environment.getExternalStorageDirectory().getPath();
-        File file = new File(sdPath + "/Pictures/mediachannel/pvr_thumbnail.jpg");
-        Uri uri = FileProvider.getUriForFile(App.getInstance().getApplicationContext(), "com.rogera.mediaplaychannel.fileprovider", file);
-        // Log.v(TAG, "uri:" + uri.toString());
-        return uri;
-    }
-
-    private void grantUriPermissionToApp(String packageName, Uri uri) {
-        App.getInstance().getApplicationContext().grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-    }
-
-
 }

@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
        videoView.setUp(this);
 
         PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter,qAdapter);
-        PlayerController.getInstance().reloadMoviesList();
+        PlayerController.getInstance().refreshCats();
 
 
 

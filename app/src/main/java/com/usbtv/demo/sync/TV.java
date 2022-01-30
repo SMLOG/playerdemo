@@ -2,6 +2,7 @@ package com.usbtv.demo.sync;
 
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -279,10 +280,14 @@ public class TV {
 
             int i = channels.size();
             for (Channel ch : channels) {
-                Folder zhbFolder = folderDao.queryBuilder().where()
-                        .eq("typeId", channelID).and()
-                        .eq("aid", ch.id.replaceAll("'", "''"))
-                        .queryForFirst();
+                Where<Folder, Integer> where = folderDao.queryBuilder().where()
+                        .eq("typeId", channelID);
+                if(ch.id!=null&&!ch.id.equals(""))where.and().eq("aid", ch.id.replaceAll("'", "''"));
+                else{
+                    where.and().like("name","%"+ch.title.replaceAll("'", "''").trim()+"%");
+                }
+
+                Folder zhbFolder = where .queryForFirst();
                 if (zhbFolder == null) {
                     zhbFolder = new Folder();
                     zhbFolder.setTypeId(channelID);
@@ -469,24 +474,12 @@ public class TV {
     private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {
 
 
-        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
+        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u","https://smlog.github.io/iptv.m3u"};
         List<Channel> channels = new ArrayList<>();
         for (String m3uUrl : urls) {
             String str = Utils.get(m3uUrl);
 
-            String[] lines = str.split("\n");
-
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-
-                if (line.startsWith("#EXTINF")) {
-                    String url = lines[++i];
-
-                    Channel ch = new Channel(line, 0, url);
-                    channels.add(ch);
-
-                }
-            }
+            extractChannels(channels, str);
         }
 
         Map<String, List<Channel>> mapList = new LinkedHashMap<>();
@@ -516,5 +509,21 @@ public class TV {
         }
 
         return mapList;
+    }
+
+    private static void extractChannels(List<Channel> channels, String str) {
+        String[] lines = str.split("\n");
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            if (line.startsWith("#EXTINF")) {
+                String url = lines[++i];
+
+                Channel ch = new Channel(line, 0, url);
+                channels.add(ch);
+
+            }
+        }
     }
 }

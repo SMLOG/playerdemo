@@ -10,6 +10,7 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -44,7 +45,6 @@ public final class PlayerController {
     private int curIndex;
     private String curCat;
 
-    private List<Folder> allMovies;
     private HashMap<Integer, List<Folder>> catMoviesMap;
     private FolderCatsListRecycleViewAdapter catsAdaper;
     private FolderListAdapter foldersAdapter;
@@ -73,21 +73,23 @@ public final class PlayerController {
         this.curCatList = curCatList;
     }
 
-    public synchronized void reloadMoviesList() {
+    public List<Folder> loadCatFolderList(int typeId){
+        List<Folder> ret = null;
+        try {
+            Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
+            if(typeId>0)
+            ret= where.eq("typeId",typeId).query();
+            else  ret= where.eq("isFav",1).query();
 
-        this.allMovies = App.getAllMovies();
-        this.catMoviesMap = new HashMap<Integer, List<Folder>>();
-        List<Folder> list = null;
-
-        int lastType = -1;
-        for (Folder folder : allMovies) {
-            if (folder.getTypeId() != lastType) {
-                lastType = folder.getTypeId();
-                list = new LinkedList<>();
-                catMoviesMap.put(lastType, list);
-            }
-            list.add(folder);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            ret = new ArrayList<>();
         }
+        return ret;
+    }
+
+    public synchronized void refreshCats() {
+
 
         this.cats = new ArrayList<String>();
         Map<String, Integer> allMap = App.getInstance().getStoreTypeMap();
@@ -95,17 +97,14 @@ public final class PlayerController {
         this.typeIdMap = new LinkedHashMap<>();
         for (String key : allMap.keySet()) {
             Integer value = allMap.get(key);
-            if (this.catMoviesMap.get(value) != null) {
                 this.cats.add(key);
                 allTypeMap.put(key, value);
                 typeIdMap.put(value, key);
-            }
-        }
 
+        }
         if (catsAdaper != null) {
             catsAdaper.notifyDataSetChanged();
         }
-
 
     }
 
@@ -376,7 +375,7 @@ public final class PlayerController {
 
     public void playVFile(VFile vfile) {
         String curCat = this.typeIdMap.get( vfile.getFolder().getTypeId());
-        if(curCat==null){
+        if(curCat==null && this.typeIdMap.values().size()>0){
             curCat = this.typeIdMap.values().iterator().next();
         }
         if(curCat!=null){
@@ -448,7 +447,8 @@ public final class PlayerController {
         this.curCat = curCat;
         Integer typeId = allTypeMap.get(curCat);
         this.setCurCatId(typeId);
-        this.setCurCatList(catMoviesMap.get(typeId));
+
+        this.setCurCatList(loadCatFolderList(typeId));
 
         this.foldersAdapter.notifyDataSetChanged();
     }

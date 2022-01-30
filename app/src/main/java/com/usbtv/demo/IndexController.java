@@ -259,7 +259,16 @@ public class IndexController {
         return null;
     }
 
-    @GetMapping(path = "/api/manRes")
+
+    @GetMapping(path = "/api/toggleFav")
+    @ResponseBody
+    String toggleFav(@RequestParam(name = "id") int id) throws SQLException {
+        Folder folder = App.getHelper().getDao(Folder.class).queryBuilder().where().eq("id", id).queryForFirst();
+        folder.setIsFav(folder.getIsFav()>0?0:1);
+        App.getHelper().getDao(Folder.class).update(folder);
+        return  JSON.toJSONString(folder);
+    }
+        @GetMapping(path = "/api/manRes")
     @ResponseBody
     String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId, @RequestParam(name = "searchValue", required = false, defaultValue = "") String searchValue) {
 
@@ -271,11 +280,11 @@ public class IndexController {
             result.put("page", page);
 
             Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
-            where.gt("typeId",0);
 
-            if(typeId>0){
-                where.and().eq("typeId",typeId);
-            }
+            if(typeId>0)
+            where.eq("typeId",typeId);
+            else  where.eq("isFav",1);
+
             if (searchValue != null && !searchValue.trim().equals("")) {
                 where.and().like("name", "%" + searchValue + "%").queryBuilder();
             }

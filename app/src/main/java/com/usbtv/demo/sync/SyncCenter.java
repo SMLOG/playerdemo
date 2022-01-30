@@ -166,7 +166,7 @@ public class SyncCenter {
 
             @Override
             public void run() {
-                PlayerController.getInstance().reloadMoviesList();
+                PlayerController.getInstance().refreshCats();
             }
         });
     }

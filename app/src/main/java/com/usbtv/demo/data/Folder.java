@@ -47,6 +47,9 @@ public class Folder {
     @DatabaseField(foreign = true, foreignAutoRefresh = true, uniqueCombo = true)
     private Drive root;
 
+    @DatabaseField
+    int isFav;
+
     private Integer rootId;
 
     public int getId() {
@@ -177,5 +180,13 @@ public class Folder {
 
     public void setOrderSeq(int orderSeq) {
         this.orderSeq = orderSeq;
+    }
+
+    public int getIsFav() {
+        return isFav;
+    }
+
+    public void setIsFav(int isFav) {
+        this.isFav = isFav;
     }
 }

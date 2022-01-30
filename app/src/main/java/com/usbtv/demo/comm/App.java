@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -60,13 +59,18 @@ public class App extends Application implements CacheListener {
 
         SharedPreferences sp = getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
+        Map<String, Integer>   map=null;
         String jsonStr = sp.getString("typesMap", "");
         if (!jsonStr.equals("")) {
             Map<String, Integer> dummyMap = JSON.parseObject(jsonStr, LinkedHashMap.class, Feature.OrderedField);
-            return dummyMap;
-        }
 
-        return new LinkedHashMap<>();
+            map= dummyMap;
+        }else
+        {
+            map = new LinkedHashMap<>();
+        }
+        map.put("Favorite",0);
+        return map;
     }
 
     public static HttpProxyCacheServer proxy;
@@ -258,7 +262,7 @@ public class App extends Application implements CacheListener {
                         @Override
                         public void run() {
                             try {
-                                PlayerController.getInstance().reloadMoviesList();
+                                PlayerController.getInstance().refreshCats();
                                 new InitChannel();
                             } catch (Throwable e) {
                                 e.printStackTrace();
