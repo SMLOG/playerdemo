@@ -392,6 +392,9 @@ public final class PlayerController {
                     break;
                 }
             }
+            if(this.curCatList==null || this.curCatList.size()==0){
+                this.curCatList = loadCatFolderList(vfile.getFolder().getId());
+            }
             this.setCurFocusFolderIndex(curFolderIndex);
 
         }
@@ -454,6 +457,7 @@ public final class PlayerController {
         this.curCat = curCat;
         Integer typeId = allTypeMap.get(curCat);
         this.setCurCatId(typeId);
+
 
         this.setCurCatList(loadCatFolderList(typeId));
 
@@ -564,7 +568,7 @@ public final class PlayerController {
     }
 
     public void doFav() {
-       this.curFolder.setIsFav(this.curFolder.getIsFav());
+       this.curFolder.setIsFav(this.curFolder.getIsFav()>0?0:1);
         try {
             App.getHelper().getDao(Folder.class).update(this.curFolder);
         } catch (SQLException throwables) {

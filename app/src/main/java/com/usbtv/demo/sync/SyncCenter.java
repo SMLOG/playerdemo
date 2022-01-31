@@ -148,6 +148,13 @@ public class SyncCenter {
 
 
         updateScreenTabs(typesMap);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TV.checkTvUrls(id);
+            }
+        }).start();
     }
 
     public static void updateScreenTabs(Map<String, Integer> typesMap) {

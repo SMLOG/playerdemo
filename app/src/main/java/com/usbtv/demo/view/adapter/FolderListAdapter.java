@@ -115,14 +115,18 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
         holder.itemView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                switch (i){
-                    case KeyEvent.KEYCODE_HOME:
-                    case KeyEvent.KEYCODE_MENU: //设置键
-                        PlayerController.getInstance().doFav();
-                        return true;
-                    default:
-                        return false;
+                if(KeyEvent.ACTION_DOWN ==keyEvent.getAction()){
+                    switch (i){
+                        case KeyEvent.KEYCODE_HOME:
+                        case KeyEvent.KEYCODE_MENU: //设置键
+
+                            PlayerController.getInstance().doFav();
+                            return true;
+                        default:
+                    }
                 }
+                return false;
+
 
             }
         });

@@ -238,7 +238,7 @@ public class App extends Application implements CacheListener {
         this.createAndStartWebServer(mContext);
 
 
-        InetAddress ipaddr = NetUtils.getLocalIPAddress();
+        //InetAddress ipaddr = NetUtils.getLocalIPAddress();
 
         syncWithRemote();
     }

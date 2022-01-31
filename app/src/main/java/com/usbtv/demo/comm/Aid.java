@@ -99,7 +99,7 @@ public class Aid {
             typesMap.put("Local", 10);
             housekeepTypeIdList.add(0);
             for (File aidDir : aidDirs) {
-                scanFolder(0, root, aidDir, validFoldersMap, validAidsMap);
+                scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
             }
         }
 

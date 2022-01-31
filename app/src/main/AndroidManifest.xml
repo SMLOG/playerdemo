@@ -31,7 +31,7 @@
         android:usesCleartextTraffic="true"
         tools:replace="android:theme"
         android:theme="@style/AppTheme2">
-        <receiver android:name=".comm.BootBroadcastReceiver" >
+        <receiver android:name=".BootBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.intent.action.MEDIA_MOUNTED" />

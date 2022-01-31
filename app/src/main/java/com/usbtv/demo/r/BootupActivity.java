@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.usbtv.demo.MainActivity;
+
 public class BootupActivity extends BroadcastReceiver {
     private static final String TAG = "BootupActivity";
 
@@ -16,6 +18,9 @@ public class BootupActivity extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "BootupActivity initiated");
         if (intent.getAction().endsWith(Intent.ACTION_BOOT_COMPLETED)) {
+            Intent mainActivityIntent = new Intent(context, MainActivity.class);
+            mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+             context.startActivity(mainActivityIntent);
             scheduleRecommendationUpdate(context);
         }
     }
