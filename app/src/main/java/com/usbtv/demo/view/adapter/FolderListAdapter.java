@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,7 +76,7 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
         Folder folder = PlayerController.getInstance().getCurCatList().get(position);
-        viewHolder.tv.setText(folder.getShortName());
+        viewHolder.tv.setText((folder.getIsFav()>0?"*":"")+folder.getShortName());
 
         viewHolder.tv.setBackgroundColor(PlayerController.getInstance().isFolderPositionSelected(position)?Color.RED:Color.BLACK);
 
@@ -108,6 +109,21 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
                     holder.itemView.setTranslationZ(0);
                     ofFloatAnimator(holder.itemView,1.3f,1f);
                 }
+            }
+        });
+
+        holder.itemView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                switch (i){
+                    case KeyEvent.KEYCODE_HOME:
+                    case KeyEvent.KEYCODE_MENU: //设置键
+                        PlayerController.getInstance().doFav();
+                        return true;
+                    default:
+                        return false;
+                }
+
             }
         });
 

@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
        // MyListener myListener = new MyListener(moviesRecyclerViewAdapter);
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
-       PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView,qTabRecyclerView);
+       PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView,qTabRecyclerView,foldersRecyclerView);
        videoView.setUp(this);
 
         PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter,qAdapter);
@@ -423,13 +423,14 @@ public class MainActivity extends AppCompatActivity {
                     menuPanel.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            menuPanel.requestFocus();
+                            foldersRecyclerView.requestFocus();
                         }
                     }, 100);
                 }
 
                 return false;
 
+            case KeyEvent.KEYCODE_HOME:
             case KeyEvent.KEYCODE_MENU: //设置键
                 Log.d(TAG, "KEYCODE_MENU--->");
                 View menu = findViewById(R.id.menu);

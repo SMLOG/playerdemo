@@ -9,7 +9,6 @@ import android.provider.MediaStore;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
@@ -22,6 +21,7 @@ import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.sync.TV;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
@@ -52,8 +52,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -600,8 +598,15 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping(path = "/api/sync")
-    String mybi(@RequestParam(name = "id", required = false, defaultValue = "") String id) throws SQLException, IOException {
+    String sync(@RequestParam(name = "id", required = false, defaultValue = "") String id) throws SQLException, IOException {
         SyncCenter.syncData(id);
+        return "ok";
+    }
+
+    @ResponseBody
+    @GetMapping(path = "/api/checktv")
+    String checktv(@RequestParam(name = "id", required = false, defaultValue = "") String id) throws SQLException, IOException {
+        TV.checkTvUrls(id);
         return "ok";
     }
 

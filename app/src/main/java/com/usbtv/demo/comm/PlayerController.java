@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 
+import androidx.leanback.widget.HorizontalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.j256.ormlite.dao.Dao;
@@ -60,6 +61,7 @@ public final class PlayerController {
     private List<Folder> curCatList;
     private RecyclerView qTabRecyclerView;
     private QtabListRecycleViewAdapter qAdapter;
+    private RecyclerView foldersRecyclerView;
 
 
     private PlayerController() {
@@ -208,6 +210,7 @@ public final class PlayerController {
 
 
                             videoView.pause();
+
                             videoView.setVideoURI(PlayerController.this.videoUrl, finalTitle);
                             videoView.resume();
 
@@ -397,11 +400,12 @@ public final class PlayerController {
     }
 
     public void setUIs(TvVideoView videoView,
-                       View gridView, RecyclerView numTabRecyclerView, RecyclerView qTabRecyclerView) {
+                       View gridView, RecyclerView numTabRecyclerView, RecyclerView qTabRecyclerView, RecyclerView foldersRecyclerView) {
         this.videoView = videoView;
         this.girdView = gridView;
         this.numTabRecyclerView = numTabRecyclerView;
         this.qTabRecyclerView = qTabRecyclerView;
+        this.foldersRecyclerView=foldersRecyclerView;
     }
 
     public String getCoverUrl() {
@@ -444,12 +448,17 @@ public final class PlayerController {
 
     public void setCurCat(String curCat) {
 
+        if(this.curCat!=null&&this.curCat.equals(curCat)){
+            return;
+        }
         this.curCat = curCat;
         Integer typeId = allTypeMap.get(curCat);
         this.setCurCatId(typeId);
 
         this.setCurCatList(loadCatFolderList(typeId));
 
+        if(this.curCatList.size()>0)
+         ((HorizontalGridView)this.foldersRecyclerView).setSelectedPosition(0);
         this.foldersAdapter.notifyDataSetChanged();
     }
 
@@ -552,5 +561,17 @@ public final class PlayerController {
 
     public String getRate() {
         return rates[curRateIndex];
+    }
+
+    public void doFav() {
+       this.curFolder.setIsFav(this.curFolder.getIsFav());
+        try {
+            App.getHelper().getDao(Folder.class).update(this.curFolder);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        this.foldersAdapter.notifyItemChanged(this.curFocusFolderIndex);
+
     }
 }

@@ -58,7 +58,7 @@ public class SyncCenter {
             }
         }, id);
 
-        startTypeId+=100;
+        startTypeId=200;
         final int cnnStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
@@ -78,7 +78,7 @@ public class SyncCenter {
             }
         }, id);
 
-        startTypeId+=100;
+        startTypeId=300;
         final int tvStartTypeId = startTypeId;
 
         RunCron.run(new RunCron.Period() {

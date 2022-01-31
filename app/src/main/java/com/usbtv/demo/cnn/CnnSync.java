@@ -100,7 +100,7 @@ public class CnnSync {
                     folder.setOrderSeq(seq);
                     folderDao.createOrUpdate(folder);
 
-                    Folder folder2 = new Folder();
+                   /* Folder folder2 = new Folder();
                     folder2.setTypeId(typeId);
                     folder2.setName(folderName);
                     folder2.setCoverUrl(imageUrl);
@@ -115,7 +115,7 @@ public class CnnSync {
                     vf2.setdLink(":/cnn/vod.m3u8?ymd=" + seq);
                     vf2.setOrderSeq(0);
 
-                    vFileDao.createOrUpdate(vf2);
+                    vFileDao.createOrUpdate(vf2);*/
 
 
                 } else folder.setCoverUrl(imageUrl);
@@ -145,7 +145,8 @@ public class CnnSync {
             }
 
         }
-        typesMap.put("CNN2", typeId);
+       // typesMap.put("CNN2", typeId);
+
         typesMap.put("CNN", channelId);
         // housekeepTypeIdList.add(3);
         // housekeepTypeIdList.add(4);

@@ -3,6 +3,7 @@ package com.usbtv.demo.sync;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -129,6 +130,42 @@ public class TV {
 
     }
 
+    public  synchronized static void checkTvUrls(String id) {
+
+
+        List<Folder> folders = null;
+        try {
+            Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+            folders = folderDao.queryBuilder().where().ge("typeId", 300)
+                    .and().lt("typeId",400).query();
+
+            Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
+
+            for(int i=0;i<folders.size();i++){
+
+                Folder folder = folders.get(i);
+                for(VFile file: folder.getFiles()){
+                    try {
+                        if(!checkUrl(file.getdLink())){
+                            vFileDao.delete(file);
+                        }
+                    }catch (Throwable e){
+                        e.printStackTrace();
+                    }
+
+                }
+
+                if(folder.getFiles().size()==0){
+                    folderDao.delete(folder);
+                }
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+    }
+
     public interface ChannelFilter {
 
         String getChannelName();
@@ -180,7 +217,7 @@ public class TV {
     }
 
 
-    private static boolean checkUrl(String urls) {
+    public static boolean checkUrl(String urls) {
         System.out.println(urls);
         int count = 1;
         HttpURLConnection httpURLConnection = null;
@@ -430,7 +467,7 @@ public class TV {
                                 return r;
                             }
                         },
-                        new ChannelFilter() {
+                 /*       new ChannelFilter() {
                             @Override
                             public String getChannelName() {
                                 return "TV(other)";
@@ -453,7 +490,7 @@ public class TV {
                                     r = (int) (o1.speech - o2.speech);
                                 return r;
                             }
-                        }
+                        }*/
                 }
         );
 
