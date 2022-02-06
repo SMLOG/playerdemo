@@ -7,9 +7,12 @@ public class ExtractorsFactor {
 
 	public static List<ListExtractor> getListExtractors() {
 		List<ListExtractor> list = new ArrayList<ListExtractor>();
-		list.add(new CCTVExtractor());
+		list.add(new FoxExtractor());
 		list.add(new CNNExtractor());
+
 		list.add(new GTExtractor());
+		list.add(new CCTVExtractor());
+
 		return list;
 	}
 

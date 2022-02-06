@@ -15,7 +15,7 @@ import okhttp3.Response;
 public abstract class ListExtractor {
 	static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
-	abstract Set<UploadItem> getItems() throws Exception;
+	public abstract Set<UploadItem> getItems() throws Exception;
 	 public static String get(String url) throws IOException {
 		OkHttpClient okHttpClient = new OkHttpClient();
 
@@ -36,7 +36,7 @@ public abstract class ListExtractor {
 
 	}
 	
-	 boolean canSkip(Date d) {
+	 public boolean canSkip(Date d) {
 		return System.currentTimeMillis() - d.getTime() > 2 * 24 * 3600 * 1000;
 	}
 }
