@@ -21,7 +21,7 @@ public class CnnSync {
 
     public static void cnnVideos(int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
         int channelId = cnnStartTypeId;
-        int typeId = cnnStartTypeId + 1;
+        //int typeId = cnnStartTypeId + 1;
 
         String[] urls = new String[]{
                 "https://edition.cnn.com/playlist/top-news-videos/index.json",
@@ -37,6 +37,7 @@ public class CnnSync {
         };
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
+        Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
 
         for (String feedUrl : urls) {
 
@@ -48,7 +49,6 @@ public class CnnSync {
             if (isTop) jsonArr = JSONObject.parseArray(resp);
             else jsonArr = JSON.parseObject(resp).getJSONArray("videos");
 
-            Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
             for (int i = 0; i < jsonArr.size(); i++) {
                 JSONObject item = (JSONObject) jsonArr.get(i);
 

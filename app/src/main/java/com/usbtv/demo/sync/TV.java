@@ -137,7 +137,7 @@ public class TV {
         try {
             Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
             folders = folderDao.queryBuilder().where().ge("typeId", 300)
-                    .and().lt("typeId",400).query();
+                    .and().lt("typeId",400).and().eq("isFav",0).query();
 
             Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
@@ -344,7 +344,6 @@ public class TV {
                     vf = new VFile();
                     vf.setFolder(zhbFolder);
                     vf.setdLink(ch.m3uUrl);
-                    Pattern p = Pattern.compile("\\d+p");
                     Matcher m = Pattern.compile("\\d+p", Pattern.CASE_INSENSITIVE).matcher(ch.title);
                     if (m.find()) {
                         vf.setName(m.group());

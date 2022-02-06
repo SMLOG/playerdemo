@@ -80,8 +80,9 @@ public final class PlayerController {
         try {
             Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
             if(typeId>0)
-            ret= where.eq("typeId",typeId).query();
-            else  ret= where.eq("isFav",1).query();
+            ret= where.eq("typeId",typeId).queryBuilder().orderBy("orderSeq",false).query();
+            else  ret= where.eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
+
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
