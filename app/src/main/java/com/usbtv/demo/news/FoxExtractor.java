@@ -54,7 +54,7 @@ public class FoxExtractor extends ListExtractor {
 
                                 String path = url.replaceAll("[^0-9a-zA-Z]", "");
 
-                                item.setP(item.getDate() + "/" + path.substring(path.length() > 30 ? path.length() - 30 : 0));
+                                item.setP(new SimpleDateFormat("yyyyMM").format(d) + "/" + path.substring(path.length()>30?path.length()-30:0));
                                 item.setSrc("fox");
                                 set.add(item);
                             }
