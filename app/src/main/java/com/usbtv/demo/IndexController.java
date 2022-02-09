@@ -577,7 +577,7 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(vfile.getFolder().getBvid(), vfile.getPage());
+            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(vfile.getBvid(), vfile.getPage());
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 url = vidoInfo.getString("video");
             }

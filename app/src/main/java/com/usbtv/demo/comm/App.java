@@ -180,7 +180,7 @@ public class App extends Application implements CacheListener {
 
 
             } else {
-                com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(vf.getFolder().getBvid(), vf.getPage());
+                com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(vf.getBvid(), vf.getPage());
                 if (vidoInfo != null && null != vidoInfo.getString("video")) {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);

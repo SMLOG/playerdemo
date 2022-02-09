@@ -394,7 +394,7 @@ public final class PlayerController {
                 }
             }
             if(this.curCatList==null || this.curCatList.size()==0){
-                this.curCatList = loadCatFolderList(vfile.getFolder().getId());
+                this.curCatList = loadCatFolderList(vfile.getFolder().getTypeId());
             }
             this.setCurFocusFolderIndex(curFolderIndex);
 

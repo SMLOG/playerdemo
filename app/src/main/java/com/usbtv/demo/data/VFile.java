@@ -26,6 +26,10 @@ public class VFile {
     @JSONField(serialize=false)
     @DatabaseField(foreign = true,foreignAutoRefresh = true)
     Folder folder;
+
+    @DatabaseField
+    String bvid;
+
     @DatabaseField
     String p;
 
@@ -138,5 +142,13 @@ public class VFile {
 
     public void setOrderSeq(int orderSeq) {
         this.orderSeq = orderSeq;
+    }
+
+    public String getBvid() {
+        return bvid;
+    }
+
+    public void setBvid(String bvid) {
+        this.bvid = bvid;
     }
 }

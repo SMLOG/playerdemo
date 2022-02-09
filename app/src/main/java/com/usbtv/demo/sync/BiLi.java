@@ -197,7 +197,7 @@ public class BiLi {
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 
 
-        int orderSeq = list.size() * 20;
+
         for (int i = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
@@ -205,9 +205,12 @@ public class BiLi {
             housekeepTypeIdList.add(typeId2);
             Integer media_count = (Integer) item.get("media_count");
 
-            if (media_count > 0) typesMap.put(item.getString("title"), typeId2);
+            String catName = item.getString("title");
+            if (media_count > 0 && catName.indexOf("_")==-1) typesMap.put(catName, typeId2);
 
-            System.out.println("**目录 ：" + item.getString("title") + " count:" + media_count);
+            System.out.println("**目录 ：" + catName + " count:" + media_count);
+
+            int orderSeq =media_count;
 
             int pn = 1;
 
@@ -228,29 +231,42 @@ public class BiLi {
 
                     if (title == null || title.indexOf("失效") > -1) continue;
 
-                    Folder folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    Folder folder;
+                    if(catName.indexOf("_")>-1){
+                        typeId2 = typesMap.get(catName.split("_")[0]);
+                        folder = folderDao.queryBuilder().where().eq("aid", catName).queryForFirst();
+                    }else folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+
                     if (folder == null) {
 
                         folder = new Folder();
-                        folder.setName(title);
-                        //folder.setRoot(rootDriv);
-                        folder.setAid("" + aid);
-                        folder.setBvid(bvid);
+
+                        if(catName.indexOf("_")>-1){
+                            folder.setName(catName.split("_")[1]);
+                            folder.setAid(catName);
+
+                        }else {
+                            folder.setName(title);
+                            //folder.setRoot(rootDriv);
+                            folder.setAid("" + aid);
+                            //folder.setBvid(bvid);
+                        }
+
                         folder.setCoverUrl(cover);
                         folder.setTypeId(typeId2);
                         folder.setOrderSeq(orderSeq);
                         folderDao.create(folder);
 
-                        Map<String, Object> infoMap = new HashMap<String, Object>();
+                      /*  Map<String, Object> infoMap = new HashMap<String, Object>();
                         infoMap.put("Aid", "" + aid);
                         infoMap.put("Bid", "" + bvid);
                         infoMap.put("Title", "" + title);
-                        infoMap.put("CoverURL", "" + cover);
+                        infoMap.put("CoverURL", "" + cover);*/
 
 
                     } else {
                         folder.setTypeId(typeId2);
-                        folder.setName(title);
+                        //folder.setName(title);
                         folder.setCoverUrl(cover);
                         folder.setOrderSeq(orderSeq);
 
@@ -262,13 +278,14 @@ public class BiLi {
                     validFoldersMap.put(folder.getId(), true);
                     validAidsMap.put(aid.toString(), true);
 
-                    for (int k = 0; k <= pages; k++) {
+                    for (int k = 1; k <= pages; k++) {
 
                         VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
-                                .and().eq("page", k).queryForFirst();
+                                .and().eq("bvid",bvid).and().eq("page", k).queryForFirst();
                         if (vfile == null) {
                             vfile = new VFile();
                             vfile.setFolder(folder);
+                            vfile.setBvid(bvid);
                             vfile.setPage(k);
                             vfile.setOrderSeq(k);
                         }
