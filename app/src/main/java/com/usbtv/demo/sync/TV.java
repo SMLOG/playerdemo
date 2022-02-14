@@ -5,6 +5,8 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.Cache;
+import com.usbtv.demo.data.ChannelCheck;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
@@ -130,32 +132,32 @@ public class TV {
 
     }
 
-    public  synchronized static void checkTvUrls(String id) {
+    public synchronized static void checkTvUrls(String id) {
 
 
         List<Folder> folders = null;
         try {
             Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
             folders = folderDao.queryBuilder().where().ge("typeId", 300)
-                    .and().lt("typeId",400).and().eq("isFav",0).query();
+                    .and().lt("typeId", 400).and().eq("isFav", 0).query();
 
             Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
 
-            for(int i=0;i<folders.size();i++){
+            for (int i = 0; i < folders.size(); i++) {
 
                 Folder folder = folders.get(i);
-                for(VFile file: folder.getFiles()){
+                for (VFile file : folder.getFiles()) {
                     try {
-                        if(!checkUrl(file.getdLink())){
+                        if (!checkUrl(file.getdLink())) {
                             vFileDao.delete(file);
                         }
-                    }catch (Throwable e){
+                    } catch (Throwable e) {
                         e.printStackTrace();
                     }
 
                 }
 
-                if(folder.getFiles().size()==0){
+                if (folder.getFiles().size() == 0) {
                     folderDao.delete(folder);
                 }
             }
@@ -218,96 +220,123 @@ public class TV {
 
 
     public static boolean checkUrl(String urls) {
-        System.out.println(urls);
-        int count = 1;
-        HttpURLConnection httpURLConnection = null;
-        int retryCount = 2;
-        Map<String, Object> requestHeaderMap = new HashMap<>();
+        boolean ret = false;
+        ChannelCheck channelCheck = null;
+        try {
+            Dao<ChannelCheck, Integer> dao = App.getHelper().getDao(ChannelCheck.class);
+            channelCheck = dao.queryBuilder().where().eq("url", urls).queryForFirst();
+            if (channelCheck != null && System.currentTimeMillis() - channelCheck.getDt() < 3 * 24 * 3600 * 1000) {
+                return channelCheck.isOk();
+            }
 
-        requestHeaderMap.put("User-Agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
-        int timeoutMillisecond = 5 * 1000;
-        while (count <= retryCount) {
-            try {
-                URL url = new URL(urls);
 
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
-                httpURLConnection.setReadTimeout((int) timeoutMillisecond);
-                httpURLConnection.setUseCaches(false);
-                httpURLConnection.setDoInput(true);
-                httpURLConnection.setFollowRedirects(true);
+            System.out.println(urls);
+            int count = 1;
+            HttpURLConnection httpURLConnection = null;
+            int retryCount = 2;
+            Map<String, Object> requestHeaderMap = new HashMap<>();
 
-                for (Map.Entry<String, Object> entry : requestHeaderMap.entrySet())
-                    httpURLConnection.addRequestProperty(entry.getKey(), entry.getValue().toString());
+            requestHeaderMap.put("User-Agent",
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
+            int timeoutMillisecond = 5 * 1000;
+            while (count <= retryCount) {
+                try {
+                    URL url = new URL(urls);
 
-                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setConnectTimeout((int) timeoutMillisecond);
+                    httpURLConnection.setReadTimeout((int) timeoutMillisecond);
+                    httpURLConnection.setUseCaches(false);
+                    httpURLConnection.setDoInput(true);
+                    httpURLConnection.setFollowRedirects(true);
 
-                    String contentType = httpURLConnection.getHeaderField("Content-Type").toLowerCase();
-                    System.out.println(contentType);
-                    long length = Long.parseLong(httpURLConnection.getHeaderField("Content-Length"));
-                    if (contentType.contains("mpegurl")) {
+                    for (Map.Entry<String, Object> entry : requestHeaderMap.entrySet())
+                        httpURLConnection.addRequestProperty(entry.getKey(), entry.getValue().toString());
 
-                        String line;
-                        InputStream inputStream = httpURLConnection.getInputStream();
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
-                        boolean isM3u = false;
-                        while ((line = bufferedReader.readLine()) != null) {
-                            if (!isM3u && line.indexOf("#EXT") > -1) {
-                                isM3u = true;
-                            }
-                            if (isM3u && !line.startsWith("#")) {
-                                line = line.trim();
+                        String contentType = httpURLConnection.getHeaderField("Content-Type").toLowerCase();
+                        System.out.println(contentType);
+                        long length = Long.parseLong(httpURLConnection.getHeaderField("Content-Length"));
+                        if (contentType.contains("mpegurl")) {
 
-                                String absUrl = "";
-                                if (line.startsWith("/")) {
-                                    absUrl = urls.substring(0, urls.indexOf('/', 9)) + line;
-                                } else if (line.matches("^(http|https)://.+")) {
-                                    absUrl = line;
-                                } else {
-                                    absUrl = urls.substring(0, urls.lastIndexOf("/") + 1) + line;
+                            String line;
+                            InputStream inputStream = httpURLConnection.getInputStream();
+                            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+                            boolean isM3u = false;
+                            while ((line = bufferedReader.readLine()) != null) {
+                                if (!isM3u && line.indexOf("#EXT") > -1) {
+                                    isM3u = true;
+                                }
+                                if (isM3u && !line.startsWith("#")) {
+                                    line = line.trim();
+
+                                    String absUrl = "";
+                                    if (line.startsWith("/")) {
+                                        absUrl = urls.substring(0, urls.indexOf('/', 9)) + line;
+                                    } else if (line.matches("^(http|https)://.+")) {
+                                        absUrl = line;
+                                    } else {
+                                        absUrl = urls.substring(0, urls.lastIndexOf("/") + 1) + line;
+                                    }
+
+                                    bufferedReader.close();
+                                    inputStream.close();
+                                    httpURLConnection.disconnect();
+                                    httpURLConnection = null;
+
+                                    return checkUrl(absUrl);
                                 }
 
-                                bufferedReader.close();
-                                inputStream.close();
-                                httpURLConnection.disconnect();
-                                httpURLConnection = null;
-
-                                return checkUrl(absUrl);
                             }
 
+                            bufferedReader.close();
+                            inputStream.close();
+
+                        } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg") || length > 300 * 1024) {
+                            InputStream inputStream = httpURLConnection.getInputStream();
+
+                            byte[] buf = new byte[1024];
+                            while (inputStream.read(buf) > -1) {
+
+                            }
+                            ret = true;
+                            break;
                         }
 
-                        bufferedReader.close();
-                        inputStream.close();
-
-                    } else if (contentType.contains("mp2t") || contentType.contains("video/mpeg") || length > 300 * 1024) {
-                        InputStream inputStream = httpURLConnection.getInputStream();
-
-                        byte[] buf = new byte[1024];
-                        while (inputStream.read(buf) > -1) {
-
-                        }
-                        return true;
                     }
-
-                }
-
-                return false;
-            } catch (Exception e) {
-                // e.printStackTrace();
-                // Log.d("第" + count + "获取链接重试！\t" + urls);
-                count++;
+                    ret = false;
+                    break;
+                } catch (Exception e) {
+                    // e.printStackTrace();
+                    // Log.d("第" + count + "获取链接重试！\t" + urls);
+                    count++;
 //                e.printStackTrace();
-            } finally {
-                if (httpURLConnection != null) {
-                    httpURLConnection.disconnect();
+                } finally {
+                    if (httpURLConnection != null) {
+                        httpURLConnection.disconnect();
+                    }
                 }
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            if (channelCheck == null) {
+                channelCheck = new ChannelCheck();
+                channelCheck.setUrl(urls);
+            }
+            channelCheck.setOk(ret);
+            channelCheck.setDt(System.currentTimeMillis());
+            try {
+                App.getHelper().getDao(ChannelCheck.class).createOrUpdate(channelCheck);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
             }
         }
 
-        return false;
+        return ret;
     }
 
     public static void channelTV(List<Channel> channels, int channelID, String channelname,
@@ -317,15 +346,20 @@ public class TV {
 
             int i = channels.size();
             for (Channel ch : channels) {
+
+                if (!checkUrl(ch.m3uUrl)) continue;
+
                 Where<Folder, Integer> where = folderDao.queryBuilder().where()
                         .eq("typeId", channelID);
-                if(ch.id!=null&&!ch.id.equals(""))where.and().eq("aid", ch.id.replaceAll("'", "''"));
-                else{
-                    where.and().like("name","%"+ch.title.replaceAll("'", "''").trim()+"%");
+                if (ch.id != null && !ch.id.equals(""))
+                    where.and().eq("aid", ch.id.replaceAll("'", "''"));
+                else {
+                    where.and().like("name", "%" + ch.title.replaceAll("'", "''").trim() + "%");
                 }
 
-                Folder zhbFolder = where .queryForFirst();
+                Folder zhbFolder = where.queryForFirst();
                 if (zhbFolder == null) {
+
                     zhbFolder = new Folder();
                     zhbFolder.setTypeId(channelID);
                     zhbFolder.setName(ch.title);
@@ -334,7 +368,7 @@ public class TV {
                     zhbFolder.setOrderSeq(i);
                     folderDao.createOrUpdate(zhbFolder);
 
-                }else {
+                } else {
                     zhbFolder.setOrderSeq(i);
                     folderDao.createOrUpdate(zhbFolder);
                 }
@@ -353,22 +387,23 @@ public class TV {
                 }
 
                 i--;
-                validFoldersMap.put(zhbFolder.getId(), true);
+                //  validFoldersMap.put(zhbFolder.getId(), true);
             }
 
             typesMap.put(channelname, channelID);
-            housekeepTypeIdList.add(channelID);
+            // housekeepTypeIdList.add(channelID);
         } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    public static boolean contains(String title,String[] es){
-        for(String e:es){
-            if(title.indexOf(e)>-1)return true;
+    public static boolean contains(String title, String[] es) {
+        for (String e : es) {
+            if (title.indexOf(e) > -1) return true;
         }
         return false;
     }
+
     public static void liveStream(int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
 
         LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
@@ -378,11 +413,13 @@ public class TV {
                             public String getChannelName() {
                                 return "广东";
                             }
+
                             @Override
                             public boolean filter(Channel ch) {
                                 return isGongDong(ch);
 
                             }
+
                             @Override
                             public int compare(Channel o1, Channel o2) {
                                 int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
@@ -404,17 +441,19 @@ public class TV {
                             public String getChannelName() {
                                 return "电视";
                             }
+
                             @Override
                             public boolean filter(Channel ch) {
-                                return ch.language.indexOf("Chinese")>-1 && ! isGongDong(ch);
+                                return ch.language.indexOf("Chinese") > -1 && !isGongDong(ch);
                             }
+
                             @Override
                             public int compare(Channel o1, Channel o2) {
                                 int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                         o1.title.indexOf("卫视") > -1 ? 5 : 0
+                                        o1.title.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                         o2.title.indexOf("卫视") > -1 ? 5 : 0
+                                        o2.title.indexOf("卫视") > -1 ? 5 : 0
                                 );
                                 int r = w2 - w1;
                                 if (r == 0)
@@ -429,6 +468,7 @@ public class TV {
                             public String getChannelName() {
                                 return "TV(Kids)";
                             }
+
                             @Override
                             public boolean filter(Channel ch) {
                                 return
@@ -447,12 +487,14 @@ public class TV {
                             public String getChannelName() {
                                 return "TV(English)";
                             }
+
                             @Override
                             public boolean filter(Channel ch) {
                                 return
                                         ch.language.indexOf("English") > -1
                                                 && ch.groupTitle.indexOf("Kids") == -1;
                             }
+
                             @Override
                             public int compare(Channel o1, Channel o2) {
                                 int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
@@ -466,30 +508,30 @@ public class TV {
                                 return r;
                             }
                         },
-                 /*       new ChannelFilter() {
-                            @Override
-                            public String getChannelName() {
-                                return "TV(other)";
-                            }
-                            @Override
-                            public boolean filter(Channel ch) {
-                                return
-                                        ch.language.indexOf("English") == -1 &&
-                                                !ch.country.equals("CN")
-                                        ;
-                            }
-                            @Override
-                            public int compare(Channel o1, Channel o2) {
-                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                int r = w2 - w1;
-                                if (r == 0)
-                                    r = o1.id.compareTo(o2.id);
-                                if (r == 0)
-                                    r = (int) (o1.speech - o2.speech);
-                                return r;
-                            }
-                        }*/
+                        /*       new ChannelFilter() {
+                                   @Override
+                                   public String getChannelName() {
+                                       return "TV(other)";
+                                   }
+                                   @Override
+                                   public boolean filter(Channel ch) {
+                                       return
+                                               ch.language.indexOf("English") == -1 &&
+                                                       !ch.country.equals("CN")
+                                               ;
+                                   }
+                                   @Override
+                                   public int compare(Channel o1, Channel o2) {
+                                       int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                       int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                                       int r = w2 - w1;
+                                       if (r == 0)
+                                           r = o1.id.compareTo(o2.id);
+                                       if (r == 0)
+                                           r = (int) (o1.speech - o2.speech);
+                                       return r;
+                                   }
+                               }*/
                 }
         );
 
@@ -504,13 +546,13 @@ public class TV {
     }
 
     public static boolean isGongDong(Channel ch) {
-        return contains(ch.title,"广东,深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
+        return contains(ch.title, "广东,深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
     }
 
     private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {
 
 
-        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u","https://smlog.github.io/iptv.m3u"};
+        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u", "https://smlog.github.io/iptv.m3u"};
         List<Channel> channels = new ArrayList<>();
         for (String m3uUrl : urls) {
             String str = Utils.get(m3uUrl);

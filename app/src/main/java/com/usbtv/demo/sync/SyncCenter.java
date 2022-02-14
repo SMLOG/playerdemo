@@ -18,6 +18,7 @@ import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.news.NewsStarter;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,12 +90,25 @@ public class SyncCenter {
 
             @Override
             public long getPeriodDuration() {
-                return 15 * 24 * 3600 * 1000;
+                return  24 * 3600 * 1000;
             }
 
             @Override
             public void doRun() throws Throwable {
-                TV.liveStream(tvStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+              new Thread(new Runnable() {
+                  @Override
+                  public void run() {
+                      try {
+                          TV.liveStream(tvStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                      } catch (SQLException throwables) {
+                          throwables.printStackTrace();
+                      } catch (InterruptedException e) {
+                          e.printStackTrace();
+                      } catch (IOException e) {
+                          e.printStackTrace();
+                      }
+                  }
+              }).start() ;
 
             }
         }, id);

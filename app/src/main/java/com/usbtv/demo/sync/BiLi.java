@@ -198,15 +198,18 @@ public class BiLi {
 
 
 
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0,d=0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
-            Integer typeId2 = i + startTypeId;
+            Integer typeId2 = d + startTypeId;
             housekeepTypeIdList.add(typeId2);
             Integer media_count = (Integer) item.get("media_count");
 
             String catName = item.getString("title");
-            if (media_count > 0 && catName.indexOf("_")==-1) typesMap.put(catName, typeId2);
+            if (media_count > 0 && catName.indexOf("_")==-1) {
+                typesMap.put(catName, typeId2);
+                d++;
+            }
 
             System.out.println("**目录 ：" + catName + " count:" + media_count);
 
