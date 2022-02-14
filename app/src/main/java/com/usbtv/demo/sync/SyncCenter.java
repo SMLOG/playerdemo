@@ -177,6 +177,13 @@ public class SyncCenter {
         SharedPreferences.Editor editor = sp.edit();
         Map<String, Integer> map = App.getStoreTypeMap();
         map.putAll(typesMap);
+
+       for(String cat: map.keySet()){
+           if(!isCatHasItem(map.get(cat))){
+               map.remove(cat);
+           }
+       }
+
         String jsonStr = JSON.toJSONString(map);
         editor.putString("typesMap", jsonStr);
         editor.apply();
@@ -192,8 +199,15 @@ public class SyncCenter {
         });
     }
 
+    private static boolean isCatHasItem(Integer typeId) {
 
-
+        try {
+            return  (typeId==0 ||  App.getHelper().getDao(Folder.class).queryBuilder().where().eq("typeId",typeId).queryForFirst()!=null);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return true;
+    }
 
 
 }

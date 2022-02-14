@@ -93,6 +93,9 @@ class Channel {
 }
 
 public class TV {
+
+    public static final Pattern PATTERN = Pattern.compile("\\d+p", Pattern.CASE_INSENSITIVE);
+
     public static Runnable getCheckThread(String inf, String url, List<Channel> channelList, ChannelFilter filter) {
         return new Runnable() {
 
@@ -153,6 +156,7 @@ public class TV {
                         }
                     } catch (Throwable e) {
                         e.printStackTrace();
+                        continue;
                     }
 
                 }
@@ -378,7 +382,7 @@ public class TV {
                     vf = new VFile();
                     vf.setFolder(zhbFolder);
                     vf.setdLink(ch.m3uUrl);
-                    Matcher m = Pattern.compile("\\d+p", Pattern.CASE_INSENSITIVE).matcher(ch.title);
+                    Matcher m = PATTERN.matcher(ch.title);
                     if (m.find()) {
                         vf.setName(m.group());
                     }
@@ -552,7 +556,7 @@ public class TV {
     private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {
 
 
-        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u", "https://smlog.github.io/iptv.m3u"};
+        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
         List<Channel> channels = new ArrayList<>();
         for (String m3uUrl : urls) {
             String str = Utils.get(m3uUrl);
