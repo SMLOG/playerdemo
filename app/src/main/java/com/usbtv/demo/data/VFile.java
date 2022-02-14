@@ -2,6 +2,8 @@ package com.usbtv.demo.data;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.DocumentsUtils;
 
 import java.io.File;
 
@@ -26,6 +28,9 @@ public class VFile {
     @JSONField(serialize=false)
     @DatabaseField(foreign = true,foreignAutoRefresh = true)
     Folder folder;
+
+    @DatabaseField
+    String aid;
 
     @DatabaseField
     String bvid;
@@ -120,11 +125,25 @@ public class VFile {
             if(folder.getRoot()!=null){
                 if(p!=null)
                 return folder.getRoot().getP()+ File.separator+folder.getP()+File.separator+p;
-                else return folder.getRoot().getP() + File.separator + folder.getAid() + File.separator + getRelativePath();
+                else if(folder.getAid()!=null)
+                return folder.getRoot().getP() + File.separator + folder.getAid()+File.separator+aid + File.separator + getRelativePath();
+                else  return folder.getRoot().getP() + File.separator + aid+ File.separator + getRelativePath();
             }
         }
         return null;
     }
+
+    public String getOldAbsPath() {
+        if(folder!=null && folder.getAid()!=null){
+            if(folder.getRoot()!=null){
+                if(p!=null)
+                    return folder.getRoot().getP()+ File.separator+folder.getP()+File.separator+p;
+                else  return folder.getRoot().getP() + File.separator + aid+ File.separator + getRelativePath();
+            }
+        }
+        return null;
+    }
+
 
     @JSONField(serialize = false)
     public String getRelativePath() {
@@ -133,7 +152,19 @@ public class VFile {
 
     public boolean exists() {
 
-       return this.getAbsPath()!=null && new File(this.getAbsPath()).exists();
+       boolean isExits =  this.getAbsPath()!=null && new File(this.getAbsPath()).exists();
+
+       if(!isExits){
+           String oldPath = getOldAbsPath();
+           if(oldPath!=null){
+               File oldFile = new File(oldPath);
+               if(oldFile.exists()){
+                   DocumentsUtils.renameTo(App.getInstance(),oldFile,new File(this.getAbsPath()));
+                   isExits = new File(this.getAbsPath()).exists();
+               }
+           }
+       }
+       return  isExits;
     }
 
     public int getOrderSeq() {
@@ -150,5 +181,13 @@ public class VFile {
 
     public void setBvid(String bvid) {
         this.bvid = bvid;
+    }
+
+    public String getAid() {
+        return aid;
+    }
+
+    public void setAid(String aid) {
+        this.aid = aid;
     }
 }

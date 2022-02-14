@@ -237,7 +237,7 @@ public class BiLi {
                     Folder folder;
                     if(catName.indexOf("_")>-1){
                         typeId2 = typesMap.get(catName.split("_")[0]);
-                        folder = folderDao.queryBuilder().where().eq("aid", catName).queryForFirst();
+                        folder = folderDao.queryBuilder().where().eq("aid", catName.split("_")[1]).queryForFirst();
                     }else folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
 
                     if (folder == null) {
@@ -245,13 +245,14 @@ public class BiLi {
                         folder = new Folder();
 
                         if(catName.indexOf("_")>-1){
-                            folder.setName(catName.split("_")[1]);
-                            folder.setAid(catName);
+                            String name = catName.split("_")[1];
+                            folder.setName(name);
+                            folder.setAid(name);
 
                         }else {
                             folder.setName(title);
                             //folder.setRoot(rootDriv);
-                            folder.setAid("" + aid);
+                          //  folder.setAid("" + aid);
                             //folder.setBvid(bvid);
                         }
 
@@ -289,6 +290,7 @@ public class BiLi {
                             vfile = new VFile();
                             vfile.setFolder(folder);
                             vfile.setBvid(bvid);
+                            vfile.setAid(""+aid);
                             vfile.setPage(k);
                             vfile.setOrderSeq(k);
                         }

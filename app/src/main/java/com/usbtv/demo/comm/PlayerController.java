@@ -522,12 +522,13 @@ public final class PlayerController {
         timer2.schedule(new TimerTask() {
             @Override
             public void run() {
+                VFile[] numFiles = PlayerController.this.curFolder != null ? PlayerController.this.curFolder.getFiles().toArray(new VFile[]{}) : null;
 
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        PlayerController.this.setNumFiles(PlayerController.this.curFolder != null ? PlayerController.this.curFolder.getFiles().toArray(new VFile[]{}) : null);
+                        PlayerController.this.setNumFiles(numFiles);
                         PlayerController.this.numAdapter.notifyDataSetChanged();
                         qTabRecyclerView.setVisibility(PlayerController.this.curFolder.getTypeId()>=200&& PlayerController.this.curFolder.getTypeId() <300?View.VISIBLE:View.GONE);
 
