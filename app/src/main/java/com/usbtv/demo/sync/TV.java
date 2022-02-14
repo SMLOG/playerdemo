@@ -411,7 +411,38 @@ public class TV {
     public static void liveStream(int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
 
         LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
-                new ChannelFilter[]{
+                new ChannelFilter[]{new ChannelFilter() {
+                    @Override
+                    public String getChannelName() {
+                        return "TV(English)";
+                    }
+
+                    @Override
+                    public boolean filter(Channel ch) {
+                        return
+                                ch.language.indexOf("English") > -1
+                                        && ch.groupTitle.indexOf("Kids") == -1
+                                        && (
+                                        ch.groupTitle.indexOf("News") > -1 ||
+                                                ch.groupTitle.indexOf("General") > -1
+                                )
+                                ;
+                    }
+
+                    @Override
+                    public int compare(Channel o1, Channel o2) {
+                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
+                        int r = w2 - w1;
+                        if (r == 0)
+                            r = o1.id.compareTo(o2.id);
+                        if (r == 0)
+                            r = (int) (o1.speech - o2.speech);
+
+                        return r;
+                    }
+                },
+
                         new ChannelFilter() {
                             @Override
                             public String getChannelName() {
@@ -448,7 +479,11 @@ public class TV {
 
                             @Override
                             public boolean filter(Channel ch) {
-                                return ch.language.indexOf("Chinese") > -1 && !isGongDong(ch);
+                                return ch.language.indexOf("Chinese") > -1 && !isGongDong(ch) &&
+                                        (ch.title.indexOf("卫视") > -1
+                                                || ch.groupTitle.indexOf("General") > -1
+                                                || ch.groupTitle.indexOf("News") > -1
+                                        );
                             }
 
                             @Override
@@ -486,32 +521,7 @@ public class TV {
                                 return (int) (o1.speech - o2.speech);
                             }
                         },
-                        new ChannelFilter() {
-                            @Override
-                            public String getChannelName() {
-                                return "TV(English)";
-                            }
 
-                            @Override
-                            public boolean filter(Channel ch) {
-                                return
-                                        ch.language.indexOf("English") > -1
-                                                && ch.groupTitle.indexOf("Kids") == -1;
-                            }
-
-                            @Override
-                            public int compare(Channel o1, Channel o2) {
-                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                int r = w2 - w1;
-                                if (r == 0)
-                                    r = o1.id.compareTo(o2.id);
-                                if (r == 0)
-                                    r = (int) (o1.speech - o2.speech);
-
-                                return r;
-                            }
-                        },
                         /*       new ChannelFilter() {
                                    @Override
                                    public String getChannelName() {
