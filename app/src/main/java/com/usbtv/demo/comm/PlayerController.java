@@ -28,6 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public final class PlayerController {
 
@@ -62,6 +64,7 @@ public final class PlayerController {
     private RecyclerView qTabRecyclerView;
     private QtabListRecycleViewAdapter qAdapter;
     private RecyclerView foldersRecyclerView;
+    private Timer timer=new Timer();
 
 
     private PlayerController() {
@@ -387,15 +390,17 @@ public final class PlayerController {
             int curFolderIndex=0;
 
             int curfolderId = vfile.getFolder().getId();
+            if(this.curCatList==null || this.curCatList.size()==0){
+                this.curCatList = loadCatFolderList(vfile.getFolder().getTypeId());
+            }
+
             for(int i=0;i< this.curCatList.size();i++){
                 if( this.curCatList.get(i).getId()==curfolderId){
                     curFolderIndex=i;
                     break;
                 }
             }
-            if(this.curCatList==null || this.curCatList.size()==0){
-                this.curCatList = loadCatFolderList(vfile.getFolder().getTypeId());
-            }
+
             this.setCurFocusFolderIndex(curFolderIndex);
 
         }
@@ -460,11 +465,29 @@ public final class PlayerController {
         this.setCurCatId(typeId);
 
 
-        this.setCurCatList(loadCatFolderList(typeId));
+        this.timer.cancel();
+        this.timer = new Timer();
 
-        if(this.curCatList.size()>0)
-         ((HorizontalGridView)this.foldersRecyclerView).setSelectedPosition(0);
-        this.foldersAdapter.notifyDataSetChanged();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                List<Folder> catItemList = loadCatFolderList(PlayerController.this.curCatId);
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        PlayerController.this.setCurCatList(catItemList);
+                        if(PlayerController.this.curCatList.size()>0)
+                            ((HorizontalGridView)PlayerController.this.foldersRecyclerView).setSelectedPosition(0);
+                        PlayerController.this.foldersAdapter.notifyDataSetChanged();
+                    }
+                });
+
+
+            }
+        },800);//延时1s执行
+
     }
 
     public Map<String, Integer> getAllTypeMap() {
