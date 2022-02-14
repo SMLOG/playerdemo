@@ -59,7 +59,7 @@ public class SyncCenter {
             }
         }, id);
 
-        startTypeId=200;
+        /*startTypeId=200;
         final int cnnStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
@@ -77,7 +77,7 @@ public class SyncCenter {
                 CnnSync.cnnVideos(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
                 updateScreenTabs(typesMap);
             }
-        }, id);
+        }, id);*/
 
         startTypeId=300;
         final int tvStartTypeId = startTypeId;
