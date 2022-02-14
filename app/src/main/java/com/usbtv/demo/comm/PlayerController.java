@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -64,7 +63,8 @@ public final class PlayerController {
     private RecyclerView qTabRecyclerView;
     private QtabListRecycleViewAdapter qAdapter;
     private RecyclerView foldersRecyclerView;
-    private Timer timer=new Timer();
+    private Timer timerCat =new Timer();
+    private Timer timer2 = new Timer();
 
 
     private PlayerController() {
@@ -465,10 +465,10 @@ public final class PlayerController {
         this.setCurCatId(typeId);
 
 
-        this.timer.cancel();
-        this.timer = new Timer();
+        this.timerCat.cancel();
+        this.timerCat = new Timer();
 
-        timer.schedule(new TimerTask() {
+        timerCat.schedule(new TimerTask() {
             @Override
             public void run() {
 
@@ -486,7 +486,7 @@ public final class PlayerController {
 
 
             }
-        },800);//延时1s执行
+        },500);//延时1s执行
 
     }
 
@@ -512,12 +512,30 @@ public final class PlayerController {
     public void setCurFocusFolderIndex(int folderPosition) {
         int p = this.curFocusFolderIndex;
         this.curFocusFolderIndex = folderPosition;
-        this.curFolder = this.getCurCatList().get(folderPosition);
+        this.curFolder = curCatList.get(folderPosition);
         this.foldersAdapter.notifyItemChanged(p);
         this.foldersAdapter.notifyItemChanged(folderPosition);
-        this.setNumFiles(this.curFolder != null ? this.curFolder.getFiles().toArray(new VFile[]{}) : null);
-        this.numAdapter.notifyDataSetChanged();
-        qTabRecyclerView.setVisibility(this.curFolder.getTypeId()>=200&& this.curFolder.getTypeId() <300?View.VISIBLE:View.GONE);
+        //this.timer2.purge();
+        this.timer2.cancel();
+        this.timer2 = new Timer();
+
+        timer2.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        PlayerController.this.setNumFiles(PlayerController.this.curFolder != null ? PlayerController.this.curFolder.getFiles().toArray(new VFile[]{}) : null);
+                        PlayerController.this.numAdapter.notifyDataSetChanged();
+                        qTabRecyclerView.setVisibility(PlayerController.this.curFolder.getTypeId()>=200&& PlayerController.this.curFolder.getTypeId() <300?View.VISIBLE:View.GONE);
+
+                    }
+                });
+            }
+        },500);
+
 
         // this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
 
