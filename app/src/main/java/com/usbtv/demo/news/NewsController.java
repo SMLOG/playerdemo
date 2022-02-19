@@ -48,12 +48,4 @@ public class NewsController {
         return "OK";
     }
 
-    @ResponseBody
-    @GetMapping("/api/news/run")
-    public String run() throws ParseException, InterruptedException, IOException {
-
-         NewsStarter.run();
-        return "OK";
-    }
-
 }

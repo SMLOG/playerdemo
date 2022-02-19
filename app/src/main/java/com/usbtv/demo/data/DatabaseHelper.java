@@ -10,6 +10,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.usbtv.demo.R;
 import com.usbtv.demo.news.UploadItem;
+import com.usbtv.demo.news.video.CcVideo;
 
 import java.sql.SQLException;
 
@@ -22,7 +23,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "db.db";
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 47;
+    private static final int DATABASE_VERSION = 49;
 
     // the DAO object we use to access the SimpleData table
 
@@ -44,6 +45,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Cache.class);
             TableUtils.createTable(connectionSource, UploadItem.class);
             TableUtils.createTable(connectionSource, Video.class);
+            TableUtils.createTable(connectionSource, CcVideo.class);
             TableUtils.createTable(connectionSource, ChannelCheck.class);
 
         } catch (SQLException e) {
@@ -76,6 +78,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, Cache.class, true);
             TableUtils.dropTable(connectionSource, UploadItem.class, true);
             TableUtils.dropTable(connectionSource, Video.class, true);
+            TableUtils.dropTable(connectionSource, CcVideo.class, true);
             TableUtils.dropTable(connectionSource, ChannelCheck.class, true);
 
                //getDao(ResItem.class).executeRaw("ALTER TABLE `Folder` ADD COLUMN typeId NUMBER default 0;");

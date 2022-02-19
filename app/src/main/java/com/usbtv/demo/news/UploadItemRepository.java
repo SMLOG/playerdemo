@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class UploadItemRepository {
+public class UploadItemRepository extends BaseRepository {
 
     private Dao<UploadItem, Integer> dao;
 
@@ -84,34 +84,7 @@ public class UploadItemRepository {
         }
     }
 
-    public String getToken() {
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        String token = sp.getString("token", "");
-        return  token;
-    }
 
-    public String getSince() {
-
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        String token = sp.getString("since", null);
-        return  token;
-    }
-
-    public String saveSince(String string) {
-        SimpleDateFormat df=new  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        try {
-
-            String since= df.format(new Date(df.parse(string).getTime()+1000));
-            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-            sp.edit().putString("since",string);
-            return  since;
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return string;
-    }
 
     public List<UploadItem> findByP(String p) {
 
@@ -122,5 +95,10 @@ public class UploadItemRepository {
         }
         return null;
 
+    }
+
+    @Override
+    public String getSinceId() {
+        return "since";
     }
 }

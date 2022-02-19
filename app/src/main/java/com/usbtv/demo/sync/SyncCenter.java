@@ -17,11 +17,13 @@ import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.news.NewsStarter;
+import com.usbtv.demo.news.video.CcVideoStarter;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,12 +142,29 @@ public class SyncCenter {
 
             @Override
             public long getPeriodDuration() {
-                return 1000 * 3600 * 2;
+                return 1000 * 3600 * 6;
             }
 
             @Override
             public void doRun() throws Throwable {
                 NewsStarter.run();
+            }
+        }, id);
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "cc";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 12 * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                CcVideoStarter.run();
             }
         }, id);
 
@@ -178,9 +197,12 @@ public class SyncCenter {
         Map<String, Integer> map = App.getStoreTypeMap();
         map.putAll(typesMap);
 
-       for(String cat: map.keySet()){
+        Iterator<String> it = map.keySet().iterator();
+
+       while (it.hasNext()){
+           String cat = it.next();
            if(!isCatHasItem(map.get(cat))){
-               map.remove(cat);
+               it.remove();
            }
        }
 

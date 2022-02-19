@@ -502,7 +502,7 @@ public class TV {
                                 return r;
                             }
                         },
-                        new ChannelFilter() {
+                     /*   new ChannelFilter() {
                             @Override
                             public String getChannelName() {
                                 return "TV(Kids)";
@@ -520,7 +520,7 @@ public class TV {
                             public int compare(Channel o1, Channel o2) {
                                 return (int) (o1.speech - o2.speech);
                             }
-                        },
+                        },*/
 
                         /*       new ChannelFilter() {
                                    @Override
