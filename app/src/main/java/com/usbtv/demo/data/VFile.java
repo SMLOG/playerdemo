@@ -159,8 +159,13 @@ public class VFile {
            if(oldPath!=null){
                File oldFile = new File(oldPath);
                if(oldFile.exists()){
-                   DocumentsUtils.renameTo(App.getInstance(),oldFile,new File(this.getAbsPath()));
-                   isExits = new File(this.getAbsPath()).exists();
+                   try{
+                       DocumentsUtils.renameTo(App.getInstance(),oldFile,new File(this.getAbsPath()));
+                       isExits = new File(this.getAbsPath()).exists();
+                   }catch (Throwable e){
+                        e.printStackTrace();
+                   }
+
                }
            }
        }
