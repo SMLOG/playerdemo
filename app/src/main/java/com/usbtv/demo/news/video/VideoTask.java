@@ -160,42 +160,42 @@ public class VideoTask {
 
 		List<CcVideo> list = uploadItemRepository.findAllBySrcAndCcIsNull("cbs");
 
-		
-		for (int i=0;i<list.size();i++) {
-			CcVideo item=list.get(i);
+
+		/*for (int i=0;i<list.size();i++) {
+			Video item=list.get(i);
 
 			try {
-				if (item.getCc() == null && item.getOrgCc()!=null&& item.getOrgCc().startsWith("http")) {
+				if (item.getCc()!= null &&item.getCc().startsWith("http")) {
 
 					uploadCC(item);
 					item.setStatus(0);
 					uploadItemRepository.save(item);
 				}
 
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 
 			}
 
-		}
+		}*/
 
-		 list = uploadItemRepository.findAllByStatusOrderByDt(0);
+		list = uploadItemRepository.findAllByStatusOrderByDt(0);
 		System.out.println("uploading size:" + list.size());
 		if (list.size() > 0) {
 			String filePath = "vl.json";
 
-			
+
 			for (int i=0;i<list.size();i++) {
 				CcVideo item=list.get(i);
 
 				item.setStatus(1);
-				
+
 			}
 
 			String content = JSON.toJSONString(list);
 			JSONObject json = getSha(filePath);
-			JSONObject resp = uploadApi(filePath, content, new Date().toGMTString(), false,
+			JSONObject resp = uploadApi(filePath, content, new Date().toGMTString(), true,
 					json != null ? json.getString("sha") : null);
 			if (resp != null) {
 
@@ -287,7 +287,7 @@ public class VideoTask {
 		}
 	}
 
-	public static synchronized void getList(CcVideoRepository videoRepository)
+	static synchronized void getList(CcVideoRepository videoRepository)
 			throws IOException, ParseException, InterruptedException {
 
 		token = videoRepository.getToken();
@@ -297,45 +297,79 @@ public class VideoTask {
 		}
 
 		syncWithRemote(videoRepository);
-
-		/*Response res = Jsoup.connect(
-				"https://www.cbsnews.com/video/xhr/collection/component/video-overlay-popular/?is_logged_in=0?is_logged_in=0")
-				.userAgent(AGENT).ignoreContentType(true).execute();
-
-		String body = res.body();
-
-		JSONObject json = JSONObject.parseObject(body);
-		JSONArray items = json.getJSONArray("items");
-		for (int i = 0; i < items.size(); i++) {
-			JSONObject obj = (JSONObject) items.get(i);
-
-			String vid = obj.getString("id");
-
-			List<Video> exist = videoRepository.findByVid(vid);
-			if (exist == null || exist.size() == 0) {
-				String title = obj.getString("fulltitle");
-				String cc = obj.getString("captions");
-				String url = obj.getString("video2");
-				long dt = obj.getLong("timestamp");
-				String d = sd.format(new Date(dt));
-
-				Video video = new Video();
-				video.setTitle(title);
-				video.setVid(vid);
-				video.setCc(cc);
-				video.setDate(d);
-				video.setDt(dt);
-				video.setSrc("cbs");
-				video.setStatus(0);
-				video.setUrl(url);
-				videoRepository.save(video);
-			}
-
-		}*/
-
 		Pattern pt = Pattern.compile("CBSNEWS.defaultPayload = (.*?)\n");
 		SimpleDateFormat sd = new SimpleDateFormat("yyyy/MM/dd");
 
+		String[] parts= {
+				//	"/video/xhr/collection/component/live-channels/",
+				"/video/xhr/collection/component/top-stories-for-ott/",
+				//"/video/xhr/collection/component/ott-vod-main/",
+				"/video/xhr/collection/component/cbs-village-vod-latest-ott-video-door/",
+				"/video/xhr/collection/component/full-episodes-auto-vod/",
+				//"/video/xhr/collection/editorial/2d12ffd0-3890-419f-9b7f-3fe2860979d1/",
+				"/video/xhr/collection/component/coronavirus-vod-ott-schedule/",
+				//"/video/xhr/collection/component/ott-playlists/",
+				"/video/xhr/collection/component/cbs-reports-ott/",
+				// "/video/xhr/collection/component/cbsn-where-to-watch/",
+				"/video/xhr/collection/component/cbs-weekend-news-ott/",
+				"/video/xhr/collection/component/show-the-uplift-ott/",
+				"/video/xhr/collection/component/60-minutes-overtime-ott/",
+				"/video/xhr/collection/component/cbs-this-morning-branded/",
+				"/video/xhr/collection/component/evening-news-ott/",
+				"/video/xhr/collection/component/60-minutes-ott/",
+				"/video/xhr/collection/component/red-and-blue-ott/",
+				"/video/xhr/collection/component/ott-cbs-saturday-morning/",
+				"/video/xhr/collection/component/48-hours-ott/",
+				"/video/xhr/collection/component/sunday-morning-ott/",
+				"/video/xhr/collection/component/face-the-nation-ott/",
+				"/video/xhr/collection/component/the-takeout-ott/",
+				//	"/video/xhr/collection/component/emergency-component-cbsn/"
+		};
+
+	/*	String[] feeds= {
+				"https://www.cbsnews.com/video/xhr/collection/component/evening-news-ott/?is_logged_in=0?is_logged_in=0",
+				"https://www.cbsnews.com/video/xhr/collection/component/video-overlay-popular/?is_logged_in=0?is_logged_in=0",
+				};*/
+
+		for(String feed:parts) {
+			Response res = Jsoup.connect("https://www.cbsnews.com"+feed+"?is_logged_in=0?is_logged_in=0")
+					.userAgent(AGENT).ignoreContentType(true).execute();
+
+			String body = res.body();
+
+			JSONObject json = JSONObject.parseObject(body);
+			JSONArray items = json.getJSONArray("items");
+			for (int i = 0; i < items.size(); i++) {
+				JSONObject obj = (JSONObject) items.get(i);
+
+				String vid = obj.getString("id");
+
+				List<CcVideo> exist = videoRepository.findByVid(vid);
+				if (exist == null || exist.size() == 0) {
+					String title = obj.getString("fulltitle");
+					String cc = obj.getString("captions");
+					String url = obj.getString("video2");
+					if(!obj.getString("type").equals("vod"))continue;
+					long dt = obj.getLong("timestamp");
+					String d = sd.format(new Date(dt));
+
+					CcVideo video = new CcVideo();
+					video.setTitle(title);
+					video.setVid(vid);
+					video.setOrgCc(cc);
+					video.setCc(cc);
+
+					video.setDate(d);
+					video.setDt(dt);
+					video.setSrc("cbs");
+					video.setStatus(0);
+					video.setUrl(url);
+					videoRepository.save(video);
+				}
+
+			}
+		}
+/*
 		SimpleDateFormat sd2 = new SimpleDateFormat("MMddyy");
 		Calendar cl = Calendar.getInstance();
 		cl.add(cl.DATE, -6);
@@ -346,10 +380,10 @@ public class VideoTask {
 				continue;
 
 			String id = sd2.format(cl.getTime()) + "-cbs-evening-news";
-			List<CcVideo> exist = videoRepository.findByVid(id);
+			List<Video> exist = videoRepository.findByVid(id);
 			if (exist != null && exist.size() > 0 && exist.get(0).getCc() != null)
 				continue;
-			
+
 			try {
 				Document doc = Jsoup.connect("https://www.cbsnews.com/video/" + id + "/").userAgent(AGENT).get();
 
@@ -359,7 +393,7 @@ public class VideoTask {
 					String jsonStr = m.group(1);
 
 					JSONObject obj = JSONObject.parseObject(jsonStr);
-					JSONArray items = obj.getJSONArray("items");
+					 items = obj.getJSONArray("items");
 					if (items.size() > 0) {
 						obj = items.getJSONObject(0);
 
@@ -369,19 +403,20 @@ public class VideoTask {
 						long dt = obj.getLong("timestamp");
 						String d = sd.format(new Date(dt));
 
-						CcVideo video = null;
+						Video video = null;
 
 						if (exist != null && exist.size() > 0 ) {
-							
+
 							video = exist.get(0);
 
-						
+
 						} else
-							video = new CcVideo();
+							video = new Video();
 
 						video.setTitle(title);
 						video.setVid(id);
 						video.setOrgCc(cc);
+						video.setCc(cc);
 						video.setDate(d);
 						video.setDt(dt);
 						video.setSrc("cbs");
@@ -391,14 +426,14 @@ public class VideoTask {
 
 					}
 
-				}	
+				}
 			}catch(Throwable ee) {
 				ee.printStackTrace();
 			}
 
 
 
-		}
+		}*/
 
 		uploadList(videoRepository);
 
