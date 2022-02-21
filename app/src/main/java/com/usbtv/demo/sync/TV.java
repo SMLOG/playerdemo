@@ -230,7 +230,7 @@ public class TV {
             Dao<ChannelCheck, Integer> dao = App.getHelper().getDao(ChannelCheck.class);
             channelCheck = dao.queryBuilder().where().eq("url", urls).queryForFirst();
             if (channelCheck != null && System.currentTimeMillis() - channelCheck.getDt() < 3 * 24 * 3600 * 1000) {
-                return channelCheck.isOk();
+                return ret = channelCheck.isOk();
             }
 
 
@@ -330,14 +330,18 @@ public class TV {
             if (channelCheck == null) {
                 channelCheck = new ChannelCheck();
                 channelCheck.setUrl(urls);
+                channelCheck.setDt(System.currentTimeMillis());
+
+            }else{
+                channelCheck.setOk(ret);
+
             }
-            channelCheck.setOk(ret);
-            channelCheck.setDt(System.currentTimeMillis());
             try {
                 App.getHelper().getDao(ChannelCheck.class).createOrUpdate(channelCheck);
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
+
         }
 
         return ret;

@@ -270,7 +270,7 @@ public class BiLi {
 
                     } else {
                         folder.setTypeId(typeId2);
-                        //folder.setName(title);
+                        folder.setName(title);
                         folder.setCoverUrl(cover);
                         folder.setOrderSeq(orderSeq);
 
