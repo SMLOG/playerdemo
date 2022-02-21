@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.usbtv.demo.comm.App;
+import com.usbtv.demo.news.video.CcVideo;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public abstract class BaseRepository  {
 

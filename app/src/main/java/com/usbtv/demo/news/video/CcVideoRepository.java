@@ -51,15 +51,7 @@ public class CcVideoRepository extends BaseRepository {
     }
 
 
-    public List<CcVideo> findAllByStatusOrderByDt(int status) {
-        try {
-            return dao.queryBuilder().where().eq("status", status)
-                    .query();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return new ArrayList<CcVideo>();
-    }
+
 
 
     public void save(CcVideo video) {
@@ -80,5 +72,15 @@ public class CcVideoRepository extends BaseRepository {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+    }
+
+    public List<CcVideo> findAllByStatusAndDtGreaterThanOrderByDtDesc(int status, long l) {
+        try {
+            return dao.queryBuilder().where().eq("status", status).and().ge("dt",l)
+                    .query();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return new ArrayList<CcVideo>();
     }
 }

@@ -115,23 +115,7 @@ public class SyncCenter {
             }
         }, id);
 
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "local";
-            }
 
-            @Override
-            public long getPeriodDuration() {
-                return 0;
-            }
-
-            @Override
-            public void doRun() throws Throwable {
-                Aid.scanAllDrive(housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
-                updateScreenTabs(typesMap);
-            }
-        }, id);
 
 
         RunCron.run(new RunCron.Period() {
@@ -167,7 +151,23 @@ public class SyncCenter {
                 CcVideoStarter.run();
             }
         }, id);
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "local";
+            }
 
+            @Override
+            public long getPeriodDuration() {
+                return 0;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                Aid.scanAllDrive(housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
+                updateScreenTabs(typesMap);
+            }
+        }, id);
         QueryBuilder<Folder, Integer> folderBuilder = folderDao.queryBuilder();
         folderBuilder.where().in("typeId", housekeepTypeIdList);
         List<Folder> folders = folderBuilder.query();

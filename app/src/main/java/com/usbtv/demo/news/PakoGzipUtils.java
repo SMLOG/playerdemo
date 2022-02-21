@@ -40,7 +40,7 @@ public class PakoGzipUtils {
     }
 
 
-    public static  String uncompress(String str) throws UnsupportedEncodingException {
+    public static  String uncompress(String str) throws IOException {
         if (str == null || str.length() == 0) {
             return null;
         }
@@ -49,16 +49,14 @@ public class PakoGzipUtils {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        try {
+
             GZIPInputStream ungzip = new GZIPInputStream(in);
             byte[] buffer = new byte[256];
             int n;
             while ((n = ungzip.read(buffer)) >= 0) {
                 out.write(buffer, 0, n);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
 
         return new String( out.toByteArray());
     }

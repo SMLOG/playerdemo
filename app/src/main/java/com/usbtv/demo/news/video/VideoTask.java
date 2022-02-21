@@ -1,19 +1,5 @@
 package com.usbtv.demo.news.video;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.usbtv.demo.news.BtoAAtoB;
-import com.usbtv.demo.news.PakoGzipUtils;
-
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
-import org.jsoup.HttpStatusException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -23,11 +9,33 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+
+import javax.script.ScriptException;
+
+import org.jsoup.Connection.Method;
+import org.jsoup.Connection.Response;
+import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
+import org.jsoup.select.Elements;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.usbtv.demo.news.BtoAAtoB;
+import com.usbtv.demo.news.PakoGzipUtils;
+import com.usbtv.demo.news.video.CcVideo;
+import com.usbtv.demo.news.video.CcVideoRepository;
+
 
 public class VideoTask {
 
@@ -51,7 +59,7 @@ public class VideoTask {
 	private static boolean isContentExists(String filePath) throws IOException {
 
 		String url = "https://api.github.com/repos/SMLOG/data/contents/" + filePath;
-		Response res;
+		org.jsoup.Connection.Response res;
 		try {
 			res = Jsoup.connect(url).userAgent(AGENT).header("Authorization", "token " + token).ignoreContentType(true)
 					.execute();
@@ -77,17 +85,20 @@ public class VideoTask {
 		if (since != null)
 			commitsUrl += "&since=" + URLEncoder.encode(since);
 
-		Response res = Jsoup.connect(commitsUrl).header("accept", "pplication/vnd.github.v3+json")
+		org.jsoup.Connection.Response res = Jsoup.connect(commitsUrl).header("accept", "pplication/vnd.github.v3+json")
 				.header("Authorization", "token " + token).userAgent(AGENT).ignoreContentType(true).execute();
 		String body = res.body();
 		JSONArray commits = JSONObject.parseArray(body);
 
 		System.out.print(commits);
 
+		String Lastsince = null;
 		for (int i = 0; i < commits.size(); i++) {
 
-			if (i == 0)
-				since = videoRepository.saveSince(getString(commits.getJSONObject(i), "commit.committer.date"));
+			if (i == 0) {
+				Lastsince  = getString(commits.getJSONObject(i), "commit.committer.date");
+
+			}
 
 			JSONObject obj = commits.getJSONObject(i);
 			String sha = obj.getString("sha");
@@ -95,7 +106,13 @@ public class VideoTask {
 			JSONObject json2 = getSha(path + "?ref=" + sha);
 			String content = json2.getString("content");
 			String raw = BtoAAtoB.atob(content);
-			// String raw = PakoGzipUtils.uncompress(deBase64);
+
+			//PakoGzipUtils.compress(content)
+			try {
+				raw = PakoGzipUtils.uncompress(raw);
+			}catch(Throwable e) {
+
+			}
 			System.out.println(raw);
 
 			List<CcVideo> items = JSON.parseArray(raw, CcVideo.class);
@@ -122,6 +139,9 @@ public class VideoTask {
 
 		}
 
+		if(Lastsince!=null)
+			since = videoRepository.saveSince(Lastsince);
+
 		/* */
 	}
 
@@ -138,7 +158,7 @@ public class VideoTask {
 	private static JSONObject getSha(String filePath) throws IOException {
 
 		String url = "https://api.github.com/repos/SMLOG/data/contents/" + filePath;
-		Response res;
+		org.jsoup.Connection.Response res;
 		try {
 			res = Jsoup.connect(url).userAgent(AGENT).header("Authorization", "token " + token).ignoreContentType(true)
 					.execute();
@@ -158,7 +178,7 @@ public class VideoTask {
 
 	private static boolean uploadList(CcVideoRepository uploadItemRepository) throws IOException {
 
-		List<CcVideo> list = uploadItemRepository.findAllBySrcAndCcIsNull("cbs");
+		//	List<Video> list = uploadItemRepository.findAllBySrcAndCcIsNull("cbs");
 
 
 		/*for (int i=0;i<list.size();i++) {
@@ -180,7 +200,7 @@ public class VideoTask {
 
 		}*/
 
-		list = uploadItemRepository.findAllByStatusOrderByDt(0);
+		List<CcVideo>  list = uploadItemRepository.findAllByStatusAndDtGreaterThanOrderByDtDesc(0,System.currentTimeMillis()- 5 * 24 * 3600 * 1000);
 		System.out.println("uploading size:" + list.size());
 		if (list.size() > 0) {
 			String filePath = "vl.json";
@@ -257,7 +277,7 @@ public class VideoTask {
 	private static JSONObject uploadApi(String filePath, String content, String message, boolean gzip, String sha)
 			throws IOException {
 		String url = "https://api.github.com/repos/SMLOG/data/contents/" + filePath;
-		Response res;
+		org.jsoup.Connection.Response res;
 		try {
 
 			String compressContent = gzip ? PakoGzipUtils.compress(content) : content;
