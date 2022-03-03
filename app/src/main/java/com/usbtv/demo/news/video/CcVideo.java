@@ -17,7 +17,7 @@ public class CcVideo {
 	@DatabaseField
 	@JSONField(name = "d")
 	String date;
-
+	@DatabaseField
 	long dt;
 
 	@DatabaseField

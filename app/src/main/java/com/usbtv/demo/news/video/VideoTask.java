@@ -350,43 +350,57 @@ public class VideoTask {
 				"https://www.cbsnews.com/video/xhr/collection/component/evening-news-ott/?is_logged_in=0?is_logged_in=0",
 				"https://www.cbsnews.com/video/xhr/collection/component/video-overlay-popular/?is_logged_in=0?is_logged_in=0",
 				};*/
+		Pattern p = Pattern.compile("/(\\d{4}/\\d{2}/\\d{d}/)");
 
 		for(String feed:parts) {
-			Response res = Jsoup.connect("https://www.cbsnews.com"+feed+"?is_logged_in=0?is_logged_in=0")
-					.userAgent(AGENT).ignoreContentType(true).execute();
 
-			String body = res.body();
+			try {
+				Response res = Jsoup.connect("https://www.cbsnews.com" + feed + "?is_logged_in=0?is_logged_in=0")
+						.userAgent(AGENT).ignoreContentType(true).execute();
 
-			JSONObject json = JSONObject.parseObject(body);
-			JSONArray items = json.getJSONArray("items");
-			for (int i = 0; i < items.size(); i++) {
-				JSONObject obj = (JSONObject) items.get(i);
+				String body = res.body();
 
-				String vid = obj.getString("id");
+				JSONObject json = JSONObject.parseObject(body);
+				JSONArray items = json.getJSONArray("items");
+				for (int i = 0; i < items.size(); i++) {
+					JSONObject obj = (JSONObject) items.get(i);
 
-				List<CcVideo> exist = videoRepository.findByVid(vid);
-				if (exist == null || exist.size() == 0) {
-					String title = obj.getString("fulltitle");
-					String cc = obj.getString("captions");
-					String url = obj.getString("video2");
-					if(!obj.getString("type").equals("vod"))continue;
-					long dt = obj.getLong("timestamp");
-					String d = sd.format(new Date(dt));
+					String vid = obj.getString("id");
 
-					CcVideo video = new CcVideo();
-					video.setTitle(title);
-					video.setVid(vid);
-					video.setOrgCc(cc);
-					video.setCc(cc);
+					List<CcVideo> exist = videoRepository.findByVid(vid);
+					if (exist == null || exist.size() == 0) {
+						String title = obj.getString("fulltitle");
+						String cc = obj.getString("captions");
+						String url = obj.getString("video2");
+						if (!obj.getString("type").equals("vod")) continue;
+						long dt = obj.getLong("timestamp");
+						String d = sd.format(new Date(dt));
 
-					video.setDate(d);
-					video.setDt(dt);
-					video.setSrc("cbs");
-					video.setStatus(0);
-					video.setUrl(url);
-					videoRepository.save(video);
+						Matcher matcher = p.matcher(url);
+						if(matcher.find()) {
+							d=matcher.group(1);
+						}
+
+						CcVideo video = new CcVideo();
+						video.setTitle(title);
+						video.setVid(vid);
+						video.setOrgCc(cc);
+						video.setCc(cc);
+
+						video.setDate(d);
+						video.setDt(sd.parse(d).getTime());
+						video.setSrc("cbs");
+						video.setStatus(0);
+						video.setUrl(url);
+						videoRepository.save(video);
+
+
+					}
+
 				}
-
+			}catch (Throwable e){
+				e.printStackTrace();
+				Thread.sleep(10000);
 			}
 		}
 /*

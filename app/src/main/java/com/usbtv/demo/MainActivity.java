@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -85,7 +86,11 @@ public class MainActivity extends AppCompatActivity {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);// 隐藏状态栏
                     */
-        requestPermissionAndStorage();
+        try {
+            requestPermissionAndStorage();
+        }catch (Throwable e){
+            e.printStackTrace();
+        }
 
         setContentView(R.layout.activity_main);
 
@@ -94,6 +99,11 @@ public class MainActivity extends AppCompatActivity {
         initVideo();
 
         continuePlayPrevious();
+
+        //android 10.0 startup when completed
+        if (!Settings.canDrawOverlays(getApplicationContext())) {
+            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
+        }
     }
 
     private void registBroadcastReceiver() {
