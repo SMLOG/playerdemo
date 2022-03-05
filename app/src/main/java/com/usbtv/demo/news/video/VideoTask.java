@@ -350,7 +350,7 @@ public class VideoTask {
 				"https://www.cbsnews.com/video/xhr/collection/component/evening-news-ott/?is_logged_in=0?is_logged_in=0",
 				"https://www.cbsnews.com/video/xhr/collection/component/video-overlay-popular/?is_logged_in=0?is_logged_in=0",
 				};*/
-		Pattern p = Pattern.compile("/(\\d{4}/\\d{2}/\\d{d}/)");
+		Pattern p = Pattern.compile("/(\\d{4}/\\d{2}/\\d{2})/");
 
 		for(String feed:parts) {
 
