@@ -100,10 +100,15 @@ public class MainActivity extends AppCompatActivity {
 
         continuePlayPrevious();
 
-        //android 10.0 startup when completed
-        if (!Settings.canDrawOverlays(getApplicationContext())) {
-            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
+        try {
+            //android 10.0 startup when completed
+            if (!Settings.canDrawOverlays(getApplicationContext())) {
+                startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
+            }
+        }catch (Throwable e){
+
         }
+
     }
 
     private void registBroadcastReceiver() {

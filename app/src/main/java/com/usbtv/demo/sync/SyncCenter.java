@@ -97,20 +97,7 @@ public class SyncCenter {
 
             @Override
             public void doRun() throws Throwable {
-              new Thread(new Runnable() {
-                  @Override
-                  public void run() {
-                      try {
-                          TV.liveStream(tvStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
-                      } catch (SQLException throwables) {
-                          throwables.printStackTrace();
-                      } catch (InterruptedException e) {
-                          e.printStackTrace();
-                      } catch (IOException e) {
-                          e.printStackTrace();
-                      }
-                  }
-              }).start() ;
+                TV.liveStream(tvStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
 
             }
         }, id);
@@ -118,7 +105,7 @@ public class SyncCenter {
 
 
 
-        RunCron.run(new RunCron.Period() {
+      if(false)  RunCron.run(new RunCron.Period() {
             @Override
             public String id() {
                 return "news";
@@ -182,12 +169,12 @@ public class SyncCenter {
 
         updateScreenTabs(typesMap);
 
-        new Thread(new Runnable() {
+        /*new Thread(new Runnable() {
             @Override
             public void run() {
                 TV.checkTvUrls(id);
             }
-        }).start();
+        }).start();*/
     }
 
     public static void updateScreenTabs(Map<String, Integer> typesMap) {

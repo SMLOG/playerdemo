@@ -355,7 +355,7 @@ public class TV {
             int i = channels.size();
             for (Channel ch : channels) {
 
-                if (!checkUrl(ch.m3uUrl)) continue;
+              //  if (!checkUrl(ch.m3uUrl)) continue;
 
                 Where<Folder, Integer> where = folderDao.queryBuilder().where()
                         .eq("typeId", channelID);
@@ -418,94 +418,27 @@ public class TV {
                 new ChannelFilter[]{new ChannelFilter() {
                     @Override
                     public String getChannelName() {
-                        return "TV(English)";
+                        return "Kids(English)";
                     }
 
                     @Override
                     public boolean filter(Channel ch) {
                         return
                                 ch.language.indexOf("English") > -1
-                                        && ch.groupTitle.indexOf("Kids") == -1
-                                        && (
-                                        ch.groupTitle.indexOf("News") > -1 ||
-                                                ch.groupTitle.indexOf("General") > -1
-                                )
+                                        && ch.groupTitle.indexOf("Kids") > -1
+
                                 ;
                     }
 
                     @Override
                     public int compare(Channel o1, Channel o2) {
-                        int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                        int r = w2 - w1;
-                        if (r == 0)
-                            r = o1.id.compareTo(o2.id);
-                        if (r == 0)
-                            r = (int) (o1.speech - o2.speech);
 
-                        return r;
+                        return (int) (o1.speech - o2.speech);
+
                     }
                 },
 
-                        new ChannelFilter() {
-                            @Override
-                            public String getChannelName() {
-                                return "广东";
-                            }
 
-                            @Override
-                            public boolean filter(Channel ch) {
-                                return isGongDong(ch);
-
-                            }
-
-                            @Override
-                            public int compare(Channel o1, Channel o2) {
-                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o1.title.indexOf("广东") > -1 || o1.groupTitle.indexOf("卫视") > -1 ? 5 : 0
-                                );
-                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o2.title.indexOf("广东") > -1 || o2.title.indexOf("卫视") > -1 ? 5 : 0
-                                );
-                                int r = w2 - w1;
-                                if (r == 0)
-                                    r = o1.id.compareTo(o2.id);
-                                if (r == 0)
-                                    r = (int) (o1.speech - o2.speech);
-                                return r;
-                            }
-                        },
-                        new ChannelFilter() {
-                            @Override
-                            public String getChannelName() {
-                                return "电视";
-                            }
-
-                            @Override
-                            public boolean filter(Channel ch) {
-                                return ch.language.indexOf("Chinese") > -1 && !isGongDong(ch) &&
-                                        (ch.title.indexOf("卫视") > -1
-                                                || ch.groupTitle.indexOf("General") > -1
-                                                || ch.groupTitle.indexOf("News") > -1
-                                        );
-                            }
-
-                            @Override
-                            public int compare(Channel o1, Channel o2) {
-                                int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o1.title.indexOf("卫视") > -1 ? 5 : 0
-                                );
-                                int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : (
-                                        o2.title.indexOf("卫视") > -1 ? 5 : 0
-                                );
-                                int r = w2 - w1;
-                                if (r == 0)
-                                    r = o1.id.compareTo(o2.id);
-                                if (r == 0)
-                                    r = (int) (o1.speech - o2.speech);
-                                return r;
-                            }
-                        },
                      /*   new ChannelFilter() {
                             @Override
                             public String getChannelName() {
