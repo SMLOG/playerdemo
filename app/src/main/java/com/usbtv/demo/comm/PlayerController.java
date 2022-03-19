@@ -82,6 +82,9 @@ public final class PlayerController {
         List<Folder> ret = null;
         try {
             Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
+            if(typeId>=300&&typeId<400)
+                ret= where.eq("typeId",typeId).and().eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
+            else
             if(typeId>0)
             ret= where.eq("typeId",typeId).queryBuilder().orderBy("orderSeq",false).query();
             else  ret= where.eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
