@@ -15,6 +15,8 @@ import com.usbtv.demo.data.VFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import okhttp3.Response;
 public class BiLi {
 
     private static ScriptEngine scriptEngine;
+
     public static synchronized ScriptEngine getJsEngine() throws IOException, ScriptException {
         if (scriptEngine == null) {
             ScriptEngineManager manager = new ScriptEngineManager();
@@ -72,9 +75,9 @@ public class BiLi {
 
 
     public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
-        int i = 5;
+        int i = 1;
         JSONObject jsonObj = null;
-        while (--i > 0) {
+        while (i-- > 0) {
 
 
             String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
@@ -127,25 +130,43 @@ public class BiLi {
                 String name = matcher.group(1);
                 String value = matcher.group(2);
                 if (value.equals("new Date().getTime()")) value = "" + System.currentTimeMillis();
-                cookies.add(name + "=" + value);
+                if (name.indexOf("c0301") == -1)
+                    cookies.add(name + "=" + value);
 
             }
 
-            String url = "https://service0.iiilab.com/sponsor/getByPage";
+
+            String url = "https://webapi.iiilab.com/video/web/bilibili";
+            url = "https://webapi.iiilab.com/sponsor/bilibili";
 
             MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-
             okhttp3.RequestBody requestBody = new FormBody.Builder().add("page", "bilibili").build();
 
-            request = new Request.Builder().url(url)
-                    .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                    .addHeader("Origin", "https://bilibili.iiilab.com/")
-                    .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
-                    .addHeader("Cookie", Utils.join(";", cookies))
+            try {
 
-                    .post(requestBody).build();
-            call = okHttpClient.newCall(request);
-            response = call.execute();
+                System.out.println(cookies);
+                request = new Request.Builder().url(url)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            } catch (Exception ee) {
+                url = "https://service0.iiilab.com/sponsor/getByPage";
+
+                request = new Request.Builder().url(url)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            }
 
 
             for (String cookie :
@@ -158,17 +179,31 @@ public class BiLi {
             requestBody = new FormBody.Builder().add("link", link).add("r", e)
                     .add("s", n).build();
 
-            request = new Request.Builder().url(a + "/video/web/" + site)
-                    .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                    .addHeader("Origin", "https://bilibili.iiilab.com/")
-                    .addHeader("Referer", "https://bilibili.iiilab.com/")
-                    .addHeader("User-Agent", Utils.AGENT)
-                    .addHeader("Cookie", Utils.join(";", cookies))
-                    .addHeader("X-Client-Data", xclientdata)
+            try {
+                request = new Request.Builder().url("https://webapi.iiilab.com/video/web/" + site)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/")
+                        .addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+                        .addHeader("X-Client-Data", xclientdata)
 
-                    .post(requestBody).build();
-            call = okHttpClient.newCall(request);
-            response = call.execute();
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            } catch (Exception ee) {
+                request = new Request.Builder().url("https://service0.iiilab.com" + "/video/web/" + site)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/")
+                        .addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+                        .addHeader("X-Client-Data", xclientdata)
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            }
             rsp = response.body().string();
             System.out.println(rsp);
             jsonObj = JSONObject.parseObject(rsp);
@@ -178,6 +213,7 @@ public class BiLi {
                 String str = new String(Base64.decode(jsonObj.getString("data").substring(6), Base64.DEFAULT));
                 jsonObj.put("data", JSON.parse(str));
             }
+            if (jsonObj.getJSONObject("data") == null) break;
             if (jsonObj.getJSONObject("data").getString("video").indexOf("upos-sz-mirrorcos") == -1)
                 continue;
 
@@ -197,8 +233,7 @@ public class BiLi {
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
 
 
-
-        for (int i = 0,d=0; i < list.size(); i++) {
+        for (int i = 0, d = 0; i < list.size(); i++) {
             JSONObject item = (JSONObject) list.get(i);
             Integer typeId = (Integer) item.get("id");
             Integer typeId2 = d + startTypeId;
@@ -206,14 +241,14 @@ public class BiLi {
             Integer media_count = (Integer) item.get("media_count");
 
             String catName = item.getString("title");
-            if (media_count > 0 && catName.indexOf("_")==-1) {
+            if (media_count > 0 && catName.indexOf("_") == -1) {
                 typesMap.put(catName, typeId2);
                 d++;
             }
 
             System.out.println("**目录 ：" + catName + " count:" + media_count);
 
-            int orderSeq =media_count;
+            int orderSeq = media_count;
 
             int pn = 1;
 
@@ -235,24 +270,24 @@ public class BiLi {
                     if (title == null || title.indexOf("失效") > -1) continue;
 
                     Folder folder;
-                    if(catName.indexOf("_")>-1){
+                    if (catName.indexOf("_") > -1) {
                         typeId2 = typesMap.get(catName.split("_")[0]);
                         folder = folderDao.queryBuilder().where().eq("aid", catName.split("_")[1]).queryForFirst();
-                    }else folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    } else folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
 
                     if (folder == null) {
 
                         folder = new Folder();
 
-                        if(catName.indexOf("_")>-1){
+                        if (catName.indexOf("_") > -1) {
                             String name = catName.split("_")[1];
                             folder.setName(name);
                             folder.setAid(name);
 
-                        }else {
+                        } else {
                             folder.setName(title);
                             //folder.setRoot(rootDriv);
-                          //  folder.setAid("" + aid);
+                            //  folder.setAid("" + aid);
                             //folder.setBvid(bvid);
                         }
 
@@ -285,12 +320,12 @@ public class BiLi {
                     for (int k = 1; k <= pages; k++) {
 
                         VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
-                                .and().eq("bvid",bvid).and().eq("page", k).queryForFirst();
+                                .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
                         if (vfile == null) {
                             vfile = new VFile();
                             vfile.setFolder(folder);
                             vfile.setBvid(bvid);
-                            vfile.setAid(""+aid);
+                            vfile.setAid("" + aid);
                             vfile.setPage(k);
                             vfile.setOrderSeq(k);
                         }
@@ -305,6 +340,103 @@ public class BiLi {
                 pn++;
 
             } while (true);
+        }
+    }
+
+    public static void bilibiliVideosSearchByKeyWord(final int startTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap, String[] keywords) throws IOException, SQLException {
+
+        int orderSeq = 10000;
+
+        int pn = 1;
+        int total = 0;
+
+        for (int ii = 0; ii < keywords.length; ii++) {
+            typesMap.put(keywords[ii], startTypeId + ii);
+
+            housekeepTypeIdList.add(startTypeId + ii);
+            do {
+                String resp = Utils.get("https://api.bilibili.com/x/web-interface/search/type?page=1&page_size=50&latform=pc&keyword="
+                        // + "%E8%8B%B1%E6%96%87%E5%84%BF%E6%AD%8C"
+                        + URLEncoder.encode(keywords[ii], "UTF-8") +
+                        "&category_id=&search_type=video");
+                JSONObject jsonObj = JSONObject.parseObject(resp);
+                JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("result");
+                total = ((JSONObject) jsonObj.get("data")).getIntValue("numResults");
+
+                if (medias == null) break;
+                for (int j = 0; j < medias.size(); j++) {
+                    JSONObject media = ((JSONObject) medias.get(j));
+                    String title = media.getString("title");
+                    Integer aid = media.getInteger("id");
+                    String bvid = media.getString("bvid");
+                    String cover = "http:"+media.getString("pic");
+                    // int pages = media.getInteger("page");
+                    System.out.println(title);
+
+                    if (title == null || title.indexOf("失效") > -1) continue;
+                    title=title.replaceAll("<.*?>","");
+                    Folder folder;
+
+                    folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", startTypeId).queryForFirst();
+
+                    if (folder == null) {
+
+                        folder = new Folder();
+
+
+                        folder.setName(title);
+                        //folder.setRoot(rootDriv);
+                        //  folder.setAid("" + aid);
+                        //folder.setBvid(bvid);
+
+
+                        folder.setCoverUrl(cover);
+                        folder.setTypeId(startTypeId);
+                        folder.setOrderSeq(orderSeq);
+                        folderDao.create(folder);
+
+                      /*  Map<String, Object> infoMap = new HashMap<String, Object>();
+                        infoMap.put("Aid", "" + aid);
+                        infoMap.put("Bid", "" + bvid);
+                        infoMap.put("Title", "" + title);
+                        infoMap.put("CoverURL", "" + cover);*/
+
+
+                    } else {
+                        folder.setName(title);
+                        folder.setCoverUrl(cover);
+                        folder.setOrderSeq(orderSeq);
+                        folderDao.update(folder);
+                    }
+                    orderSeq--;
+
+                    validFoldersMap.put(folder.getId(), true);
+                    validAidsMap.put(aid.toString(), true);
+
+                    for (int k = 1; k <= 1; k++) {
+
+                        VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
+                                .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
+                        if (vfile == null) {
+                            vfile = new VFile();
+                            vfile.setFolder(folder);
+                            vfile.setBvid(bvid);
+                            vfile.setAid("" + aid);
+                            vfile.setPage(k);
+                            vfile.setOrderSeq(k);
+                        }
+                        vFileDao.createOrUpdate(vfile);
+
+                    }
+
+
+                }
+
+                if (pn * 50 > total || pn * 50 > 400) break;
+                pn++;
+
+            } while (true);
+
         }
     }
 }

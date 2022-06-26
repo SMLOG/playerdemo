@@ -212,7 +212,7 @@ public class App extends Application implements CacheListener {
 
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(1024 * 1024 * 200)
+                .maxCacheSize(1024 * 1024 * 1)
                 .build();
     }
 
@@ -263,7 +263,7 @@ public class App extends Application implements CacheListener {
                         public void run() {
                             try {
                                 PlayerController.getInstance().refreshCats();
-                                new InitChannel();
+                              //  new InitChannel();
                             } catch (Throwable e) {
                                 e.printStackTrace();
                             }

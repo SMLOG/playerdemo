@@ -35,6 +35,7 @@ public final class PlayerController {
     final static int MODE_RANDOM = 1;
     final static int MODE_SEQ = 0;
     final static int MODE_LOOP = 2;
+    final static int MODE_KEYWORD = 3;
 
     private static PlayerController instance;
     private VFile curItem;

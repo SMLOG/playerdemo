@@ -17,11 +17,11 @@ public class BootupActivity extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "BootupActivity initiated");
-        if (intent.getAction().endsWith(Intent.ACTION_BOOT_COMPLETED)) {
+        if (intent.getAction().equalsIgnoreCase(Intent.ACTION_BOOT_COMPLETED) || intent.getAction().toUpperCase().indexOf("QUICKBOOT_POWERON")>-1) {
             Intent mainActivityIntent = new Intent(context, MainActivity.class);
             mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
              context.startActivity(mainActivityIntent);
-            scheduleRecommendationUpdate(context);
+           // scheduleRecommendationUpdate(context);
         }
     }
 

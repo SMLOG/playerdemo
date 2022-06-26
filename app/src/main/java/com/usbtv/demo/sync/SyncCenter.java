@@ -61,47 +61,49 @@ public class SyncCenter {
             }
         }, id);
 
-        /*startTypeId=200;
+       startTypeId=200;
         final int cnnStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
             public String id() {
-                return "cnn";
+                return "bili2";
             }
 
             @Override
             public long getPeriodDuration() {
-                return 2 * 3600 * 1000;
+                return 30 * 24 * 3600 * 1000;
             }
 
             @Override
             public void doRun() throws Throwable {
-                CnnSync.cnnVideos(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                BiLi.bilibiliVideosSearchByKeyWord(biliStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap,new String[]{"英文儿歌","儿童英语故事"});
                 updateScreenTabs(typesMap);
-            }
-        }, id);*/
-
-        startTypeId=300;
-        final int tvStartTypeId = startTypeId;
-
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "tv";
-            }
-
-            @Override
-            public long getPeriodDuration() {
-                return  24 * 3600 * 1000;
-            }
-
-            @Override
-            public void doRun() throws Throwable {
-                TV.liveStream(tvStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
-
             }
         }, id);
 
+        startTypeId=300;
+
+        if(false) {
+            final int tvStartTypeId = startTypeId;
+
+            RunCron.run(new RunCron.Period() {
+                @Override
+                public String id() {
+                    return "tv";
+                }
+
+                @Override
+                public long getPeriodDuration() {
+                    return 24 * 3600 * 1000;
+                }
+
+                @Override
+                public void doRun() throws Throwable {
+                    TV.liveStream(tvStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+
+                }
+            }, id);
+        }
 
 
 

@@ -577,10 +577,14 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(vfile.getBvid(), vfile.getPage());
+           String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
+           if (bvid!=null){
+            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+
             if (vidoInfo != null && null != vidoInfo.getString("video")) {
                 url = vidoInfo.getString("video");
             }
+           }
         }
 
         App.cache2Disk(vfile, url);
