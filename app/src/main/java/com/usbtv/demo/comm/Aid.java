@@ -101,6 +101,21 @@ public class Aid {
             for (File aidDir : aidDirs) {
                 scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
             }
+            File _ = new File(rootDir.getAbsolutePath()+"/_");
+            if(_.exists()&&_.isDirectory()){
+                aidDirs = _.listFiles(new FileFilter() {
+                    @Override
+                    public boolean accept(File pathname) {
+                        return pathname.isDirectory();
+                    }
+                });
+
+                for (File aidDir : aidDirs) {
+                    scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
+                }
+            }
+
+
         }
 
 
@@ -123,8 +138,10 @@ public class Aid {
                 String content = getStringFromFile(divfile);
                 JSONObject jsonObj = JSON.parseObject(content);
                 title = (String) jsonObj.get("Title");
+                if(title==null) title = (String) jsonObj.get("title");
                 coverURL = (String) jsonObj.get("CoverURL");
                 bvid = (String) jsonObj.get("Bid");
+                if(bvid==null)bvid = (String) jsonObj.get("bvid");
             }
         } else return;
 
@@ -184,6 +201,7 @@ public class Aid {
                     vfile = new VFile();
                     vfile.setP(path);
                     vfile.setName(file.getName());
+                    vfile.setBvid(bvid);
                     vfile.setFolder(folder);
 
                     try {

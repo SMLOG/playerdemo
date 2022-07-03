@@ -161,12 +161,17 @@ public class MainActivity extends AppCompatActivity {
                         StorageVolume volume = sm.getStorageVolume(new File(rootPath));
 
                         if (volume != null) {
-                            intent = volume.createAccessIntent(null);
+                            //intent = volume.createAccessIntent(null);
+
+                           // startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + i);
+                            //return;
                         }
                     }
 
                     if (intent == null) {
                         intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |  Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                     }
                     startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + i);
                 }
@@ -324,7 +329,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + storagePathList.size()) {
+            if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + storagePathList.size()) {
+
+                if (data != null && data.getData() != null) {
+                    Uri uri = data.getData();
+
+                    final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+                    DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
+
+                }
+
+            }
+            if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + storagePathList.size()) {
 
             if (data != null && data.getData() != null) {
                 Uri uri = data.getData();

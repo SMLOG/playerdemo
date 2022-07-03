@@ -71,12 +71,13 @@ public class SyncCenter {
 
             @Override
             public long getPeriodDuration() {
-                return 30 * 24 * 3600 * 1000;
+
+                return 30l * 24 * 3600 * 1000;
             }
 
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideosSearchByKeyWord(biliStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap,new String[]{"英文儿歌","儿童英语故事"});
+                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap,new String[]{"英文儿歌","儿童英语故事"});
                 updateScreenTabs(typesMap);
             }
         }, id);

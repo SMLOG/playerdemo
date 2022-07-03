@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -34,10 +33,9 @@ import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class BiLi {
+public class BiLi2 {
 
     private static ScriptEngine scriptEngine;
 
@@ -50,129 +48,23 @@ public class BiLi {
             // System.out.println(path);
             // FileReader的参数为所要执行的js文件的路径
 
-            // InputStream fd = App.getInstance().getApplicationContext().getAssets().open("md5.js");
-            InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
-            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
-
-
+            InputStream fd = App.getInstance().getApplicationContext().getAssets().open("md5.js");
             //scriptEngine.eval(new FileReader(path + "/md5.js"));
+            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("file.js");
 
-            // scriptEngine.eval(new InputStreamReader(fd));
-            scriptEngine.eval(new InputStreamReader(fd1));
+            scriptEngine.eval(new InputStreamReader(fd));
             scriptEngine.eval(new InputStreamReader(fd2));
 
         }
         return scriptEngine;
     }
 
-    public static String join(String s, List<String> values) {
-        StringBuilder sb = new StringBuilder();
-        for (String v : values) {
-            sb.append(v).append(s);
-        }
-        return sb.toString();
-    }
-
-    private static JSONObject getResouceData(String link) throws ScriptException, IOException {
-
-
-        String resp = Utils.get("http://192.168.0.10:8084/resource?url=" + URLEncoder.encode(link));
-        if (resp != null && resp.trim().length() > 0) {
-          return (JSONObject) JSONObject.parseObject(resp);
-
-        }
-
-        return null;
-
-    }
-
-    private static JSONObject requestData(ScriptEngine scriptEngine, String link, OkHttpClient okHttpClient,
-                                          List<String> cookies, MediaType JSON) throws ScriptException, IOException {
-
-        for (int k = 0; k < 2; k++) {
-
-
-            Request request;
-            Call call;
-            Response response;
-            JSONObject json = new JSONObject();
-
-            String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
-
-            String i = (String) scriptEngine.eval("tool.cal('" + link + "'+'@'+" + e + ").toString(10)");
-
-            String phead = (String) scriptEngine.eval("tool.uc('" + link + "'," + "'bilibili')");
-            String elink = (String) scriptEngine.eval("tool.encode('" + link + "')");
-            json.put("link", elink + "@" + e + "@" + i);
-
-            RequestBody requestBody = RequestBody.create(JSON, String.valueOf(json));
-
-            cookies.add(scriptEngine.eval("_0x5c74a7(-0x27b, -0x284, -0x292, -0x28d)") + "=1");
-            String cookieStr = join(";", cookies);
-            System.out.println("sendcookie:" + cookieStr);
-
-            request = new Request.Builder().url("https://bilibili.iiilab.com/media")
-
-                    .addHeader("Origin", "https://bilibili.iiilab.com/")
-                    .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
-                    .addHeader("Cookie", cookieStr)// .addHeader("X-Client-Data", xclientdata)
-                    .addHeader("accept-patch", phead).post(requestBody).build();
-            call = okHttpClient.newCall(request);
-            response = call.execute();
-            String rsp = response.body().string();
-            System.out.println(rsp);
-            JSONObject jsonObj = JSONObject.parseObject(rsp);
-
-            if (jsonObj.getString("data") != null && jsonObj.getIntValue("code") == 200) {
-
-                String decode = (String) scriptEngine.eval("tool.decode('" + jsonObj.getString("data") + "')");
-                System.out.println(decode);
-                String video = ((JSONObject) JSONObject.parseObject(decode).getJSONArray("medias").get(0)).getString("resource_url");
-                JSONObject data = new JSONObject();
-                data.put("video", video);
-                jsonObj.put("data", data);
-                return jsonObj;
-
-            }
-
-
-        }
-        return new JSONObject();
-    }
-
-    private static List<String> receiveCookies(OkHttpClient okHttpClient, List<String> cookies, String url,
-                                               Map<String, String> headerMap, int methodType, RequestBody requestBody) throws IOException {
-        Request.Builder builder = new Request.Builder().url(url).addHeader("User-Agent", Utils.AGENT);
-        if (headerMap != null) {
-            headerMap.keySet().forEach(e -> {
-                builder.addHeader(e, headerMap.get(e));
-            });
-        }
-        if (methodType == 1)
-            builder.post(requestBody);
-        Request request = builder.build();
-
-        Call call = okHttpClient.newCall(request);
-        Response response = call.execute();
-
-        for (String cookie : response.headers().values("Set-Cookie")) {
-            String value = cookie.split(";")[0];
-            if (cookies.indexOf(value) > -1)
-                continue;
-            cookies.add(value);
-            System.out.println(cookie);
-
-        }
-        return cookies;
-    }
-
     public static JSONObject getVidoInfo(String bvid, Integer p) {
 
         try {
-           // JSONObject info = getVideoInfo(getJsEngine(), "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
-          //  info = info.getJSONObject("data");
-          return   getResouceData("https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
-
+            JSONObject info = getVideoInfo(getJsEngine(), "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+            info = info.getJSONObject("data");
+            return info;
         } catch (ScriptException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -184,33 +76,153 @@ public class BiLi {
 
 
     public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
+        int i = 1;
+        JSONObject jsonObj = null;
+        while (i-- > 0) {
 
 
-        OkHttpClient okHttpClient = new OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)// 设置连接超时时间
-                .readTimeout(30, TimeUnit.SECONDS)// 设置读取超时时间
-                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())// 配置
-                .hostnameVerifier(SSLSocketClient.getHostnameVerifier()).build();
+            String e = (String) scriptEngine.eval("Math.random().toString(10).substring(2)");
 
-        Request request;
-        Call call;
-        Response response;
-        List<String> cookies = new ArrayList<String>();
-        receiveCookies(okHttpClient, cookies, "https://bilibili.iiilab.com/", null, 0, null);
+            String n = (String) scriptEngine.eval("generateStr('" + link + "@" + e + "').toString(10)");
+            String o = "X-Client-Data";
+            String a = "https://service0.iiilab.com";
+            String site = "bilibili";
 
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put("cookie", join(";", cookies));
-        headers.put("origin", "https://bilibili.iiilab.com/");
-        headers.put("referer", "https://bilibili.iiilab.com/");
+            String xclientdata = (String) scriptEngine.eval("u('" + n + "', '" + site + "')");
 
-        MediaType JSON = MediaType.parse("application/json;charset=utf-8");
+            OkHttpClient okHttpClient = new OkHttpClient()
+                    .newBuilder()
+                    .connectTimeout(10, TimeUnit.SECONDS)//设置连接超时时间
+                    .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
+                    .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())//配置
+                    .hostnameVerifier(SSLSocketClient.getHostnameVerifier()).build();
 
-        receiveCookies(okHttpClient, cookies, "https://bilibili.iiilab.com/sponsor", headers, 1,
-                RequestBody.create(JSON, String.valueOf("")));
+            Request request = new Request
+                    .Builder()
+                    .url("https://bilibili.iiilab.com/")
+                    .addHeader("User-Agent", Utils.AGENT)
+                    .build();
 
-        JSONObject jsonObj = requestData(scriptEngine, link, okHttpClient, cookies, JSON);
+            Call call = okHttpClient.newCall(request);
+            Response response = call.execute();
 
+            List<String> cookies = new ArrayList<String>();
+            for (String cookie :
+                    response.headers().values("Set-Cookie"))
+                cookies.add(cookie.split(";")[0]);
+
+            //cookies.add("ppp0609=1");
+            //cookies.add("ppp0627=1");
+            // cookies.add("zzz0821=1");
+
+            request = new Request
+                    .Builder()
+                    .url("https://wx.iiilab.com/static/js/human.min.js?v21")
+                    .addHeader("User-Agent", Utils.AGENT)
+                    .build();
+
+            call = okHttpClient.newCall(request);
+            response = call.execute();
+            String body = response.body().string();
+
+            Pattern p = Pattern.compile("setCookie\\(\"(.*?)\",(.*?),.*?\\)");
+            Matcher matcher = p.matcher(body);
+            while (matcher.find()) {
+                String name = matcher.group(1);
+                String value = matcher.group(2);
+                if (value.equals("new Date().getTime()")) value = "" + System.currentTimeMillis();
+                if (name.indexOf("c0301") == -1)
+                    cookies.add(name + "=" + value);
+
+            }
+
+
+            String url = "https://webapi.iiilab.com/video/web/bilibili";
+            url = "https://webapi.iiilab.com/sponsor/bilibili";
+                url="https://bilibili.iiilab.com/media";
+            MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+            okhttp3.RequestBody requestBody = new FormBody.Builder().add("page", "bilibili").build();
+
+            try {
+
+                System.out.println(cookies);
+                request = new Request.Builder().url(url)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            } catch (Exception ee) {
+                url = "https://service0.iiilab.com/sponsor/getByPage";
+
+                request = new Request.Builder().url(url)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            }
+
+
+            for (String cookie :
+                    response.headers().values("Set-Cookie"))
+                cookies.add(cookie.split(";")[0]);
+
+           // String rsp = response.body().string();
+
+            String resp=null;
+            requestBody = new FormBody.Builder().add("link", link).add("r", e)
+                    .add("s", n).build();
+
+            try {
+                request = new Request.Builder().url("https://webapi.iiilab.com/video/web/" + site)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/")
+                        .addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+                        .addHeader("X-Client-Data", xclientdata)
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            } catch (Exception ee) {
+                request = new Request.Builder().url("https://service0.iiilab.com" + "/video/web/" + site)
+                        .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .addHeader("Origin", "https://bilibili.iiilab.com/")
+                        .addHeader("Referer", "https://bilibili.iiilab.com/")
+                        .addHeader("User-Agent", Utils.AGENT)
+                        .addHeader("Cookie", Utils.join(";", cookies))
+                        .addHeader("X-Client-Data", xclientdata)
+
+                        .post(requestBody).build();
+                call = okHttpClient.newCall(request);
+                response = call.execute();
+            }
+            String rsp = response.body().string();
+            System.out.println(rsp);
+            jsonObj = JSONObject.parseObject(rsp);
+
+            if (jsonObj.getString("retDesc") != null && jsonObj.getString("retDesc").equals("outstanding")) {
+
+                String str = new String(Base64.decode(jsonObj.getString("data").substring(6), Base64.DEFAULT));
+                jsonObj.put("data", JSON.parse(str));
+            }
+            if (jsonObj.getJSONObject("data") == null) break;
+            if (jsonObj.getJSONObject("data").getString("video").indexOf("upos-sz-mirrorcos") == -1)
+                continue;
+
+            System.out.println(e);
+            return jsonObj;
+
+        }
         return jsonObj;
-
 
     }
 
@@ -358,12 +370,12 @@ public class BiLi {
                     String title = media.getString("title");
                     Integer aid = media.getInteger("id");
                     String bvid = media.getString("bvid");
-                    String cover = "http:" + media.getString("pic");
+                    String cover = "http:"+media.getString("pic");
                     // int pages = media.getInteger("page");
                     System.out.println(title);
 
                     if (title == null || title.indexOf("失效") > -1) continue;
-                    title = title.replaceAll("<.*?>", "");
+                    title=title.replaceAll("<.*?>","");
                     Folder folder;
 
                     folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", startTypeId).queryForFirst();

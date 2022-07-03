@@ -30,6 +30,7 @@ public class DocumentsUtils {
     private static final String TAG = DocumentsUtils.class.getSimpleName();
 
     public static final int OPEN_DOCUMENT_TREE_CODE = 8000;
+    public static final int OPEN_DOCUMENT_TREE_CODE2 = 9000;
 
     private static List<String> sExtSdCardPaths = new ArrayList<>();
     private static final Lock lock = new ReentrantLock();

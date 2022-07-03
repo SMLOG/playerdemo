@@ -123,11 +123,10 @@ public class VFile {
     public String getAbsPath() {
         if(folder!=null){
             if(folder.getRoot()!=null){
-                if(p!=null)
-                return folder.getRoot().getP()+ File.separator+folder.getP()+File.separator+p;
-                else if(folder.getAid()!=null)
-                return folder.getRoot().getP() + File.separator + folder.getAid()+File.separator+aid + File.separator + getRelativePath();
-                else  return folder.getRoot().getP() + File.separator + aid+ File.separator + getRelativePath();
+                return folder.getRoot().getP()+"/_/"+ (bvid==null?folder.getBvid():bvid)+"/"+page+".mp4";
+               // else if(folder.getAid()!=null)
+               // return folder.getRoot().getP() + File.separator + folder.getAid()+File.separator+aid + File.separator + getRelativePath();
+               // else  return folder.getRoot().getP() + File.separator + aid+ File.separator + getRelativePath();
             }
         }
         return null;
@@ -147,7 +146,7 @@ public class VFile {
 
     @JSONField(serialize = false)
     public String getRelativePath() {
-        return page + File.separator + folder.getAid() + ".mp4";
+        return  File.separator + folder.getAid() +"_"+ ".mp4";
     }
 
     public boolean exists() {
