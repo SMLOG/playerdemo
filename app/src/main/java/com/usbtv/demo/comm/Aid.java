@@ -101,9 +101,9 @@ public class Aid {
             for (File aidDir : aidDirs) {
                 scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
             }
-            File _ = new File(rootDir.getAbsolutePath()+"/_");
-            if(_.exists()&&_.isDirectory()){
-                aidDirs = _.listFiles(new FileFilter() {
+            File rootFile = new File(rootDir.getAbsolutePath()+"/_");
+            if(rootFile.exists()&&rootFile.isDirectory()){
+                aidDirs = rootFile.listFiles(new FileFilter() {
                     @Override
                     public boolean accept(File pathname) {
                         return pathname.isDirectory();

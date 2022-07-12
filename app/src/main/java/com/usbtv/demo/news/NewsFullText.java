@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-import javax.script.ScriptException;
 
 import org.jsoup.Connection.Method;
 import org.jsoup.HttpStatusException;
@@ -38,7 +37,7 @@ public class NewsFullText {
 
 
 
-	public static void main(String[] args) throws ScriptException, IOException, ParseException, InterruptedException {
+	public static void main(String[] args) throws  IOException, ParseException, InterruptedException {
 
 		// getList();
 

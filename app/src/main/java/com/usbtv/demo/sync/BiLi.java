@@ -1,8 +1,5 @@
 package com.usbtv.demo.sync;
 
-import android.util.Base64;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -22,15 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 import okhttp3.Call;
-import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -39,31 +29,9 @@ import okhttp3.Response;
 
 public class BiLi {
 
-    private static ScriptEngine scriptEngine;
-
-    public static synchronized ScriptEngine getJsEngine() throws IOException, ScriptException {
-        if (scriptEngine == null) {
-            ScriptEngineManager manager = new ScriptEngineManager();
-            scriptEngine = manager.getEngineByName("js");
-
-            // String path = Thread.currentThread().getContextClassLoader().getResource("").getPath(); // 获取targe路径
-            // System.out.println(path);
-            // FileReader的参数为所要执行的js文件的路径
-
-            // InputStream fd = App.getInstance().getApplicationContext().getAssets().open("md5.js");
-            InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
-            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
+    private static V8ScriptEngine v8scriptEngine;
 
 
-            //scriptEngine.eval(new FileReader(path + "/md5.js"));
-
-            // scriptEngine.eval(new InputStreamReader(fd));
-            scriptEngine.eval(new InputStreamReader(fd1));
-            scriptEngine.eval(new InputStreamReader(fd2));
-
-        }
-        return scriptEngine;
-    }
 
     public static String join(String s, List<String> values) {
         StringBuilder sb = new StringBuilder();
@@ -73,7 +41,7 @@ public class BiLi {
         return sb.toString();
     }
 
-    private static JSONObject getResouceData(String link) throws ScriptException, IOException {
+    private static JSONObject getResouceData(String link) throws  IOException {
 
 
         String resp = Utils.get("http://192.168.0.10:8084/resource?url=" + URLEncoder.encode(link));
@@ -86,8 +54,8 @@ public class BiLi {
 
     }
 
-    private static JSONObject requestData(ScriptEngine scriptEngine, String link, OkHttpClient okHttpClient,
-                                          List<String> cookies, MediaType JSON) throws ScriptException, IOException {
+    private static JSONObject requestData(V8ScriptEngine scriptEngine, String link, OkHttpClient okHttpClient,
+                                          List<String> cookies, MediaType JSON) throws  IOException {
 
         for (int k = 0; k < 2; k++) {
 
@@ -144,9 +112,9 @@ public class BiLi {
                                                Map<String, String> headerMap, int methodType, RequestBody requestBody) throws IOException {
         Request.Builder builder = new Request.Builder().url(url).addHeader("User-Agent", Utils.AGENT);
         if (headerMap != null) {
-            headerMap.keySet().forEach(e -> {
+            for(String e:headerMap.keySet()){
                 builder.addHeader(e, headerMap.get(e));
-            });
+            }
         }
         if (methodType == 1)
             builder.post(requestBody);
@@ -169,13 +137,29 @@ public class BiLi {
     public static JSONObject getVidoInfo(String bvid, Integer p) {
 
         try {
-           // JSONObject info = getVideoInfo(getJsEngine(), "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
-          //  info = info.getJSONObject("data");
-          return   getResouceData("https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+            //if(v8scriptEngine==null) {
+            V8ScriptEngine  v8scriptEngine2 = new V8ScriptEngine();
 
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
+              //  V8ScriptEngine scriptEngine=new V8ScriptEngine();
+                InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
+                InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
+
+
+                //scriptEngine.eval(new FileReader(path + "/md5.js"));
+
+                // scriptEngine.eval(new InputStreamReader(fd));
+            v8scriptEngine2.eval(fd1);
+            v8scriptEngine2.eval(fd2);
+            //}
+
+
+
+            JSONObject info = getVideoInfo(v8scriptEngine2, "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+            info = info.getJSONObject("data");
+            return info;
+          //return   getResouceData("https://www.bi libili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
@@ -183,7 +167,7 @@ public class BiLi {
     }
 
 
-    public static JSONObject getVideoInfo(ScriptEngine scriptEngine, String link) throws ScriptException, IOException {
+    public static JSONObject getVideoInfo(V8ScriptEngine scriptEngine, String link) throws  IOException {
 
 
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)// 设置连接超时时间
