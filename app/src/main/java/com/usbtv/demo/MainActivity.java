@@ -163,8 +163,13 @@ public class MainActivity extends AppCompatActivity {
                         if (volume != null) {
                             //intent = volume.createAccessIntent(null);
 
-                           // startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + i);
+
+                            //startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + i);
                             //return;
+                        }
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            intent = volume.createOpenDocumentTreeIntent();
                         }
                     }
 
@@ -177,6 +182,43 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+
+        if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + storagePathList.size()) {
+
+            if (data != null && data.getData() != null) {
+                Uri uri = data.getData();
+
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+                DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
+
+            }
+
+        }
+        if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + storagePathList.size()) {
+
+            if (data != null && data.getData() != null) {
+                Uri uri = data.getData();
+
+                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+                DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
+
+            }
+
+        }
+
+
     }
 
 
@@ -325,41 +367,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-            if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + storagePathList.size()) {
-
-                if (data != null && data.getData() != null) {
-                    Uri uri = data.getData();
-
-                    final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    getContentResolver().takePersistableUriPermission(uri, takeFlags);
-
-                    DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
-
-                }
-
-            }
-            if (requestCode >= DocumentsUtils.OPEN_DOCUMENT_TREE_CODE && requestCode < DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + storagePathList.size()) {
-
-            if (data != null && data.getData() != null) {
-                Uri uri = data.getData();
-
-                final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                getContentResolver().takePersistableUriPermission(uri, takeFlags);
-
-                DocumentsUtils.saveTreeUri(this, this.storagePathList.get(requestCode - DocumentsUtils.OPEN_DOCUMENT_TREE_CODE), uri);
-
-            }
-
-        }
-
-
-    }
 
     /**
      * 时间转换方法
@@ -408,6 +415,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(Object mp) {
+                PlayerController.getInstance().incPlayCount();
                 PlayerController.getInstance().next();
 
             }

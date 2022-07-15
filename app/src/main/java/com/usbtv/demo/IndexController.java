@@ -4,6 +4,7 @@ package com.usbtv.demo;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
+import android.os.Environment;
 import android.provider.MediaStore;
 
 import com.alibaba.fastjson.JSON;
@@ -72,7 +73,7 @@ public class IndexController {
     @GetMapping(path = "/api/status")
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-
+      //  Environment.getExternalStorageState();Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return JSON.toJSONString(PlayerController.getInstance());
     }
 

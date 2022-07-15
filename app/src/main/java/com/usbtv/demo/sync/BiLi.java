@@ -135,10 +135,10 @@ public class BiLi {
     }
 
     public static JSONObject getVidoInfo(String bvid, Integer p) {
+        V8ScriptEngine  v8scriptEngine2 = new V8ScriptEngine();
 
         try {
             //if(v8scriptEngine==null) {
-            V8ScriptEngine  v8scriptEngine2 = new V8ScriptEngine();
 
               //  V8ScriptEngine scriptEngine=new V8ScriptEngine();
                 InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
@@ -155,12 +155,20 @@ public class BiLi {
 
 
             JSONObject info = getVideoInfo(v8scriptEngine2, "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+
+
             info = info.getJSONObject("data");
             return info;
           //return   getResouceData("https://www.bi libili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
 
         } catch (Throwable e) {
             e.printStackTrace();
+        }finally {
+            try {
+                if (v8scriptEngine2 != null) v8scriptEngine2.release();
+            }catch (Throwable ee){
+                ee.printStackTrace();
+            }
         }
 
         return null;

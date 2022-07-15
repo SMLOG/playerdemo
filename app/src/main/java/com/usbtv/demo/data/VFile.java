@@ -44,6 +44,9 @@ public class VFile {
     @DatabaseField
     int orderSeq;
 
+    @DatabaseField
+    int playCnt;
+
     public VFile() {
     }
 
@@ -193,5 +196,13 @@ public class VFile {
 
     public void setAid(String aid) {
         this.aid = aid;
+    }
+
+    public int getPlayCnt() {
+        return playCnt;
+    }
+
+    public void setPlayCnt(int playCnt) {
+        this.playCnt = playCnt;
     }
 }

@@ -50,11 +50,13 @@ public class V8ScriptEngine {
 
 	@Override
 	protected void finalize() throws Throwable {
-		runtime.release();
 		super.finalize();
 	}
 
-	public void eval(InputStream inputStream) {
+	public void release(){
+		if(runtime!=null)runtime.release();
+	}
+	public void  eval(InputStream inputStream) {
 		runtime.executeVoidScript(getStringByInputStream(inputStream));
 	}
 

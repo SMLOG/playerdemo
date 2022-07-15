@@ -83,7 +83,7 @@ public class HttpGet {
      * @throws Exception
      */
     public void saveToFile(String destUrl, String fileName) throws IOException {
-        OutputStream fos = null;
+        OutputStream fos = null;fileName = fileName.replace("videos","Download/videos");
         BufferedInputStream bis = null;
         HttpURLConnection httpUrl = null;
         URL url = null;

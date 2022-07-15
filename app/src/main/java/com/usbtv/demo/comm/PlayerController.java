@@ -287,6 +287,20 @@ public final class PlayerController {
 
     }
 
+    public void incPlayCount(){
+        if( this.curItem!=null){
+            this.curItem.setPlayCnt(this.curItem.getPlayCnt()+1);
+            try {
+
+                Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
+                vFileDao.createOrUpdate(this.curItem);
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+       ;
+    }
     public void next() {
 
         if (mode == MODE_LOOP && curItem != null) {
