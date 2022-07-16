@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -163,6 +164,9 @@ public class App extends Application implements CacheListener {
                 if (dlink.startsWith(":/")) return Uri.parse(SSLSocketClient.ServerManager.getServerHttpAddress()+dlink+"&rate="+ rate);
 
                 if (true) {
+
+                   App.getInstance().player(2);
+
                     return Uri.parse(dlink);
 
                 }
@@ -185,6 +189,7 @@ public class App extends Application implements CacheListener {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);
                 }
+                App.getInstance().player(3);
             }
 
 
@@ -195,7 +200,19 @@ public class App extends Application implements CacheListener {
             }
         }
         System.out.println(vremote);
-        return Uri.parse(App.getProxyUrl(vremote));
+        return Uri.parse(vremote);
+        //return Uri.parse(App.getProxyUrl(vremote));
+    }
+
+    private static int playerType=0;
+    private void player(int i) {
+        if(mContext!=null && playerType!=i){
+            SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext.getApplicationContext());
+            SharedPreferences.Editor ed = mSharedPreferences.edit();
+            ed.putString("pref.player",""+i);
+            ed.commit();
+            playerType = i;
+        }
     }
 
     public static List<Folder> getAllMovies() {

@@ -8,6 +8,8 @@ import com.usbtv.demo.comm.SSLSocketClient;
 
 import java.io.File;
 import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.List;
 
 
 public class Folder {
@@ -40,7 +42,7 @@ public class Folder {
     String aid;
 
     @ForeignCollectionField(orderColumnName = "orderSeq", orderAscending = true)
-    private ForeignCollection<VFile> files;
+    private Collection<VFile> files;
 
     @JSONField(serialize = false)
 
@@ -49,6 +51,8 @@ public class Folder {
 
     @DatabaseField
     int isFav;
+
+    private List<VFile> listFiles;
 
     private Integer rootId;
 
@@ -94,11 +98,11 @@ public class Folder {
         this.coverUrl = coverUrl;
     }
 
-    public ForeignCollection<VFile> getFiles() {
+    public Collection<VFile> getFiles() {
         return files;
     }
 
-    public void setFiles(ForeignCollection<VFile> files) {
+    public void setFiles(Collection<VFile> files) {
         this.files = files;
     }
 
@@ -188,5 +192,13 @@ public class Folder {
 
     public void setIsFav(int isFav) {
         this.isFav = isFav;
+    }
+
+    public List<VFile> getListFiles() {
+        return listFiles;
+    }
+
+    public void setListFiles(List<VFile> listFiles) {
+        this.listFiles = listFiles;
     }
 }

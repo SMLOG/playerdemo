@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.view.View;
 
 import androidx.leanback.widget.HorizontalGridView;
@@ -48,7 +49,6 @@ public final class PlayerController {
     private int curIndex;
     private String curCat;
 
-    private HashMap<Integer, List<Folder>> catMoviesMap;
     private FolderCatsListRecycleViewAdapter catsAdaper;
     private FolderListAdapter foldersAdapter;
     private FolderNumListRecycleViewAdapter numAdapter;
@@ -57,7 +57,6 @@ public final class PlayerController {
     private int curCatId;
     private Map<String, Integer> allTypeMap;
     private LinkedHashMap<Integer, String> typeIdMap;
-    private RecyclerView numTabRecyclerView;
     private Folder curFolder;
     private VFile[] numFiles;
     private List<Folder> curCatList;
@@ -83,12 +82,11 @@ public final class PlayerController {
         List<Folder> ret = null;
         try {
             Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
-            if(typeId>=300&&typeId<400)
-                ret= where.eq("typeId",typeId).and().eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
-            else
+
             if(typeId>0)
             ret= where.eq("typeId",typeId).queryBuilder().orderBy("orderSeq",false).query();
-            else  ret= where.eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
+            //local
+            else if(typeId==0)  ret= where.eq("isFav",1).queryBuilder().orderBy("orderSeq",false).query();
 
 
         } catch (SQLException throwables) {
@@ -99,7 +97,6 @@ public final class PlayerController {
     }
 
     public synchronized void refreshCats() {
-
 
         this.cats = new ArrayList<String>();
         Map<String, Integer> allMap = App.getInstance().getStoreTypeMap();
@@ -112,6 +109,8 @@ public final class PlayerController {
                 typeIdMap.put(value, key);
 
         }
+
+
         if (catsAdaper != null) {
             catsAdaper.notifyDataSetChanged();
         }
@@ -132,6 +131,10 @@ public final class PlayerController {
     }
 
 
+    private  static Context context;
+    public static void setContext(Context context){
+        PlayerController.context = context;
+    }
     public static PlayerController getInstance() {
         if (instance == null) instance = new PlayerController();
         return instance;
@@ -180,35 +183,40 @@ public final class PlayerController {
 
 
     public PlayerController play(VFile res) {
-        this.curItem = res;
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putInt("id", res.getId());
-        editor.apply();
-        sp.edit().commit();
 
-        Iterator<VFile> it = res.getFolder().getFiles().iterator();
-        int i = 0;
-        while (it.hasNext()) {
-            if (it.next().getId() == res.getId()) {
-                break;
+            this.curItem = res;
+            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putInt("id", res.getId());
+            editor.apply();
+            sp.edit().commit();
+
+            Iterator<VFile> it = res.getFolder().getFiles().iterator();
+            int i = 0;
+            while (it.hasNext()) {
+                if (it.next().getId() == res.getId()) {
+                    break;
+                }
+                i++;
             }
-            i++;
-        }
 
-        PlayerController.getInstance().setCurIndex(i);
+            PlayerController.getInstance().setCurIndex(i);
+
 
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 String title = "";
-                PlayerController.this.videoUrl = null;
                 videoUrl = App.getUri(res);
+                //videoUrl =Uri.parse("https://prod.vodvideo.cbsnews.com/cbsnews/vr/hls/2022/07/15/2052222019587/1127348_hls/master.m3u8");
+                //https:/d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48ec97f66ebbe/index.m3u8
                 title = res.getName();
 
                 Handler handler = new Handler(Looper.getMainLooper());
                 String finalTitle = title;
+
+
                 handler.post(new Runnable() {
 
                     @Override
@@ -288,11 +296,12 @@ public final class PlayerController {
     }
 
     public void incPlayCount(){
-        if( this.curItem!=null){
+        if( this.curItem!=null && this.curItem.getId()>0){
             this.curItem.setPlayCnt(this.curItem.getPlayCnt()+1);
             try {
 
                 Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
+
                 vFileDao.createOrUpdate(this.curItem);
 
             } catch (SQLException e) {
@@ -430,7 +439,6 @@ public final class PlayerController {
                        View gridView, RecyclerView numTabRecyclerView, RecyclerView qTabRecyclerView, RecyclerView foldersRecyclerView) {
         this.videoView = videoView;
         this.girdView = gridView;
-        this.numTabRecyclerView = numTabRecyclerView;
         this.qTabRecyclerView = qTabRecyclerView;
         this.foldersRecyclerView=foldersRecyclerView;
     }
@@ -555,9 +563,6 @@ public final class PlayerController {
             }
         },500);
 
-
-        // this.numTabRecyclerView.setVisibility(this.curFolder!=null&& this.curFolder.getFiles().size()>1?View.VISIBLE:View.GONE);
-
     }
 
     public VFile[] getNumFiles() {
@@ -639,4 +644,6 @@ public final class PlayerController {
         this.foldersAdapter.notifyItemChanged(this.curFocusFolderIndex);
 
     }
+
+
 }

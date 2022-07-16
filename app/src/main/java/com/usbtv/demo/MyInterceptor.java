@@ -2,6 +2,12 @@ package com.usbtv.demo;
 
 import androidx.annotation.NonNull;
 
+import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.data.Folder;
+import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.sync.SyncCenter;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.Interceptor;
 import com.yanzhenjie.andserver.annotation.RequestParam;
@@ -9,6 +15,7 @@ import com.yanzhenjie.andserver.annotation.Resolver;
 import com.yanzhenjie.andserver.framework.ExceptionResolver;
 import com.yanzhenjie.andserver.framework.HandlerInterceptor;
 import com.yanzhenjie.andserver.framework.body.StreamBody;
+import com.yanzhenjie.andserver.framework.body.StringBody;
 import com.yanzhenjie.andserver.framework.handler.MethodHandler;
 import com.yanzhenjie.andserver.framework.handler.RequestHandler;
 import com.yanzhenjie.andserver.http.HttpRequest;
@@ -18,11 +25,14 @@ import com.yanzhenjie.andserver.util.MediaType;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +46,25 @@ public class MyInterceptor implements ExceptionResolver {
     @Override
     public void onResolve(@NonNull HttpRequest request, @NonNull HttpResponse response, @NonNull Throwable e) {
         System.out.println("OK");
+
+        if(request.getURI().contains("/api/pick")){
+            String tmp1 =  request.getURI().split("/api/pick/")[1];
+            String name = tmp1.split("/",2)[0];
+            String url = tmp1.split("/",2)[1];
+            try {
+                response.setBody(new StringBody(pick(name,url)));
+                 return;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            response.setBody(new StringBody("Error"));
+            return;
+        }
+
         if("HEAD".equalsIgnoreCase(request.getMethod().toString())){
             response.setHeader("content-type","video/mp2t");
             response.setHeader("access-control-allow-headers","X-Requested-With");
@@ -58,6 +87,45 @@ public class MyInterceptor implements ExceptionResolver {
     }
 
 
+    String pick(
+            @RequestParam(name = "name", required = true) String name,
+            @RequestParam(name = "url", required = true) String url
+    ) throws IOException, InterruptedException, SQLException {
+
+
+        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+        Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
+        Folder folder = null;
+
+        folder = folderDao.queryBuilder().where().eq("typeId", 1).and().eq("name",name).queryForFirst();
+
+        if(folder==null){
+            folder = new Folder();
+            folder.setName(name);
+            folder.setTypeId(1);
+            folderDao.create(folder);
+        }
+
+        int i=1;
+        VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
+                .and().eq("dLink", url).queryForFirst();
+        if(vfile==null){
+            vfile = new VFile();
+            vfile.setdLink(url);
+            vfile.setPage(i++);
+            vfile.setFolder(folder);
+            vfile.setName("");
+            vfile.setTypeId(1);
+            vfile.setFolder(folder);
+            vFileDao.create(vfile);
+        }
+        Map<String, Integer> typesMap = new LinkedHashMap<>();
+        typesMap.put("Manual",1);
+        SyncCenter.updateScreenTabs(typesMap);
+        PlayerController.getInstance().play(folder,0);
+        return "OK";
+    }
+
    // @GetMapping(path = "/api/m3u8proxy")
     ResponseBody m3u8Proxy(
             HttpRequest request, HttpResponse response,
@@ -65,7 +133,7 @@ public class MyInterceptor implements ExceptionResolver {
     ) throws Exception {
 
         int count = 1;
-        int retryCount = 10;
+        int retryCount = 3;
         HttpURLConnection httpURLConnection = null;
         long timeoutMillisecond = 100000L;
 

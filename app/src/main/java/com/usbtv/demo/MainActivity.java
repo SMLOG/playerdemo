@@ -161,14 +161,14 @@ public class MainActivity extends AppCompatActivity {
                         StorageVolume volume = sm.getStorageVolume(new File(rootPath));
 
                         if (volume != null) {
-                            //intent = volume.createAccessIntent(null);
+                            intent = volume.createAccessIntent(null);
 
 
                             //startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE2 + i);
                             //return;
                         }
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        if (intent==null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             intent = volume.createOpenDocumentTreeIntent();
                         }
                     }
@@ -387,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
     private void initVideo() {
         videoView.requestFocus();
 
+        PlayerController.getInstance().setContext(this);
 
         videoView.setOnMediaListener(new OnMediaListener() {
             @Override

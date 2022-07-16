@@ -47,6 +47,8 @@ public class VFile {
     @DatabaseField
     int playCnt;
 
+    private int type;
+
     public VFile() {
     }
 
