@@ -52,7 +52,7 @@ public class MyInterceptor implements ExceptionResolver {
             String tmp1 =  request.getURI().split("/api/pick/")[1];
             String name = tmp1.split("/",2)[0];
             String url = tmp1.split("/",2)[1];
-            url= url.replace(":/","://");
+            url= url.replace(":/","://").replace("///","//");
 
             try {
                 response.setBody(new StringBody(pick(name,url)));
