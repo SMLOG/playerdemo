@@ -189,7 +189,7 @@ public class App extends Application implements CacheListener {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);
                 }
-                App.getInstance().player(3);
+                App.getInstance().player(2);
             }
 
 
@@ -200,8 +200,8 @@ public class App extends Application implements CacheListener {
             }
         }
         System.out.println(vremote);
-        return Uri.parse(vremote);
-        //return Uri.parse(App.getProxyUrl(vremote));
+        //return Uri.parse(vremote);
+        return Uri.parse(App.getProxyUrl(vremote));
     }
 
     private static int playerType=0;
@@ -229,7 +229,7 @@ public class App extends Application implements CacheListener {
 
     private HttpProxyCacheServer newProxy() {
         return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(1024 * 1024 * 1)
+                .maxCacheSize(1)
                 .build();
     }
 
