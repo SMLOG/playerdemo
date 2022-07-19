@@ -22,7 +22,6 @@ import androidx.annotation.RequiresApi;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.nurmemet.nur.nurvideoplayer.TvVideoView;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;

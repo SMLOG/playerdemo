@@ -38,6 +38,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
+
     //butterknife
     implementation 'com.jakewharton:butterknife:10.1.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
@@ -46,8 +47,7 @@ dependencies {
     annotationProcessor 'com.yanzhenjie.andserver:processor:2.1.9'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
 
-    implementation project(':AndroidVideoCache')
-    //implementation 'com.danikula:videocache:2.6.4'
+   // implementation project(':AndroidVideoCache')
     implementation 'net.sourceforge.javacsv:javacsv:2.0'
     implementation 'com.alibaba:fastjson:1.2.3'
     implementation group: 'com.j256.ormlite', name: 'ormlite-android', version: '5.3'
@@ -67,11 +67,14 @@ dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
     //implementation 'com.gitee.nurApplication:NurVideoPlayer:2.1.9'
-    implementation project(':nurvideoplayer')
+    //implementation project(':nurvideoplayer')
 
     implementation 'com.king.zxing:zxing-lite:1.1.7-androidx'
 
     //implementation 'com.eclipsesource.j2v8:j2v8_android_armv7l:2.2.1'
     //implementation 'com.eclipsesource.j2v8:j2v8_win32_x86_64:2.2.1'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.0@aar'
+    implementation 'com.google.android.exoplayer:exoplayer:2.13.2'
+    implementation 'com.danikula:videocache:2.6.4'
+
 }

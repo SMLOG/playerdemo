@@ -667,4 +667,74 @@ public class IndexController {
         return "forward:/index.html";
     }*/
 
+    @GetMapping(path = "/api/vFileUrl")
+    com.yanzhenjie.andserver.http.ResponseBody vFileUrl(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
+
+        Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
+        VFile vfile = dao.queryForId(id);
+        String path = vfile.getAbsPath();
+
+        if(path == null || ! new File(path).exists())
+            for(Drive d:App.diskList){
+                vfile.getFolder().setRoot(d);
+                if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
+                ){
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+
+                        folderDao.update(vfile.getFolder());
+
+                        path = vfile.getAbsPath();
+                        break;
+
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
+                }
+            }
+
+        if (path != null) {
+            final File file = new File(path);
+            if (file.exists() && file.length() > 0) {
+
+                if (vfile.getP() == null) {
+                    vfile.setP(vfile.getRelativePath());
+                    dao.update(vfile);
+                }
+
+                System.out.println(path + " file exists");
+                return new FileBody(file);
+
+            }
+        }
+
+
+        String url = null;
+
+
+        if (vfile.getdLink() != null) {
+            url = vfile.getdLink();
+        } else {
+            String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
+            if (bvid!=null){
+                com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+
+                if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                    url = vidoInfo.getString("video");
+                }
+            }
+        }
+
+       // App.cache2Disk(vfile, url);
+
+
+        System.out.println(url);
+        response.sendRedirect(url);
+
+
+        return null;
+
+    }
+
 }

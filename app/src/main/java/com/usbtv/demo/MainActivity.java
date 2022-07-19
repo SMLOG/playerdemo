@@ -27,8 +27,6 @@ import androidx.leanback.widget.BrowseFrameLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.king.zxing.util.CodeUtils;
-import com.nurmemet.nur.nurvideoplayer.TvVideoView;
-import com.nurmemet.nur.nurvideoplayer.listener.OnMediaListener;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DocumentsUtils;
 import com.usbtv.demo.comm.MyBroadcastReceiver;
@@ -37,6 +35,7 @@ import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.view.SpaceDecoration;
+import com.usbtv.demo.view.TvVideoView;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
@@ -225,19 +224,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        videoView.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        videoView.pause();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        videoView.stopPlay();
     }
 
     private void bindElementViews() {
@@ -389,45 +385,6 @@ public class MainActivity extends AppCompatActivity {
 
         PlayerController.getInstance().setContext(this);
 
-        videoView.setOnMediaListener(new OnMediaListener() {
-            @Override
-            public void onStart() {
-
-            }
-
-            @Override
-            public void onPause() {
-
-            }
-
-            @Override
-            public void onProgress(int progress, int duration) {
-
-            }
-
-            @Override
-            public void onChangeScreen(boolean isPortrait) {
-
-            }
-
-            @Override
-            public void onEndPlay() {
-            }
-
-            @Override
-            public void onCompletion(Object mp) {
-                PlayerController.getInstance().incPlayCount();
-                PlayerController.getInstance().next();
-
-            }
-
-            @Override
-            public boolean onError(Object mp, int what, int extra) {
-                Toast.makeText(MainActivity.this, "播放出错", Toast.LENGTH_SHORT).show();
-                PlayerController.getInstance().next();
-                return true;
-            }
-        });
 
 
     }
