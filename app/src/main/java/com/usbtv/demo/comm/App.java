@@ -189,7 +189,7 @@ public class App extends Application implements CacheListener {
                     vremote = vidoInfo.getString("video");
                     vremote = App.cache2Disk(vf, vremote);
                 }
-                App.getInstance().player(2);
+                App.getInstance().player(3);
             }
 
 
