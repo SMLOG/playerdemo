@@ -124,11 +124,16 @@ public class VFile {
         this.dLink = dLink;
     }
 
+    private String getBvId(){
+        return bvid==null?folder.getBvid()!=null?folder.getBvid():null:bvid;
+    }
     @JSONField(serialize = false)
     public String getAbsPath() {
         if(folder!=null){
             if(folder.getRoot()!=null){
-                return folder.getRoot().getP()+"/_/"+ (bvid==null?folder.getBvid():bvid)+"/"+page+".mp4";
+                return folder.getRoot().getP()+"/_/"+
+                        (getBvId()==null?p:getBvid()+"/"+page+".mp4");
+
                // else if(folder.getAid()!=null)
                // return folder.getRoot().getP() + File.separator + folder.getAid()+File.separator+aid + File.separator + getRelativePath();
                // else  return folder.getRoot().getP() + File.separator + aid+ File.separator + getRelativePath();

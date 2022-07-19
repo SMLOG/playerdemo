@@ -90,7 +90,7 @@ public class Aid {
             File[] aidDirs = rootDir.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File pathname) {
-                    return pathname.isDirectory();
+                    return pathname.isDirectory()&&!pathname.getName().equals("_");
                 }
             });
 
@@ -136,12 +136,16 @@ public class Aid {
         if (matchFiles.size() > 0) {
             if (new File(divfile).exists()) {
                 String content = getStringFromFile(divfile);
-                JSONObject jsonObj = JSON.parseObject(content);
-                title = (String) jsonObj.get("Title");
-                if(title==null) title = (String) jsonObj.get("title");
-                coverURL = (String) jsonObj.get("CoverURL");
-                bvid = (String) jsonObj.get("Bid");
-                if(bvid==null)bvid = (String) jsonObj.get("bvid");
+                try {
+                    JSONObject jsonObj = JSON.parseObject(content);
+                    title = (String) jsonObj.get("Title");
+                    if (title == null) title = (String) jsonObj.get("title");
+                    coverURL = (String) jsonObj.get("CoverURL");
+                    bvid = (String) jsonObj.get("Bid");
+                    if (bvid == null) bvid = (String) jsonObj.get("bvid");
+                }catch (Throwable e){
+                    e.printStackTrace();
+                }
             }
         } else return;
 
