@@ -53,6 +53,7 @@ class Channel {
         logo = getTagV(inf, "tvg-logo");
         language = getTagV(inf, "tvg-language");
         groupTitle = getTagV(inf, "group-title");
+        chTitle = getTagV(inf, "ch-title");
         m3uUrl = url;
         title = inf.substring(inf.lastIndexOf(",") + 1);
 
@@ -64,6 +65,7 @@ class Channel {
     String logo;
     String language;
     String groupTitle;
+    String chTitle;
     String title;
     String m3uUrl;
     long speech;
@@ -395,11 +397,11 @@ public class TV {
                 }
 
                 i--;
-                //  validFoldersMap.put(zhbFolder.getId(), true);
+                  validFoldersMap.put(zhbFolder.getId(), true);
             }
 
             typesMap.put(channelname, channelID);
-            // housekeepTypeIdList.add(channelID);
+             housekeepTypeIdList.add(channelID);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -412,9 +414,27 @@ public class TV {
         return false;
     }
 
+
+
     public static void liveStream(int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
 
-        LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
+        LinkedHashMap<String, List<Channel>> map = new LinkedHashMap<String, List<Channel>>();
+        String[] urls = new String[]{"https://smlog.github.io/data/iptv.m3u"};
+        List<Channel> channels = new ArrayList<>();
+        for (String m3uUrl : urls) {
+            String str = Utils.get(m3uUrl);
+            extractChannels(channels, str);
+        }
+
+        for(Channel ch:channels){
+            if(null!=ch.chTitle){
+                if(map.get(ch.chTitle)==null)map.put(ch.chTitle,new ArrayList<Channel>());
+                map.get(ch.chTitle).add(ch);
+            }
+
+        }
+
+/*        LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
                 new ChannelFilter[]{new ChannelFilter() {
                     @Override
                     public String getChannelName() {
@@ -428,7 +448,7 @@ public class TV {
                                         && ch.groupTitle.indexOf("Kids") > -1
 
                                 ;
-                    }
+                    }map
 
                     @Override
                     public int compare(Channel o1, Channel o2) {
@@ -439,52 +459,8 @@ public class TV {
                 },
 
 
-                     /*   new ChannelFilter() {
-                            @Override
-                            public String getChannelName() {
-                                return "TV(Kids)";
-                            }
-
-                            @Override
-                            public boolean filter(Channel ch) {
-                                return
-                                        ch.language.indexOf("English") > -1 &&
-                                                ch.groupTitle.indexOf("Kids") > -1
-                                        ;
-                            }
-
-                            @Override
-                            public int compare(Channel o1, Channel o2) {
-                                return (int) (o1.speech - o2.speech);
-                            }
-                        },*/
-
-                        /*       new ChannelFilter() {
-                                   @Override
-                                   public String getChannelName() {
-                                       return "TV(other)";
-                                   }
-                                   @Override
-                                   public boolean filter(Channel ch) {
-                                       return
-                                               ch.language.indexOf("English") == -1 &&
-                                                       !ch.country.equals("CN")
-                                               ;
-                                   }
-                                   @Override
-                                   public int compare(Channel o1, Channel o2) {
-                                       int w1 = o1.groupTitle.indexOf("News") > -1 || o1.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                       int w2 = o2.groupTitle.indexOf("News") > -1 || o2.groupTitle.indexOf("General") > -1 ? 10 : 0;
-                                       int r = w2 - w1;
-                                       if (r == 0)
-                                           r = o1.id.compareTo(o2.id);
-                                       if (r == 0)
-                                           r = (int) (o1.speech - o2.speech);
-                                       return r;
-                                   }
-                               }*/
                 }
-        );
+        );*/
 
         int startTypeId = tvStartTypeId;
         for (String name : map.keySet()) {

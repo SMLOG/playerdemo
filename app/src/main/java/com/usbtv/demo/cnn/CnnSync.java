@@ -12,7 +12,10 @@ import com.usbtv.demo.data.Video;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +41,7 @@ public class CnnSync {
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
         Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
+        int keepdate = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")))-7;
 
         for (String feedUrl : urls) {
 
@@ -65,6 +69,9 @@ public class CnnSync {
 
                 } else continue;
 
+                if( seq  < keepdate){
+                    continue;
+                }
 
                 String imageUrl = "http:" + item.getString(isTop ? "imageUrl" : "endslate_url_small");
 
@@ -136,7 +143,8 @@ public class CnnSync {
                     vf = new VFile();
                     vf.setName(title);
                     vf.setFolder(folder);
-                    vf.setdLink(":/cnn/video.m3u8?videoId="+videoId);
+                    vf.setdLink(url);
+                   // vf.setdLink(":/cnn/video.m3u8?videoId="+videoId);
                     vf.setOrderSeq(seq);
                     vFileDao.createOrUpdate(vf);
                 }
@@ -148,7 +156,9 @@ public class CnnSync {
        // typesMap.put("CNN2", typeId);
 
         typesMap.put("CNN", channelId);
-        // housekeepTypeIdList.add(3);
+       // housekeepTypeIdList.add(channelId);
+        List<Folder> dels = folderDao.queryBuilder().where().eq("typeId", channelId).and().lt("orderSeq", keepdate).query();
+        if(dels.size()>0)folderDao.delete(dels);
         // housekeepTypeIdList.add(4);
 
     }

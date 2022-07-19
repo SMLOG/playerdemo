@@ -41,7 +41,30 @@ public class SyncCenter {
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
 
-        int startTypeId=100;
+        int startTypeId=0;
+
+        startTypeId=400;
+        final int ccnStartTypeId = startTypeId;
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "cnn";
+            }
+
+            @Override
+            public long getPeriodDuration() {
+                return 12l * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                CnnSync.cnnVideos(ccnStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+
+            }
+        }, id);
+
+         startTypeId=100;
         final int biliStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
@@ -51,7 +74,7 @@ public class SyncCenter {
 
             @Override
             public long getPeriodDuration() {
-                return 3 * 24 * 3600 * 1000;
+                return 3l * 24 * 3600 * 1000;
             }
 
             @Override
@@ -72,7 +95,7 @@ public class SyncCenter {
             @Override
             public long getPeriodDuration() {
 
-                return 30l * 24 * 3600 * 1000;
+                return 5l * 24 * 3600 * 1000;
             }
 
             @Override
@@ -84,7 +107,7 @@ public class SyncCenter {
 
         startTypeId=300;
 
-        if(false) {
+       // if(false) {
             final int tvStartTypeId = startTypeId;
 
             RunCron.run(new RunCron.Period() {
@@ -95,7 +118,7 @@ public class SyncCenter {
 
                 @Override
                 public long getPeriodDuration() {
-                    return 24 * 3600 * 1000;
+                    return 15l*24 * 3600 * 1000;
                 }
 
                 @Override
@@ -104,7 +127,7 @@ public class SyncCenter {
 
                 }
             }, id);
-        }
+      //  }
 
 
 
@@ -125,6 +148,7 @@ public class SyncCenter {
             }
         }, id);
 
+      if(false)
         RunCron.run(new RunCron.Period() {
             @Override
             public String id() {
@@ -141,6 +165,8 @@ public class SyncCenter {
                 CcVideoStarter.run();
             }
         }, id);
+
+
         RunCron.run(new RunCron.Period() {
             @Override
             public String id() {
