@@ -100,7 +100,9 @@ public class SyncCenter {
 
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap,new String[]{"英文儿歌","儿童英语故事"});
+
+                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
+                        );
                 updateScreenTabs(typesMap);
             }
         }, id);
