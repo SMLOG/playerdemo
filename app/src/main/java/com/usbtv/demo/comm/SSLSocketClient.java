@@ -67,7 +67,7 @@ public class SSLSocketClient {
     public static class ServerManager {
 
         private Server mServer;
-        public static final int port=9090;
+        public static final int port=9191;
 
 
         public static String getServerHttpAddress(){

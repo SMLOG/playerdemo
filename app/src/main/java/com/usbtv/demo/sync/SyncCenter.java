@@ -60,6 +60,7 @@ public class SyncCenter {
             @Override
             public void doRun() throws Throwable {
                 CnnSync.cnnVideos(ccnStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                updateScreenTabs(typesMap);
 
             }
         }, id);

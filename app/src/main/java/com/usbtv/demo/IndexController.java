@@ -163,7 +163,7 @@ public class IndexController {
     @GetMapping(path = "/api/proxy")
     com.yanzhenjie.andserver.http.ResponseBody proxy(HttpRequest req, HttpResponse response) throws IOException {
 
-        String url = App.getProxyUrl(req.getParameter("url"));
+        String url = req.getParameter("url");
         if (url.startsWith("file://"))
             return new FileBody(new File(url.substring("file://".length())));
         OkHttpClient client = new OkHttpClient();
@@ -730,6 +730,8 @@ public class IndexController {
 
 
         System.out.println(url);
+        response.setHeader("Content-Type", "video/mp4");
+
         response.sendRedirect(url);
 
 

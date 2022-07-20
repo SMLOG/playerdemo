@@ -2,11 +2,15 @@ package com.usbtv.demo.view;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -20,16 +24,26 @@ import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
 
-import java.util.Collection;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TvVideoView extends StyledPlayerView {
-    private  SimpleExoPlayer mPlayer;
+    private SimpleExoPlayer mPlayer;
+    private boolean isPlaying;
+    private Handler updateHandler = new Handler(Looper.getMainLooper());
+    private long duration;
+    private long currentPosition;
 
     public TvVideoView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        this.mPlayer =  ExoPlayerFactory.newSimpleInstance(App.getInstance().getApplicationContext());
+        this.mPlayer = ExoPlayerFactory.newSimpleInstance(App.getInstance().getApplicationContext());
         this.setPlayer(this.mPlayer);
-
+        setShowNextButton(false);
+        setShowPreviousButton(false);
+        setShowFastForwardButton(false);
+        setShowRewindButton(false);
+        setShowShuffleButton(false);
+        setControllerShowTimeoutMs(3000);
         mPlayer.addListener(new Player.EventListener() {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
@@ -40,18 +54,43 @@ public class TvVideoView extends StyledPlayerView {
 
             @Override
             public void onPlaybackStateChanged(int state) {
-                switch (state){
-                   case Player.STATE_ENDED:{
-                        PlayerController.getInstance().playNextFolder();
+                isPlaying=false;
 
+                switch (state) {
+                    case Player.STATE_READY:
+                        update();
+                        break;
+                    case Player.STATE_ENDED: {
+                        PlayerController.getInstance().next();
                         break;
                     }
                 }
             }
         });
+
+
     }
 
+    public void update(){
+        Runnable updateRun = new Runnable() {
+            @Override
+            public void run() {
+                TvVideoView.this.isPlaying = TvVideoView.this.mPlayer.isPlaying();
+                TvVideoView.this.duration = TvVideoView.this.mPlayer.getDuration();
+                TvVideoView.this.currentPosition = TvVideoView.this.mPlayer.getCurrentPosition();
 
+                if(!TvVideoView.this.mPlayer.isPlaying()){
+                    updateHandler.removeCallbacks(this);
+                    return;
+                }
+
+                updateHandler.postDelayed(this,5000);
+            };
+        };
+        updateHandler.postDelayed(updateRun
+       ,5000);
+
+    }
 
     public void setUp(MainActivity mainActivity) {
     }
@@ -61,30 +100,28 @@ public class TvVideoView extends StyledPlayerView {
     }
 
     public long getDuration() {
-        if(mPlayer!=null)return  mPlayer.getDuration();
-        return 0l;
+        return duration;
     }
 
     public long getCurrentPosition() {
-        if(mPlayer!=null)return  mPlayer.getCurrentPosition();
-        return 0l;
+        return currentPosition;
     }
 
     public boolean isPlaying() {
 
-       return mPlayer != null &&  mPlayer.isPlaying();
+        return isPlaying;
     }
 
     public void seekTo(int pos) {
-        if(mPlayer!=null) mPlayer.seekTo(pos);
+        if (mPlayer != null) mPlayer.seekTo(pos);
     }
 
     public void pause() {
-        if(mPlayer!=null)mPlayer.setPlayWhenReady(false);
+        if (mPlayer != null) mPlayer.setPlayWhenReady(false);
     }
 
     public void start() {
-        if(mPlayer!=null)mPlayer.setPlayWhenReady(true);
+        if (mPlayer != null) mPlayer.setPlayWhenReady(true);
         mPlayer.play();
 
 
@@ -95,36 +132,44 @@ public class TvVideoView extends StyledPlayerView {
         this.start();
     }
 
-    public void setVideoURI(VFile res) {
+    private VFile[] files;
 
-        mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
-        //mPlayer.clearMediaItems();
-        VFile[] files = res.getFolder().getFiles().toArray(new VFile[]{});
-        int i= files.length-1;
-        for(;i>0;i--){
-            if(files[i].getId()==res.getId()){
-                break;
-            }
-        }
-        int c=mPlayer.getMediaItemCount();
+    public void setVideoURI(Uri uri, VFile res,int curIndex) {
+        //mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
 
-        for(;i<files.length;i++){
-            MediaItem item = MediaItem.fromUri( files[i].getdLink()!=null?files[i].getdLink(): SSLSocketClient.ServerManager.getServerHttpAddress() + "/vFileUrl?id="+files[i].getId() );
-            mPlayer.addMediaItem(item);
+        files = res.getFolder().getFiles().toArray(new VFile[]{});
+
+
+
+        MediaItem item = MediaItem.fromUri(uri);
+
+        int c = mPlayer.getMediaItemCount();
+        mPlayer.addMediaItem(item);
+
+        for (int i = curIndex + 1; i < files.length; i++) {
+            if (files[i].getdLink() != null) {
+                item = MediaItem.fromUri(files[i].getdLink());
+                mPlayer.addMediaItem(item);
+            }else break;
         }
-        mPlayer.setPlayWhenReady(true);
-        mPlayer.prepare();
-        if(c>0){
+        int state = mPlayer.getPlaybackState();
+        if (state == Player.STATE_ENDED || mPlayer.getPlayWhenReady()) {
             mPlayer.next();
-            for(;c>=0;c--){
-                mPlayer.removeMediaItem(c);
-            }
+            mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
+           for(int j=0;j<c;j++) mPlayer.removeMediaItem(j);
+
+        } else {
+            mPlayer.setPlayWhenReady(true);
+            mPlayer.prepare();
         }
+
+
+
     }
 
-    @Override
-    protected void finalize() throws Throwable {
+
+
+    public void release() {
         mPlayer.release();
-        super.finalize();
     }
 }

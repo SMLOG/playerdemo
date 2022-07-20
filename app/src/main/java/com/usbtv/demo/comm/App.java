@@ -13,15 +13,12 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.parser.Feature;
-import com.danikula.videocache.CacheListener;
-import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.r.InitChannel;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.vurl.M3U;
@@ -37,7 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class App extends Application implements CacheListener {
+public class App extends Application{
     public static final String URLACTION = "urlaction";
     public static final String CMD = "cmd";
     public static final String TAG = "demo";
@@ -74,13 +71,9 @@ public class App extends Application implements CacheListener {
         return map;
     }
 
-    public static HttpProxyCacheServer proxy;
 
 
-    public static HttpProxyCacheServer getProxy() {
-        App app = (App) App.getInstance().getApplicationContext().getApplicationContext();
-        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
-    }
+
 
     public static void broadcastCMD(String cmd, String val) {
 
@@ -201,7 +194,7 @@ public class App extends Application implements CacheListener {
         }
         System.out.println(vremote);
         //return Uri.parse(vremote);
-        return Uri.parse(App.getProxyUrl(vremote));
+        return Uri.parse(vremote);
     }
 
     private static int playerType=0;
@@ -227,24 +220,8 @@ public class App extends Application implements CacheListener {
         return new ArrayList<Folder>();
     }
 
-    private HttpProxyCacheServer newProxy() {
-        return new HttpProxyCacheServer.Builder(this)
-                .maxCacheSize(1)
-                .build();
-    }
 
 
-    public static String getProxyUrl(String url) {
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-            if (App.proxy == null) {
-                proxy = getInstance().newProxy();
-            }
-            return proxy.getProxyUrl(url);
-
-        }
-        return url;
-
-    }
 
     @Override
     public void onCreate() {
@@ -321,10 +298,7 @@ public class App extends Application implements CacheListener {
         return diskList.get(diskList.size() - 1);
     }
 
-    @Override
-    public void onCacheAvailable(File cacheFile, String url, int percentsAvailable) {
 
-    }
 
     public static synchronized void initDisks() {
         diskList.clear();

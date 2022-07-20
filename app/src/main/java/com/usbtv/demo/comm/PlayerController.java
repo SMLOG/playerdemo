@@ -202,11 +202,38 @@ public final class PlayerController {
 
         PlayerController.getInstance().setCurIndex(i);
 
-        //videoView.pause();
+        final int fi = i;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-        videoView.setVideoURI(res);
-        videoView.resume();
+                String title = "";
+                videoUrl = App.getUri(res);
+                //videoUrl =Uri.parse("https://prod.vodvideo.cbsnews.com/cbsnews/vr/hls/2022/07/15/2052222019587/1127348_hls/master.m3u8");
+                //https:/d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48ec97f66ebbe/index.m3u8
+                title = res.getName();
 
+                Handler handler = new Handler(Looper.getMainLooper());
+                String finalTitle = title;
+
+
+
+                handler.post(new Runnable() {
+
+                    @Override
+                    public void run() {
+
+                        synchronized (videoView) {
+
+                            //videoView.pause();
+                            videoView.setVideoURI(videoUrl,res,fi);
+                            //videoView.resume();
+
+                        }
+                    }
+                });
+            }
+        }).start();
 
         return this;
     }
