@@ -70,6 +70,9 @@ public final class PlayerController {
     private PlayerController() {
     }
 
+    public VFile getCurItem(){
+        return this.curItem;
+    }
     public List<Folder> getCurCatList() {
         return this.curCatList;
     }

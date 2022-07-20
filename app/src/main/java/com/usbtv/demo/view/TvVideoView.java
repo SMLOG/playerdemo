@@ -59,8 +59,18 @@ public class TvVideoView extends StyledPlayerView {
                 switch (state) {
                     case Player.STATE_READY:
                         update();
+
+                     /*   new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                TvVideoView.this.mPlayer.getCurrentCues()
+                            }
+                        },5000);*/
                         break;
                     case Player.STATE_ENDED: {
+                        if(PlayerController.getInstance().getCurItem().getdLink()!=null)
+                            PlayerController.getInstance().playNextFolder();
+                            else
                         PlayerController.getInstance().next();
                         break;
                     }
@@ -78,6 +88,7 @@ public class TvVideoView extends StyledPlayerView {
                 TvVideoView.this.isPlaying = TvVideoView.this.mPlayer.isPlaying();
                 TvVideoView.this.duration = TvVideoView.this.mPlayer.getDuration();
                 TvVideoView.this.currentPosition = TvVideoView.this.mPlayer.getCurrentPosition();
+
 
                 if(!TvVideoView.this.mPlayer.isPlaying()){
                     updateHandler.removeCallbacks(this);
@@ -162,7 +173,6 @@ public class TvVideoView extends StyledPlayerView {
             mPlayer.setPlayWhenReady(true);
             mPlayer.prepare();
         }
-
 
 
     }
