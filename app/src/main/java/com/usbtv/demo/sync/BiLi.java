@@ -356,7 +356,7 @@ public class BiLi {
        if(search==null || search.equals(""))return;
        int iiii=0;
        for(String line:search.split("\n")){
-           String[] names = line.split("\\|");
+           String[] names = line.replaceAll("@@","").split("\\|");
            String name=names[0];
 
            for(int e=names.length>1?1:0;e<names.length;e++){
@@ -408,7 +408,7 @@ public class BiLi {
 
 
                        folder.setCoverUrl(cover);
-                       folder.setTypeId(startTypeId);
+                       folder.setTypeId(typeId);
                        folder.setOrderSeq(orderSeq);
                        folderDao.create(folder);
 

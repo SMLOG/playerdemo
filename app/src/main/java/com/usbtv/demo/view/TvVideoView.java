@@ -150,7 +150,7 @@ public class TvVideoView extends StyledPlayerView {
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-
+        mPlayer.clearMediaItems();
 
         MediaItem item = MediaItem.fromUri(uri);
 
@@ -163,15 +163,13 @@ public class TvVideoView extends StyledPlayerView {
                 mPlayer.addMediaItem(item);
             }else break;
         }
+
+        mPlayer.setPlayWhenReady(true);
+        mPlayer.prepare();
+
         int state = mPlayer.getPlaybackState();
         if (state == Player.STATE_ENDED || mPlayer.getPlayWhenReady()) {
-            mPlayer.next();
             mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
-           for(int j=0;j<c;j++) mPlayer.removeMediaItem(j);
-
-        } else {
-            mPlayer.setPlayWhenReady(true);
-            mPlayer.prepare();
         }
 
 
