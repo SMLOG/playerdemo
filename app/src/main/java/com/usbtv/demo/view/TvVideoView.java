@@ -17,6 +17,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.comm.App;
@@ -66,6 +67,22 @@ public class TvVideoView extends StyledPlayerView {
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
+                if(mPlayer.getCurrentCues()!=null){
+                    int i=0;
+                    for (Cue currentCue : mPlayer.getCurrentCues()) {
+                        if(currentCue.text.toString().toUpperCase().equals(currentCue.text.toString())){
+                            i++;
+                        }else {
+                            setShowSubtitleButton(true);
+                            break;
+                        }
+                        if(i>3){
+                            setShowSubtitleButton(false);
+                            break;
+                        }
+
+                    }
+                }
             }
 
             @Override

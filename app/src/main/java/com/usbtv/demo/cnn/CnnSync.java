@@ -145,7 +145,7 @@ public class CnnSync {
                     vf.setFolder(folder);
                     vf.setdLink(url);
                    // vf.setdLink(":/cnn/video.m3u8?videoId="+videoId);
-                    vf.setOrderSeq((int) (-System.currentTimeMillis()/10000));
+                    vf.setOrderSeq((int) (1e15-System.currentTimeMillis()));
                     vFileDao.createOrUpdate(vf);
                 }
 
