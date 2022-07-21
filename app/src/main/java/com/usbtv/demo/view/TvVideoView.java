@@ -44,6 +44,15 @@ public class TvVideoView extends StyledPlayerView {
 
     }
 
+    private static boolean isAcronym(String word) {
+        for(int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (Character.isLowerCase(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
     private void initialize() {
         this.mPlayer = ExoPlayerFactory.newSimpleInstance(App.getInstance().getApplicationContext());
         this.setPlayer(this.mPlayer);
@@ -67,22 +76,21 @@ public class TvVideoView extends StyledPlayerView {
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
-                if(mPlayer.getCurrentCues()!=null){
-                    int i=0;
-                    for (Cue currentCue : mPlayer.getCurrentCues()) {
-                        if(currentCue.text.toString().toUpperCase().equals(currentCue.text.toString())){
-                            i++;
-                        }else {
-                            setShowSubtitleButton(true);
-                            break;
-                        }
-                        if(i>3){
-                            setShowSubtitleButton(false);
-                            break;
-                        }
+                new Handler(Looper.getMainLooper()).postDelayed(()->{
+                    if(mPlayer.getCurrentCues()!=null){
+                        for (Cue currentCue : mPlayer.getCurrentCues()) {
 
+                            if(isAcronym(currentCue.text.toString())){
+                                getSubtitleView().setVisibility(View.GONE);
+
+                            }else   getSubtitleView().setVisibility(View.VISIBLE);
+
+                            break;
+
+                        }
                     }
-                }
+                },3000);
+
             }
 
             @Override
@@ -204,6 +212,7 @@ public class TvVideoView extends StyledPlayerView {
         for (int i = curIndex + 1; i < files.length; i++) {
             if (files[i].getdLink() != null) {
                 item = MediaItem.fromUri(files[i].getdLink());
+
                 mediaItems.add(item);
             } else break;
         }
