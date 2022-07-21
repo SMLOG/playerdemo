@@ -352,7 +352,7 @@ public class App extends Application{
 
                     }
 
-                    oInstance.addItem(vfile, finalUrl, vfile.getAbsPath());
+                    oInstance.addItem(vfile, finalUrl, vfile.getAbsPath().replaceAll("videos","Download/videos"));
                     oInstance.downLoadByList();
                     try {
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);

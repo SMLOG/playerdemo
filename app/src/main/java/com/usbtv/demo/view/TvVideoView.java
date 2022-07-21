@@ -24,6 +24,8 @@ import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,6 +38,12 @@ public class TvVideoView extends StyledPlayerView {
 
     public TvVideoView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        initialize();
+
+
+    }
+
+    private void initialize() {
         this.mPlayer = ExoPlayerFactory.newSimpleInstance(App.getInstance().getApplicationContext());
         this.setPlayer(this.mPlayer);
         setShowNextButton(false);
@@ -53,19 +61,17 @@ public class TvVideoView extends StyledPlayerView {
             }
 
             @Override
+            public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+                Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
+            }
+
+            @Override
             public void onPlaybackStateChanged(int state) {
                 isPlaying=false;
 
                 switch (state) {
                     case Player.STATE_READY:
                         update();
-
-                     /*   new Timer().schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                TvVideoView.this.mPlayer.getCurrentCues()
-                            }
-                        },5000);*/
                         break;
                     case Player.STATE_ENDED: {
                         if(PlayerController.getInstance().getCurItem().getdLink()!=null)
@@ -77,8 +83,6 @@ public class TvVideoView extends StyledPlayerView {
                 }
             }
         });
-
-
     }
 
     public void update(){
@@ -128,12 +132,12 @@ public class TvVideoView extends StyledPlayerView {
     }
 
     public void pause() {
-        if (mPlayer != null) mPlayer.setPlayWhenReady(false);
+        if (mPlayer != null) mPlayer.pause();
     }
 
     public void start() {
-        if (mPlayer != null) mPlayer.setPlayWhenReady(true);
-        mPlayer.play();
+        if (mPlayer != null)
+                mPlayer.play();
 
 
     }
@@ -150,27 +154,30 @@ public class TvVideoView extends StyledPlayerView {
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-        mPlayer.clearMediaItems();
 
         MediaItem item = MediaItem.fromUri(uri);
 
-        int c = mPlayer.getMediaItemCount();
-        mPlayer.addMediaItem(item);
+        List<MediaItem> mediaItems = new ArrayList<>();
+        mediaItems.add(item);
 
         for (int i = curIndex + 1; i < files.length; i++) {
             if (files[i].getdLink() != null) {
                 item = MediaItem.fromUri(files[i].getdLink());
-                mPlayer.addMediaItem(item);
+                mediaItems.add(item);
             }else break;
         }
-
-        mPlayer.setPlayWhenReady(true);
+        mPlayer.setMediaItems(mediaItems);
         mPlayer.prepare();
 
         int state = mPlayer.getPlaybackState();
-        if (state == Player.STATE_ENDED || mPlayer.getPlayWhenReady()) {
+        if (state == Player.STATE_ENDED ) {
             mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
+        }else{
+            mPlayer.play();
         }
+
+      //  mPlayer.prepare();
+       // mPlayer.play();
 
 
     }
@@ -178,6 +185,8 @@ public class TvVideoView extends StyledPlayerView {
 
 
     public void release() {
+
         mPlayer.release();
+        mPlayer = null;
     }
 }
