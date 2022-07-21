@@ -57,7 +57,10 @@ public class TvVideoView extends StyledPlayerView {
             public void onPlayerError(ExoPlaybackException error) {
                 Player.EventListener.super.onPlayerError(error);
                 Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
-                mPlayer.next();
+                if(mPlayer.getMediaItemCount()  >1+ mPlayer.getCurrentWindowIndex()){
+                    mPlayer.next();
+                }else PlayerController.getInstance().playNextFolder();
+
             }
 
             @Override
@@ -67,17 +70,17 @@ public class TvVideoView extends StyledPlayerView {
 
             @Override
             public void onPlaybackStateChanged(int state) {
-                isPlaying=false;
+                isPlaying = false;
 
                 switch (state) {
                     case Player.STATE_READY:
                         update();
                         break;
                     case Player.STATE_ENDED: {
-                        if(PlayerController.getInstance().getCurItem().getdLink()!=null)
+                        if (PlayerController.getInstance().getCurItem().getdLink() != null)
                             PlayerController.getInstance().playNextFolder();
-                            else
-                        PlayerController.getInstance().next();
+                        else
+                            PlayerController.getInstance().next();
                         break;
                     }
                 }
@@ -85,7 +88,7 @@ public class TvVideoView extends StyledPlayerView {
         });
     }
 
-    public void update(){
+    public void update() {
         Runnable updateRun = new Runnable() {
             @Override
             public void run() {
@@ -94,16 +97,18 @@ public class TvVideoView extends StyledPlayerView {
                 TvVideoView.this.currentPosition = TvVideoView.this.mPlayer.getCurrentPosition();
 
 
-                if(!TvVideoView.this.mPlayer.isPlaying()){
+                if (!TvVideoView.this.mPlayer.isPlaying()) {
                     updateHandler.removeCallbacks(this);
                     return;
                 }
 
-                updateHandler.postDelayed(this,5000);
-            };
+                updateHandler.postDelayed(this, 5000);
+            }
+
+            ;
         };
         updateHandler.postDelayed(updateRun
-       ,5000);
+                , 5000);
 
     }
 
@@ -128,17 +133,36 @@ public class TvVideoView extends StyledPlayerView {
     }
 
     public void seekTo(int pos) {
-        if (mPlayer != null) mPlayer.seekTo(pos);
+        new Handler(Looper.getMainLooper()).post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mPlayer != null) mPlayer.seekTo(pos);
+                    }
+                });
     }
 
     public void pause() {
-        if (mPlayer != null) mPlayer.pause();
+
+        new Handler(Looper.getMainLooper()).post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mPlayer != null) mPlayer.pause();
+                    }
+                });
     }
 
     public void start() {
-        if (mPlayer != null)
-                mPlayer.play();
 
+        new Handler(Looper.getMainLooper()).post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mPlayer != null)
+                            mPlayer.play();
+                    }
+                });
 
     }
 
@@ -149,7 +173,7 @@ public class TvVideoView extends StyledPlayerView {
 
     private VFile[] files;
 
-    public void setVideoURI(Uri uri, VFile res,int curIndex) {
+    public void setVideoURI(Uri uri, VFile res, int curIndex) {
         //mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
@@ -164,24 +188,23 @@ public class TvVideoView extends StyledPlayerView {
             if (files[i].getdLink() != null) {
                 item = MediaItem.fromUri(files[i].getdLink());
                 mediaItems.add(item);
-            }else break;
+            } else break;
         }
         mPlayer.setMediaItems(mediaItems);
         mPlayer.prepare();
 
         int state = mPlayer.getPlaybackState();
-        if (state == Player.STATE_ENDED ) {
+        if (state == Player.STATE_ENDED) {
             mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
-        }else{
+        } else {
             mPlayer.play();
         }
 
-      //  mPlayer.prepare();
-       // mPlayer.play();
+        //  mPlayer.prepare();
+        // mPlayer.play();
 
 
     }
-
 
 
     public void release() {
