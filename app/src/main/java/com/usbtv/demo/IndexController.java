@@ -1,6 +1,8 @@
 package com.usbtv.demo;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
@@ -14,6 +16,7 @@ import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
+import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.comm.PlayerController;
@@ -739,4 +742,40 @@ public class IndexController {
 
     }
 
+    @PostMapping(path = "/api/delFolder")
+    String delFolder(HttpRequest request, @RequestParam(name = "id") Integer id) throws IOException, SQLException {
+        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+         folderDao.deleteById(id);
+        return "OK";
+
+    }
+
+    @PostMapping(path = "/api/delFile")
+    String delFile(HttpRequest request, @RequestParam(name = "id") Integer id) throws IOException, SQLException {
+        Dao<VFile, Integer> vfileDao=App.getHelper().getDao(VFile.class);
+        vfileDao.deleteById(id);
+        return "OK";
+    }
+
+    @GetMapping(path = "/api/tasks")
+    String tasks() {
+        return JSON.toJSONString(RunCron.peroidMap);
+    }
+
+    @PostMapping(path = "/api/tasks/toggle")
+    String task(String id) {
+        RunCron.Period period = RunCron.peroidMap.get(id);
+        if(period!=null){
+            SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+            period.enable = period.enable>0?1:0;
+            String pid = "_task_"+period.id();
+            SharedPreferences.Editor editor = sp.edit();
+            period.lastRunAt = System.currentTimeMillis();
+            sp.edit().putString(pid,JSON.toJSONString(period));
+            editor.apply();
+            sp.edit().commit();
+        }
+        return "OK";
+    }
 }

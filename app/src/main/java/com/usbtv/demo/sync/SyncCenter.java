@@ -19,7 +19,6 @@ import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.news.NewsStarter;
 import com.usbtv.demo.news.video.CcVideoStarter;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,9 +40,9 @@ public class SyncCenter {
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
 
-        int startTypeId=0;
+        int startTypeId = 0;
 
-        startTypeId=400;
+        startTypeId = 400;
         final int ccnStartTypeId = startTypeId;
 
         RunCron.run(new RunCron.Period() {
@@ -53,7 +52,7 @@ public class SyncCenter {
             }
 
             @Override
-            public long getPeriodDuration() {
+            public long getDuration() {
                 return 12l * 3600 * 1000;
             }
 
@@ -65,7 +64,59 @@ public class SyncCenter {
             }
         }, id);
 
-         startTypeId=100;
+
+        String[][] arr = new String[][]{
+                new String[]{"oumeiju", "欧美剧",""},
+                new String[]{"neidiju", "内地剧",""},
+                new String[]{"gangju", "港剧",""},
+                new String[]{"taiju", "台剧",""},
+                new String[]{"riju", "日剧",""},
+                new String[]{"hanju", "韩剧",""},
+                new String[]{"taiguoju", "泰剧",""},
+                new String[]{"meiman", "美漫",""},
+        };
+
+        for (int k = 0; k < arr.length; k++) {
+            final int fk = k;
+            arr[k][2]= "dsj" + fk;
+
+            RunCron.run(new RunCron.Period() {
+                @Override
+                public String id() {
+                    return "dsj" + fk;
+                }
+
+                @Override
+                public long getDuration() {
+                    return 24l*30 * 3600 * 1000;
+                }
+
+                @Override
+                public void doRun() throws Throwable {
+                    MJ.syncList(500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
+                    updateScreenTabs(typesMap);
+                }
+            }, id);
+        }
+
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "dsj";
+            }
+
+            @Override
+            public long getDuration() {
+                return 24l * 3600 * 1000;
+            }
+
+            @Override
+            public void doRun() throws Throwable {
+                MJ.syncFromRecnetlyUpate(500 , arr, typesMap, folderDao, vFileDao);
+            }
+        }, id);
+
+        startTypeId = 100;
         final int biliStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
@@ -74,18 +125,18 @@ public class SyncCenter {
             }
 
             @Override
-            public long getPeriodDuration() {
+            public long getDuration() {
                 return 3l * 24 * 3600 * 1000;
             }
 
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideos(biliStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
+                BiLi.bilibiliVideos(biliStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
 
-       startTypeId=200;
+        startTypeId = 200;
         final int cnnStartTypeId = startTypeId;
         RunCron.run(new RunCron.Period() {
             @Override
@@ -94,7 +145,7 @@ public class SyncCenter {
             }
 
             @Override
-            public long getPeriodDuration() {
+            public long getDuration() {
 
                 return 5l * 24 * 3600 * 1000;
             }
@@ -102,46 +153,45 @@ public class SyncCenter {
             @Override
             public void doRun() throws Throwable {
 
-                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId,housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
-                        );
+                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
+                );
                 updateScreenTabs(typesMap);
             }
         }, id);
 
-        startTypeId=300;
+        startTypeId = 300;
 
-       // if(false) {
-            final int tvStartTypeId = startTypeId;
+        // if(false) {
+        final int tvStartTypeId = startTypeId;
 
-            RunCron.run(new RunCron.Period() {
-                @Override
-                public String id() {
-                    return "tv";
-                }
+        RunCron.run(new RunCron.Period() {
+            @Override
+            public String id() {
+                return "tv";
+            }
 
-                @Override
-                public long getPeriodDuration() {
-                    return 15l*24 * 3600 * 1000;
-                }
+            @Override
+            public long getDuration() {
+                return 15l * 24 * 3600 * 1000;
+            }
 
-                @Override
-                public void doRun() throws Throwable {
-                    TV.liveStream(tvStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+            @Override
+            public void doRun() throws Throwable {
+                TV.liveStream(tvStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
 
-                }
-            }, id);
-      //  }
+            }
+        }, id);
+        //  }
 
 
-
-      if(false)  RunCron.run(new RunCron.Period() {
+        if (false) RunCron.run(new RunCron.Period() {
             @Override
             public String id() {
                 return "news";
             }
 
             @Override
-            public long getPeriodDuration() {
+            public long getDuration() {
                 return 1000 * 3600 * 6;
             }
 
@@ -151,23 +201,23 @@ public class SyncCenter {
             }
         }, id);
 
-      if(false)
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "cc";
-            }
+        if (false)
+            RunCron.run(new RunCron.Period() {
+                @Override
+                public String id() {
+                    return "cc";
+                }
 
-            @Override
-            public long getPeriodDuration() {
-                return 12 * 3600 * 1000;
-            }
+                @Override
+                public long getDuration() {
+                    return 12 * 3600 * 1000;
+                }
 
-            @Override
-            public void doRun() throws Throwable {
-                CcVideoStarter.run();
-            }
-        }, id);
+                @Override
+                public void doRun() throws Throwable {
+                    CcVideoStarter.run();
+                }
+            }, id);
 
 
         RunCron.run(new RunCron.Period() {
@@ -177,7 +227,7 @@ public class SyncCenter {
             }
 
             @Override
-            public long getPeriodDuration() {
+            public long getDuration() {
                 return 0;
             }
 
@@ -218,12 +268,12 @@ public class SyncCenter {
 
         Iterator<String> it = map.keySet().iterator();
 
-       while (it.hasNext()){
-           String cat = it.next();
-           if(!isCatHasItem(map.get(cat))){
-               it.remove();
-           }
-       }
+        while (it.hasNext()) {
+            String cat = it.next();
+            if (!isCatHasItem(map.get(cat))) {
+                it.remove();
+            }
+        }
 
         String jsonStr = JSON.toJSONString(map);
         editor.putString("typesMap", jsonStr);
@@ -243,7 +293,7 @@ public class SyncCenter {
     private static boolean isCatHasItem(Integer typeId) {
 
         try {
-            return  (typeId==0 ||  App.getHelper().getDao(Folder.class).queryBuilder().where().eq("typeId",typeId).queryForFirst()!=null);
+            return (typeId == 0 || App.getHelper().getDao(Folder.class).queryBuilder().where().eq("typeId", typeId).queryForFirst() != null);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

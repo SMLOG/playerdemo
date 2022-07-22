@@ -106,7 +106,9 @@ public class TvVideoView extends StyledPlayerView {
                             PlayerController.getInstance().playNextFolder();
                         else
                             PlayerController.getInstance().next();
+
                         break;
+
                     }
                 }
             }

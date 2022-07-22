@@ -41,6 +41,13 @@ public class Folder {
     @DatabaseField(uniqueCombo = true)
     String aid;
 
+    @DatabaseField
+    float rate;
+    @DatabaseField
+    long pubTime;
+    @DatabaseField
+    long updateTime;
+
     @ForeignCollectionField(orderColumnName = "orderSeq", orderAscending = true)
     private Collection<VFile> files;
 
@@ -200,5 +207,29 @@ public class Folder {
 
     public void setListFiles(List<VFile> listFiles) {
         this.listFiles = listFiles;
+    }
+
+    public float getRate() {
+        return rate;
+    }
+
+    public void setRate(float rate) {
+        this.rate = rate;
+    }
+
+    public long getPubTime() {
+        return pubTime;
+    }
+
+    public void setPubTime(long pubTime) {
+        this.pubTime = pubTime;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 }

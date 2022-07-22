@@ -354,7 +354,7 @@ public class App extends Application{
 
                     File[] files = App.getInstance().getApplicationContext().getExternalFilesDirs(null);
 
-                    String dest = vfile.getAbsPath().;
+                    String dest = vfile.getAbsPath();
 
                     if(false) {
                         String prefix = vfile.getAbsPath().split("videos")[0];
