@@ -40,25 +40,10 @@ public class SyncCenter {
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
 
-        int startTypeId = 0;
-
-        startTypeId = 400;
-        final int ccnStartTypeId = startTypeId;
-
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "cnn";
-            }
-
-            @Override
-            public long getDuration() {
-                return 12l * 3600 * 1000;
-            }
-
+        RunCron.run(new RunCron.Period("cnn", "cnn", 12l * 3600 * 1000,false) {
             @Override
             public void doRun() throws Throwable {
-                CnnSync.cnnVideos(ccnStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                CnnSync.cnnVideos(400, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
                 updateScreenTabs(typesMap);
 
             }
@@ -80,167 +65,63 @@ public class SyncCenter {
             final int fk = k;
             arr[k][2]= "dsj" + fk;
 
-            RunCron.run(new RunCron.Period() {
-                @Override
-                public String id() {
-                    return "dsj" + fk;
-                }
-
-                @Override
-                public String getName() {
-                    return arr[fk][1];
-                }
-                @Override
-                public long getDuration() {
-                    return 24l*30 * 3600 * 1000;
-                }
-
+            RunCron.run(new RunCron.Period(arr[k][2], arr[fk][1], 24l*30 * 3600 * 1000,false) {
                 @Override
                 public void doRun() throws Throwable {
                     MJ.syncList(500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
                     updateScreenTabs(typesMap);
                 }
             }, id);
+
+
         }
 
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "dsj";
-            }
-
-            @Override
-            public long getDuration() {
-                return 24l * 3600 * 1000;
-            }
-
+        RunCron.run(new RunCron.Period("dsj", "dsj", 24l * 3600 * 1000,false) {
             @Override
             public void doRun() throws Throwable {
                 MJ.syncFromRecnetlyUpate(500 , arr, typesMap, folderDao, vFileDao);
             }
         }, id);
 
-        startTypeId = 100;
-        final int biliStartTypeId = startTypeId;
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "bili";
-            }
 
-            @Override
-            public long getDuration() {
-                return 3l * 24 * 3600 * 1000;
-            }
-
+        RunCron.run(new RunCron.Period("bili", "bili", 3l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideos(biliStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
+                BiLi.bilibiliVideos(100, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
 
-        startTypeId = 200;
-        final int cnnStartTypeId = startTypeId;
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "bili2";
-            }
 
-            @Override
-            public long getDuration() {
 
-                return 5l * 24 * 3600 * 1000;
-            }
-
+        RunCron.run(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-
-                BiLi.bilibiliVideosSearchByKeyWord(cnnStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
+                BiLi.bilibiliVideosSearchByKeyWord(200, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
                 );
                 updateScreenTabs(typesMap);
             }
         }, id);
 
-        startTypeId = 300;
-
-        // if(false) {
-        final int tvStartTypeId = startTypeId;
-
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "tv";
-            }
-
-            @Override
-            public long getDuration() {
-                return 15l * 24 * 3600 * 1000;
-            }
-
+        RunCron.run(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-                TV.liveStream(tvStartTypeId, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
-
-            }
-        }, id);
-        //  }
-
-
-        if (false) RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "news";
-            }
-
-            @Override
-            public long getDuration() {
-                return 1000 * 3600 * 6;
-            }
-
-            @Override
-            public void doRun() throws Throwable {
-                NewsStarter.run();
+                TV.liveStream(300, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                updateScreenTabs(typesMap);
             }
         }, id);
 
-        if (false)
-            RunCron.run(new RunCron.Period() {
-                @Override
-                public String id() {
-                    return "cc";
-                }
-
-                @Override
-                public long getDuration() {
-                    return 12 * 3600 * 1000;
-                }
-
-                @Override
-                public void doRun() throws Throwable {
-                    CcVideoStarter.run();
-                }
-            }, id);
-
-
-        RunCron.run(new RunCron.Period() {
-            @Override
-            public String id() {
-                return "local";
-            }
-
-            @Override
-            public long getDuration() {
-                return 0;
-            }
-
+        RunCron.run(new RunCron.Period("local", "local", 0,true) {
             @Override
             public void doRun() throws Throwable {
                 Aid.scanAllDrive(housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
+
+        RunCron.startRunTasks();
+
+
         QueryBuilder<Folder, Integer> folderBuilder = folderDao.queryBuilder();
         folderBuilder.where().in("typeId", housekeepTypeIdList);
         List<Folder> folders = folderBuilder.query();

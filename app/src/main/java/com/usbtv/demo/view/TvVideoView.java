@@ -79,8 +79,8 @@ public class TvVideoView extends StyledPlayerView {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
 
                 PlayerController.getInstance().incPlayCount();
-                curIndex++;
                 PlayerController.getInstance().setCurIndex(curIndex);
+                curIndex++;
 
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     if (mPlayer.getCurrentCues() != null) {

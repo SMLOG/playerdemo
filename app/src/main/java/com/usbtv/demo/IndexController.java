@@ -743,7 +743,7 @@ public class IndexController {
     }
 
     @PostMapping(path = "/api/delFolder")
-    String delFolder(HttpRequest request, @RequestParam(name = "id") Integer id) throws IOException, SQLException {
+    String delFolder(HttpRequest request, @RequestParam(name = "id") int id) throws IOException, SQLException {
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
          folderDao.deleteById(id);
         return "OK";
@@ -751,7 +751,7 @@ public class IndexController {
     }
 
     @PostMapping(path = "/api/delFile")
-    String delFile(HttpRequest request, @RequestParam(name = "id") Integer id) throws IOException, SQLException {
+    String delFile(HttpRequest request, @RequestParam(name = "id") int id) throws IOException, SQLException {
         Dao<VFile, Integer> vfileDao=App.getHelper().getDao(VFile.class);
         vfileDao.deleteById(id);
         return "OK";
@@ -769,7 +769,7 @@ public class IndexController {
             SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
             period.enable = period.enable>0?0:1;
-            String pid = "_task_"+period.id();
+            String pid = "_task_"+period.getId();
             SharedPreferences.Editor editor = sp.edit();
             editor.putString(pid,JSON.toJSONString(period));
             editor.apply();
