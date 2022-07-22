@@ -352,7 +352,24 @@ public class App extends Application{
 
                     }
 
-                    oInstance.addItem(vfile, finalUrl, vfile.getAbsPath().replaceAll("videos","Download/videos"));
+                    File[] files = App.getInstance().getApplicationContext().getExternalFilesDirs(null);
+
+                    String dest = vfile.getAbsPath().;
+
+                    if(false) {
+                        String prefix = vfile.getAbsPath().split("videos")[0];
+                        String path = vfile.getAbsPath().split("videos")[1];
+                        dest = "/storage/44C4-1615/Android/data/com.usbtv.demo.exo/files" + path;//vfile.getAbsPath().replaceAll("videos","Download/videos");
+
+                        for (File file : files) {
+                            if (file != null && file.getAbsolutePath().startsWith(prefix)) {
+                                dest = file.getAbsolutePath() + path;
+                                break;
+                            }
+                        }
+                    }
+                    ///storage/44C4-1615/Android/data/com.usbtv.demo.exo/files
+                    oInstance.addItem(vfile, finalUrl, dest);
                     oInstance.downLoadByList();
                     try {
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);

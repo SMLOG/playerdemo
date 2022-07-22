@@ -203,7 +203,9 @@ public class TvVideoView extends StyledPlayerView {
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-
+        if(mPlayer.isPlaying()){
+            mPlayer.pause();
+        }
         MediaItem item = MediaItem.fromUri(uri);
 
         List<MediaItem> mediaItems = new ArrayList<>();

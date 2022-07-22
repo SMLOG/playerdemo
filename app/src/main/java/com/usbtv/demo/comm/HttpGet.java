@@ -56,6 +56,8 @@ public class HttpGet {
                 while (true){
                     GetInfo next = queue.take();
                     if(next==null || next.url == null )break;
+                    System.err.println(next.savePath);
+
                     saveToFile(next.url, next.savePath);
                     //System.out.println("资源[" + next.url + "]下载失败!!!");
                     System.out.println("下载完成!!!"+next.url+":"+next.savePath);
