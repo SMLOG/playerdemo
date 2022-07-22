@@ -87,6 +87,10 @@ public class SyncCenter {
                 }
 
                 @Override
+                public String getName() {
+                    return arr[fk][1];
+                }
+                @Override
                 public long getDuration() {
                     return 24l*30 * 3600 * 1000;
                 }

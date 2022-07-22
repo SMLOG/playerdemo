@@ -763,18 +763,17 @@ public class IndexController {
     }
 
     @PostMapping(path = "/api/tasks/toggle")
-    String task(String id) {
+    String toggleTask(@RequestParam(name = "id") String id) {
         RunCron.Period period = RunCron.peroidMap.get(id);
         if(period!=null){
             SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-            period.enable = period.enable>0?1:0;
+            period.enable = period.enable>0?0:1;
             String pid = "_task_"+period.id();
             SharedPreferences.Editor editor = sp.edit();
-            period.lastRunAt = System.currentTimeMillis();
-            sp.edit().putString(pid,JSON.toJSONString(period));
+            editor.putString(pid,JSON.toJSONString(period));
             editor.apply();
-            sp.edit().commit();
+            editor.commit();
         }
         return "OK";
     }
