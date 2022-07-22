@@ -8,6 +8,10 @@ import com.alibaba.fastjson.JSON;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RunCron {
 
@@ -20,6 +24,10 @@ public class RunCron {
          public boolean defaultRun=false;
          public boolean runing=false;
          private boolean canRun;
+
+         public boolean isCanRun() {
+             return canRun;
+         }
 
          public Period() {
          }
@@ -109,31 +117,48 @@ public class RunCron {
         period.lastRunAt = task.lastRunAt;
 
         peroidMap.put(period.getId(),period);
-        period.runing=false;
         period.canRun =  task.getEnable() && (period.getId().equals(forceRunId) || System.currentTimeMillis()-task.lastRunAt > period.getDuration());
+
+        if(period.canRun && !queue.contains(period)) queue.add(period);
     }
-    public static void  startRunTasks(){
+
+    private static final Lock lock = new ReentrantLock();
+    private static BlockingQueue<Period> queue = new LinkedBlockingQueue<Period>();
+
+    public  static void  startRunTasks(){
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        lock.tryLock();
+        try {
+            while (true) {
 
-        for(String id: peroidMap.keySet()){
-           Period task = peroidMap.get(id);
+                Period task = queue.take();
+                if(task==null)break;
+                if (!task.canRun) continue;
 
-           if(!task.canRun)continue;
 
-           try {
-               task.runing=true;
-               task.doRun();
-               SharedPreferences.Editor editor = sp.edit();
-               task.lastRunAt = System.currentTimeMillis();
-               editor.putString(id,JSON.toJSONString(task));
+                try {
+                    task.runing = true;
+                    task.doRun();
+                    SharedPreferences.Editor editor = sp.edit();
+                    task.lastRunAt = System.currentTimeMillis();
 
-               editor.apply();
-               editor.commit();
+                    editor.putString("_task_"+task.getId(), JSON.toJSONString(task));
 
-           } catch (Throwable throwable) {
-               throwable.printStackTrace();
-           }
-       }
+                    editor.apply();
+                    editor.commit();
+
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                } finally {
+                    task.runing = false;
+                }
+
+            }
+        }catch (Throwable ee){
+            ee.printStackTrace();
+        }finally {
+            lock.unlock();
+        }
 
     }
 }
