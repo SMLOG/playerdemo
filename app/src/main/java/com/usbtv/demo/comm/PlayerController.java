@@ -312,6 +312,7 @@ public final class PlayerController {
         }
        ;
     }
+
     public void next() {
 
         if (mode == MODE_LOOP && curItem != null) {
@@ -470,6 +471,7 @@ public final class PlayerController {
 
     public PlayerController setCurIndex(int i) {
         this.curIndex = i;
+        this.curItem=this.curItem.getFolder().getFiles().toArray(new VFile[]{})[i];
         if (this.numAdapter != null)
             this.numAdapter.notifyDataSetChanged();
         return this;

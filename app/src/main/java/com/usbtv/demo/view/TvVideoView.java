@@ -45,7 +45,7 @@ public class TvVideoView extends StyledPlayerView {
     }
 
     private static boolean isAcronym(String word) {
-        for(int i = 0; i < word.length(); i++) {
+        for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
             if (Character.isLowerCase(c)) {
                 return false;
@@ -53,6 +53,7 @@ public class TvVideoView extends StyledPlayerView {
         }
         return true;
     }
+
     private void initialize() {
         this.mPlayer = ExoPlayerFactory.newSimpleInstance(App.getInstance().getApplicationContext());
         this.setPlayer(this.mPlayer);
@@ -67,29 +68,34 @@ public class TvVideoView extends StyledPlayerView {
             public void onPlayerError(ExoPlaybackException error) {
                 Player.EventListener.super.onPlayerError(error);
                 Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
-                if(mPlayer.getMediaItemCount()  >1+ mPlayer.getCurrentWindowIndex()){
+                if (mPlayer.getMediaItemCount() > 1 + mPlayer.getCurrentWindowIndex()) {
                     mPlayer.next();
-                }else PlayerController.getInstance().playNextFolder();
+                } else PlayerController.getInstance().playNextFolder();
 
             }
 
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
-                new Handler(Looper.getMainLooper()).postDelayed(()->{
-                    if(mPlayer.getCurrentCues()!=null){
+
+                PlayerController.getInstance().incPlayCount();
+                curIndex++;
+                PlayerController.getInstance().setCurIndex(curIndex);
+
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (mPlayer.getCurrentCues() != null) {
                         for (Cue currentCue : mPlayer.getCurrentCues()) {
 
-                            if(isAcronym(currentCue.text.toString())){
+                            if (isAcronym(currentCue.text.toString())) {
                                 getSubtitleView().setVisibility(View.GONE);
 
-                            }else   getSubtitleView().setVisibility(View.VISIBLE);
+                            } else getSubtitleView().setVisibility(View.VISIBLE);
 
                             break;
 
                         }
                     }
-                },3000);
+                }, 3000);
 
             }
 
@@ -102,6 +108,7 @@ public class TvVideoView extends StyledPlayerView {
                         update();
                         break;
                     case Player.STATE_ENDED: {
+                        PlayerController.getInstance().incPlayCount();
                         if (PlayerController.getInstance().getCurItem().getdLink() != null)
                             PlayerController.getInstance().playNextFolder();
                         else
@@ -200,12 +207,14 @@ public class TvVideoView extends StyledPlayerView {
 
     private VFile[] files;
 
+    private int curIndex = 0;
+
     public void setVideoURI(Uri uri, VFile res, int curIndex) {
         //mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-        if(mPlayer.isPlaying()){
+        if (mPlayer.isPlaying()) {
             mPlayer.pause();
         }
         MediaItem item = MediaItem.fromUri(uri);
@@ -220,6 +229,7 @@ public class TvVideoView extends StyledPlayerView {
                 mediaItems.add(item);
             } else break;
         }
+        this.curIndex = curIndex;
         mPlayer.setMediaItems(mediaItems);
         mPlayer.prepare();
 
