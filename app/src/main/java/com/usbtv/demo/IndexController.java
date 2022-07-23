@@ -777,4 +777,27 @@ public class IndexController {
         }
         return "OK";
     }
+
+    @GetMapping(path = "/api/boot")
+    String startAtBoot() {
+        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        String id = "_start_at_boot_";
+        boolean startAtBoot = sp.getBoolean(id,true);
+        return "{startAtBoot:"+startAtBoot+"}";
+    }
+    @PostMapping(path = "/api/boot")
+    String toggleStartBoot() {
+
+        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+        String id = "_start_at_boot_";
+        boolean startAtBoot = sp.getBoolean(id,true);
+
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean(id,!startAtBoot);
+        editor.apply();
+        editor.commit();
+
+        return "{startAtBoot:"+startAtBoot+"}";
+    }
 }

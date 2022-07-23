@@ -105,7 +105,7 @@ public class RunCron {
 
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
         String id = "_task_"+period.getId();
-        String json = sp.getString(id,"");sp.getAll();
+        String json = sp.getString(id,"");
         Period task;
         if(!json.equals("")){
             task =JSON.parseObject(json,Period.class);

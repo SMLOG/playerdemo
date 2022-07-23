@@ -214,9 +214,9 @@ public class TvVideoView extends StyledPlayerView {
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-        if (mPlayer.isPlaying()) {
+        /*if (mPlayer.isPlaying()) {
             mPlayer.pause();
-        }
+        }*/
         MediaItem item = MediaItem.fromUri(uri);
 
         List<MediaItem> mediaItems = new ArrayList<>();
@@ -230,7 +230,7 @@ public class TvVideoView extends StyledPlayerView {
             } else break;
         }
         this.curIndex = curIndex;
-        mPlayer.setMediaItems(mediaItems);
+        mPlayer.setMediaItems(mediaItems,true);
         mPlayer.prepare();
 
         int state = mPlayer.getPlaybackState();
