@@ -131,8 +131,10 @@ public class RunCron {
         try {
             while (true) {
 
+                if( queue.size()==0)break;
                 Period task = queue.take();
-                if(task==null)break;
+                if(task==null) break;
+
                 if (!task.canRun) continue;
 
 

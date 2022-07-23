@@ -29,10 +29,14 @@ import java.util.Map;
 
 public class SyncCenter {
 
+    private static Dao<Folder, Integer> folderDao =null;
+    private static  Dao<VFile, Integer> vFileDao =null;
+
     public static synchronized void syncData(String id) throws SQLException {
 
-        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-        Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
+        if(folderDao==null)folderDao = App.getHelper().getDao(Folder.class);
+
+        if(vFileDao==null)vFileDao = App.getHelper().getDao(VFile.class);
 
         Map<Integer, Boolean> keepFoldersMap = new HashMap<Integer, Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String, Boolean>();

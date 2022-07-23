@@ -382,8 +382,7 @@ public class TV {
                     zhbFolder.setOrderSeq(i);
                     folderDao.createOrUpdate(zhbFolder);
                 }
-                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", zhbFolder.getTypeId()).and().eq("dLink", ch.m3uUrl.replaceAll("'", "''")).queryForFirst();
-
+                VFile vf = vFileDao.queryBuilder().where().eq("folder_id", zhbFolder.getId()).and().eq("dLink", ch.m3uUrl.replaceAll("'", "''")).queryForFirst();
                 if (vf == null) {
                     vf = new VFile();
                     vf.setFolder(zhbFolder);

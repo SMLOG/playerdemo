@@ -1,6 +1,7 @@
 package com.usbtv.demo.view;
 
 import android.content.Context;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -64,11 +65,11 @@ public class TvVideoView extends StyledPlayerView {
         setShowShuffleButton(false);
         setControllerShowTimeoutMs(3000);
         setShowBuffering(SHOW_BUFFERING_WHEN_PLAYING);
-        
+
         mPlayer.addListener(new Player.EventListener() {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
-                Player.EventListener.super.onPlayerError(error);
+               // Player.EventListener.super.onPlayerError(error);
                 Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
                 if (mPlayer.getMediaItemCount() > 1 + mPlayer.getCurrentWindowIndex()) {
                     mPlayer.next();
@@ -119,6 +120,12 @@ public class TvVideoView extends StyledPlayerView {
                         break;
 
                     }
+                    case PlaybackState.STATE_ERROR://错误
+                        Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
+                        if (mPlayer.getMediaItemCount() > 1 + mPlayer.getCurrentWindowIndex()) {
+                            mPlayer.next();
+                        } else PlayerController.getInstance().playNextFolder();
+                        break;
                 }
             }
         });
@@ -234,12 +241,12 @@ public class TvVideoView extends StyledPlayerView {
         this.curIndex = curIndex;
         mPlayer.setMediaItems(mediaItems,true);
        // mPlayer.prepare();
+        mPlayer.prepare();
 
         int state = mPlayer.getPlaybackState();
         if (state == Player.STATE_ENDED) {
             mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
         } else {
-            mPlayer.prepare();
             mPlayer.play();
         }
 
