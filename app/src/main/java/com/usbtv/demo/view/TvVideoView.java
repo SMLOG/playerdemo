@@ -63,6 +63,8 @@ public class TvVideoView extends StyledPlayerView {
         setShowRewindButton(false);
         setShowShuffleButton(false);
         setControllerShowTimeoutMs(3000);
+        setShowBuffering(SHOW_BUFFERING_WHEN_PLAYING);
+        
         mPlayer.addListener(new Player.EventListener() {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
@@ -231,12 +233,13 @@ public class TvVideoView extends StyledPlayerView {
         }
         this.curIndex = curIndex;
         mPlayer.setMediaItems(mediaItems,true);
-        mPlayer.prepare();
+       // mPlayer.prepare();
 
         int state = mPlayer.getPlaybackState();
         if (state == Player.STATE_ENDED) {
             mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
         } else {
+            mPlayer.prepare();
             mPlayer.play();
         }
 
