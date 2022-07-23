@@ -230,7 +230,7 @@ public class MJ {
         for (int i = total - 1 - off; i >= 0; --i) {
             System.out.println(i);
             String href = urls.get(i).absUrl("href");
-            if(href==null && href.equals(""))continue;
+            if(href==null || href.trim().equals(""))continue;
             String a[]=Jsoup.connect(href).get().toString().split("fc: \"");
             String fc= a[1].split("\"")[0];
 

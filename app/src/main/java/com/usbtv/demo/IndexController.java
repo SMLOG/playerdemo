@@ -783,7 +783,7 @@ public class IndexController {
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
         String id = "_start_at_boot_";
         boolean startAtBoot = sp.getBoolean(id,true);
-        return "{startAtBoot:"+startAtBoot+"}";
+        return "{\"startAtBoot\":"+startAtBoot+"}";
     }
     @PostMapping(path = "/api/boot")
     String toggleStartBoot() {
@@ -798,6 +798,6 @@ public class IndexController {
         editor.apply();
         editor.commit();
 
-        return "{startAtBoot:"+startAtBoot+"}";
+        return "{\"startAtBoot\":"+startAtBoot+"}";
     }
 }
