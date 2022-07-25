@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class CnnSync {
 
-    public static void cnnVideos(int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
+    public static void cnnVideos(RunCron.Period srcPeriod,int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
         int channelId = cnnStartTypeId;
         //int typeId = cnnStartTypeId + 1;
 
@@ -106,6 +107,7 @@ public class CnnSync {
                     folder.setCoverUrl(imageUrl);
                     folder.setOrderSeq(seq);
                     folderDao.createOrUpdate(folder);
+                    folder.setJob(srcPeriod.getId());
 
                    /* Folder folder2 = new Folder();
                     folder2.setTypeId(typeId);

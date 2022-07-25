@@ -34,8 +34,10 @@ public class Folder {
     @DatabaseField
     String link;
     @DatabaseField
-
     String score;
+    @DatabaseField
+    String job;
+
     @DatabaseField
     String bvid;
     @DatabaseField(uniqueCombo = true)
@@ -47,6 +49,7 @@ public class Folder {
     long pubTime;
     @DatabaseField
     long updateTime;
+
 
     @ForeignCollectionField(orderColumnName = "orderSeq", orderAscending = true)
     private Collection<VFile> files;
@@ -62,6 +65,14 @@ public class Folder {
     private List<VFile> listFiles;
 
     private Integer rootId;
+
+    public String getJob() {
+        return job;
+    }
+
+    public void setJob(String job) {
+        this.job = job;
+    }
 
     public int getId() {
         return id;

@@ -1,14 +1,8 @@
 package com.usbtv.demo.comm;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
-import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -81,7 +75,7 @@ public class Aid {
     }
 
 
-    public static void scanAllDrive(ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    public static void scanAllDrive(RunCron.Period period, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
@@ -99,7 +93,7 @@ public class Aid {
             typesMap.put("Local", 10);
             housekeepTypeIdList.add(0);
             for (File aidDir : aidDirs) {
-                scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
+                scanFolder(period,10, root, aidDir, validFoldersMap, validAidsMap);
             }
             File rootFile = new File(rootDir.getAbsolutePath()+"/_");
             if(rootFile.exists()&&rootFile.isDirectory()){
@@ -111,7 +105,7 @@ public class Aid {
                 });
 
                 for (File aidDir : aidDirs) {
-                    scanFolder(10, root, aidDir, validFoldersMap, validAidsMap);
+                    scanFolder(period,10, root, aidDir, validFoldersMap, validAidsMap);
                 }
             }
 
@@ -121,7 +115,7 @@ public class Aid {
 
     }
 
-    public static void scanFolder(Integer typeId, Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    public static void scanFolder(RunCron.Period period, Integer typeId, Drive root, File aidDir, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         if (validAidsMap.get(aidDir.getName()) != null) return;
 
@@ -183,6 +177,7 @@ public class Aid {
             folder.setBvid(bvid);
             folder.setTypeId(typeId);
             folder.setOrderSeq(seq--);
+            folder.setJob(period.getId());
             folderDao.createOrUpdate(folder);
 
         }

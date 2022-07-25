@@ -34,7 +34,7 @@ import com.usbtv.demo.news.BtoAAtoB;
 
 public class MJ {
 
-    public static void syncFromRecnetlyUpate(int startTypeId, String[][] arr, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
+    public static void syncFromRecnetlyUpate(RunCron.Period srcPeriod,int startTypeId, String[][] arr, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
 
         Map<String,Integer> strIdMap = new HashMap<>();
         Map<String,String> strTaskIdMap = new HashMap<>();
@@ -103,6 +103,7 @@ public class MJ {
                         folder.setPubTime(Integer.parseInt(date));
                         folder.setOrderSeq(Integer.parseInt(updateDate));
                         folder.setRate(rate2);
+                        folder.setJob(srcPeriod.getId());
                     }
 
                     if(updateDateTime>folder.getUpdateTime()){
@@ -132,7 +133,7 @@ public class MJ {
 
     }
 
-    public static void syncList(int startTypeId,String tag,String chName, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
+    public static void syncList(RunCron.Period srcPeriod, int startTypeId, String tag, String chName, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
 
         String next = "https://www.kanju5.com/category/"+tag;
         Document doc;
@@ -188,6 +189,7 @@ public class MJ {
                         folder.setPubTime(Integer.parseInt(date));
                         folder.setOrderSeq(Integer.parseInt(updateDate));
                         folder.setRate(rate2);
+                        folder.setJob(srcPeriod.getId());
                     }
 
                     if(updateDateTime>folder.getUpdateTime()){

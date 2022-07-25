@@ -471,7 +471,7 @@ public final class PlayerController {
 
     public PlayerController setCurIndex(int i) {
         this.curIndex = i;
-        if(this.curItem.getFolder().getFiles()!=null && i<this.curItem.getFolder().getFiles().size()){
+        if(this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null && i<this.curItem.getFolder().getFiles().size()){
             this.curItem=this.curItem.getFolder().getFiles().toArray(new VFile[]{})[i];
             if (this.numAdapter != null)
                 this.numAdapter.notifyDataSetChanged();

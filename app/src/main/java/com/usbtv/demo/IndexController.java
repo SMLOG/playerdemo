@@ -762,18 +762,37 @@ public class IndexController {
         return JSON.toJSONString(RunCron.peroidMap);
     }
 
-    @PostMapping(path = "/api/tasks/toggle")
-    String toggleTask(@RequestParam(name = "id") String id) {
+    @PostMapping(path = "/api/tasks/update")
+    String toggleTask(@RequestParam(name = "id") String id,@RequestParam(name = "action") String action) throws SQLException {
         RunCron.Period period = RunCron.peroidMap.get(id);
         if(period!=null){
-            SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-            period.enable = period.enable>0?0:1;
-            String pid = "_task_"+period.getId();
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString(pid,JSON.toJSONString(period));
-            editor.apply();
-            editor.commit();
+            switch (action){
+                case "run":
+                    SyncCenter.syncData(id);
+                    break;
+                case "toggle":
+                case "show":
+                    SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+                    if(action.equals("show")){
+                        period.show=!period.show;
+                    }
+
+                    if(!period.show){
+                        period.enable = 0;
+                    }else{
+                        period.enable = period.enable>0?0:1;
+                    }
+
+                    String pid = "_task_"+period.getId();
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString(pid,JSON.toJSONString(period));
+                    editor.apply();
+                    editor.commit();
+                    break;
+            }
+
         }
         return "OK";
     }

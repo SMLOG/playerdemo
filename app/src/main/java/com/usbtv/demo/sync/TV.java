@@ -4,6 +4,7 @@ package com.usbtv.demo.sync;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Cache;
 import com.usbtv.demo.data.ChannelCheck;
@@ -349,7 +350,7 @@ public class TV {
         return ret;
     }
 
-    public static void channelTV(List<Channel> channels, int channelID, String channelname,
+    public static void channelTV(RunCron.Period srcPeriod,List<Channel> channels, int channelID, String channelname,
                                  ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
         try {
 
@@ -376,7 +377,9 @@ public class TV {
                     zhbFolder.setAid(ch.id);
                     zhbFolder.setCoverUrl(ch.logo);
                     zhbFolder.setOrderSeq(i);
+                    zhbFolder.setJob(srcPeriod.getId());
                     folderDao.createOrUpdate(zhbFolder);
+
 
                 } else {
                     zhbFolder.setOrderSeq(i);
@@ -415,7 +418,7 @@ public class TV {
 
 
 
-    public static void liveStream(int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
+    public static void liveStream(RunCron.Period srcPeriod,int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
 
         LinkedHashMap<String, List<Channel>> map = new LinkedHashMap<String, List<Channel>>();
         String[] urls = new String[]{"https://smlog.github.io/data/iptv.m3u"};
@@ -463,7 +466,7 @@ public class TV {
 
         int startTypeId = tvStartTypeId;
         for (String name : map.keySet()) {
-            channelTV(map.get(name), startTypeId++, name, housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
+            channelTV(srcPeriod,map.get(name), startTypeId++, name, housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
             updateScreenTabs(typesMap);
         }
 

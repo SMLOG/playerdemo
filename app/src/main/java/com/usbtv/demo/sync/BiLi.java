@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
@@ -210,7 +211,7 @@ public class BiLi {
 
     }
 
-    public static void bilibiliVideos(final int startTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
+    public static void bilibiliVideos(RunCron.Period srcPeriod,final int startTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
@@ -275,6 +276,7 @@ public class BiLi {
 
                         folder = new Folder();
 
+                        folder.setJob(srcPeriod.getId());
                         if (catName.indexOf("_") > -1) {
                             String name = catName.split("_")[1];
                             folder.setName(name);
@@ -345,7 +347,7 @@ public class BiLi {
         sp.edit().commit();
     }
 
-    public static void bilibiliVideosSearchByKeyWord(final int startTypeId, ArrayList<Integer> housekeepTypeIdList,
+    public static void bilibiliVideosSearchByKeyWord(RunCron.Period srcPeriod, final int startTypeId, ArrayList<Integer> housekeepTypeIdList,
                                                      Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao,
                                                      Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap,
                                                      Map<String, Boolean> validAidsMap) throws IOException, SQLException {
@@ -399,7 +401,7 @@ public class BiLi {
                    if (folder == null) {
 
                        folder = new Folder();
-
+                       folder.setJob(srcPeriod.getId());
 
                        folder.setName(title);
                        //folder.setRoot(rootDriv);

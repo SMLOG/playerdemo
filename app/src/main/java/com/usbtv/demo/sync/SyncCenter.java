@@ -47,7 +47,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("cnn", "cnn", 12l * 3600 * 1000,false) {
             @Override
             public void doRun() throws Throwable {
-                CnnSync.cnnVideos(400, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                CnnSync.cnnVideos(this,400, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
                 updateScreenTabs(typesMap);
 
             }
@@ -72,7 +72,7 @@ public class SyncCenter {
             RunCron.run(new RunCron.Period(arr[k][2], arr[fk][1], 24l*30 * 3600 * 1000,false) {
                 @Override
                 public void doRun() throws Throwable {
-                    MJ.syncList(500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
+                    MJ.syncList(this,500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
                     updateScreenTabs(typesMap);
                 }
             }, id);
@@ -83,7 +83,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("dsj", "dsj", 24l * 3600 * 1000,false) {
             @Override
             public void doRun() throws Throwable {
-                MJ.syncFromRecnetlyUpate(500 , arr, typesMap, folderDao, vFileDao);
+                MJ.syncFromRecnetlyUpate(this,500 , arr, typesMap, folderDao, vFileDao);
             }
         }, id);
 
@@ -91,7 +91,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("bili", "bili", 3l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideos(100, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
+                BiLi.bilibiliVideos(this,100, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
@@ -101,7 +101,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-                BiLi.bilibiliVideosSearchByKeyWord(200, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
+                BiLi.bilibiliVideosSearchByKeyWord(this,200, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
                 );
                 updateScreenTabs(typesMap);
             }
@@ -110,7 +110,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000,true) {
             @Override
             public void doRun() throws Throwable {
-                TV.liveStream(300, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
+                TV.liveStream(this,300, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
@@ -118,7 +118,7 @@ public class SyncCenter {
         RunCron.run(new RunCron.Period("local", "local", 0,true) {
             @Override
             public void doRun() throws Throwable {
-                Aid.scanAllDrive(housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
+                Aid.scanAllDrive(this,housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
                 updateScreenTabs(typesMap);
             }
         }, id);
