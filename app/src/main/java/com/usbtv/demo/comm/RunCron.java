@@ -100,25 +100,27 @@ public class RunCron {
     }
 
     public static void addToQueue(String forceRunId) {
+        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-        peroidMap.forEach((pid,period)->{
-            SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
-            String id = "_task_" + period.getId();
-            String json = sp.getString(id, "");
-            Period task;
-            if (!json.equals("")) {
-                task = JSON.parseObject(json, Period.class);
+       for(String key: peroidMap.keySet()){
+           Period period = peroidMap.get(key);
+           String id = "_task_" + period.getId();
+           String json = sp.getString(id, "");
+           Period task;
+           if (!json.equals("")) {
+               task = JSON.parseObject(json, Period.class);
+           }
+           else {
+               task = period;
+           }
+           period.enable = task.enable;
+           period.lastRunAt = task.lastRunAt;
 
-            } else {
-                task = period;
-            }
-            period.enable = task.enable;
-            period.lastRunAt = task.lastRunAt;
+           period.canRun = task.getEnable() && (period.getId().equals(forceRunId) || System.currentTimeMillis() - task.lastRunAt > period.getDuration());
 
-            period.canRun = task.getEnable() && (period.getId().equals(forceRunId) || System.currentTimeMillis() - task.lastRunAt > period.getDuration());
+           if (period.canRun && !queue.contains(period)) queue.add(period);
+       }
 
-            if (period.canRun && !queue.contains(period)) queue.add(period);
-        });
 
     }
 
