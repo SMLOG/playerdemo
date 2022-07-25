@@ -1,6 +1,8 @@
 package com.usbtv.demo.sync;
 
 
+import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -138,6 +140,7 @@ public class MJ {
         String next = "https://www.kanju5.com/category/"+tag;
         Document doc;
         typesMap.put(chName,startTypeId);
+        boolean isFirstUpdate=false;
         while(!next.equals("")) {
             System.out.println(next);
             doc = Jsoup.connect(next).get();
@@ -210,9 +213,13 @@ public class MJ {
                     t.printStackTrace();
                 }
 
+                isFirstUpdate=true;
 
 
             }
+
+            if(isFirstUpdate) updateScreenTabs(typesMap);
+
         }
 
 

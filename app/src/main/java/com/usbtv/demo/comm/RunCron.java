@@ -94,31 +94,39 @@ public class RunCron {
     public static final Map<String, Period> peroidMap = new LinkedHashMap<String, Period>();
 
 
-    public static void run(Period period, String forceRunId) {
+    public static void addPeriod(RunCron.Period period) {
+        if (period != null) peroidMap.put(period.getId(), period);
 
-        SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        String id = "_task_" + period.getId();
-        String json = sp.getString(id, "");
-        Period task;
-        if (!json.equals("")) {
-            task = JSON.parseObject(json, Period.class);
+    }
 
-        } else {
-            task = period;
-        }
-        period.enable = task.enable;
-        period.lastRunAt = task.lastRunAt;
+    public static void addToQueue(String forceRunId) {
 
-        peroidMap.put(period.getId(), period);
-        period.canRun = task.getEnable() && (period.getId().equals(forceRunId) || System.currentTimeMillis() - task.lastRunAt > period.getDuration());
+        peroidMap.forEach((pid,period)->{
+            SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
+            String id = "_task_" + period.getId();
+            String json = sp.getString(id, "");
+            Period task;
+            if (!json.equals("")) {
+                task = JSON.parseObject(json, Period.class);
 
-        if (period.canRun && !queue.contains(period)) queue.add(period);
+            } else {
+                task = period;
+            }
+            period.enable = task.enable;
+            period.lastRunAt = task.lastRunAt;
+
+            period.canRun = task.getEnable() && (period.getId().equals(forceRunId) || System.currentTimeMillis() - task.lastRunAt > period.getDuration());
+
+            if (period.canRun && !queue.contains(period)) queue.add(period);
+        });
+
     }
 
     private static final Lock lock = new ReentrantLock();
     private static BlockingQueue<Period> queue = new LinkedBlockingQueue<Period>();
 
     public static void startRunTasks() {
+
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
         lock.tryLock();
         try {
