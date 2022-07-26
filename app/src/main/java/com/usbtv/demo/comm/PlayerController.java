@@ -188,13 +188,8 @@ public final class PlayerController {
     public PlayerController play(VFile res) {
 
             this.curItem = res;
-            SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putInt("id", res.getId());
-            editor.apply();
-            sp.edit().commit();
 
-            Iterator<VFile> it = res.getFolder().getFiles().iterator();
+        Iterator<VFile> it = res.getFolder().getFiles().iterator();
             int i = 0;
             while (it.hasNext()) {
                 if (it.next().getId() == res.getId()) {
@@ -239,6 +234,14 @@ public final class PlayerController {
         }).start();
 
         return this;
+    }
+
+    private void storePosition(VFile res) {
+        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putInt("id", res.getId());
+        editor.apply();
+        sp.edit().commit();
     }
 
 
@@ -473,6 +476,8 @@ public final class PlayerController {
         this.curIndex = i;
         if(this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null && i<this.curItem.getFolder().getFiles().size()){
             this.curItem=this.curItem.getFolder().getFiles().toArray(new VFile[]{})[i];
+            storePosition(curItem);
+
             if (this.numAdapter != null)
                 this.numAdapter.notifyDataSetChanged();
         }

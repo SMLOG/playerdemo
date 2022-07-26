@@ -41,7 +41,7 @@ public class SyncCenter {
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
 
-        if (RunCron.peroidMap == null) {
+        if (RunCron.peroidMap.size()==0) {
 
             RunCron.addPeriod(new RunCron.Period("cnn", "cnn", 12l * 3600 * 1000, false) {
                 @Override
