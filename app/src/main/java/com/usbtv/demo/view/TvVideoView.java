@@ -232,20 +232,27 @@ public class TvVideoView extends StyledPlayerView {
         }*/
        // MediaItem item = MediaItem.fromUri(uri);
 
-        List<MediaSource> mediaItems = new ArrayList<>();
-       // mediaItems.add(item);
+        List<MediaSource> mediaSources = new ArrayList<>();
+        List<MediaItem> mediaItems = new ArrayList<>();
+       // mediaSources.add(item);
 
 
         MediaItem item;
         for (int i = curIndex ; i < files.length; i++) {
            // if (files[i].getdLink() != null) {
-                item = MediaItem.fromUri(files[i].getdLink()!=null?files[i].getdLink():SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vFileUrl?id="+files[i].getId());
-                mediaItems.add(this.getProgressiveMediaSource(item));
+              if(files[i].getdLink()!=null){
+                  mediaItems.add(MediaItem.fromUri(files[i].getdLink()));
+              }else{
+                  item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vFileUrl?id="+files[i].getId());
+                  mediaSources.add(this.getProgressiveMediaSource(item));
+              }
 
            // } else break;
         }
         this.curIndex = curIndex;
-        mPlayer.setMediaSources(mediaItems,true);
+        if(mediaSources.size()>0)
+        mPlayer.setMediaSources(mediaSources,true);
+        else mPlayer.setMediaItems(mediaItems,true);
        // mPlayer.prepare();
         mPlayer.prepare();
 
