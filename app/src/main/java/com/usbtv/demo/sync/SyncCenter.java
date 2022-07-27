@@ -29,7 +29,7 @@ public class SyncCenter {
 
     private static Dao<Folder, Integer> folderDao = null;
     private static Dao<VFile, Integer> vFileDao = null;
-    public static synchronized void syncData(String id) throws SQLException {
+    public static  void syncData(String id) throws SQLException {
 
         if (folderDao == null) folderDao = App.getHelper().getDao(Folder.class);
 

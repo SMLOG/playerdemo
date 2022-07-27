@@ -9,7 +9,17 @@
               ><span><input type="checkbox" v-model="showEdit" /></span>
             </div>
           </li>
-
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <span>startAtBoot</span
+              ><span
+                ><input
+                  type="checkbox"
+                  v-model="startAtBoot"
+                  @change="toggleStartAtBoot()"
+              /></span>
+            </div>
+          </li>
           <li v-for="task in tasks" :key="task.id" class="list-group-item">
             <div class="d-flex justify-content-between">
               <div class="d-flex w-100 justify-content-between flex-grow">
@@ -26,7 +36,7 @@
                     @click="changeTask(task, 'run')"
                     class="col text-end"
                   >
-                    <span v-if="task.status == 0">Run .</span>
+                    <span v-if="task.status == 0">Run</span>
                     <span v-else-if="task.status == 1">Run ...</span>
                     <span v-else-if="task.status == 2">wait...</span>
                   </a>
@@ -193,6 +203,9 @@ export default {
       $.post("/api/tasks/update", { id: task.id, action: action }).then(() => {
         this.getTasks();
       });
+      setTimeout(() => {
+        this.getTasks();
+      }, 3000);
     },
 
     getTasks() {

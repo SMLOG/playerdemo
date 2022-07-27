@@ -130,8 +130,9 @@ public class RunCron {
     public static void startRunTasks() {
 
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
-        lock.tryLock();
+
         try {
+            if(lock.tryLock())
             while (true) {
 
                 if (queue.size() == 0) break;
