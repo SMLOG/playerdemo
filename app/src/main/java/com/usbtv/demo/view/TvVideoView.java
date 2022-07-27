@@ -9,22 +9,23 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Util;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.PlayerController;
@@ -33,8 +34,6 @@ import com.usbtv.demo.data.VFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TvVideoView extends StyledPlayerView {
     private SimpleExoPlayer mPlayer;
@@ -42,6 +41,7 @@ public class TvVideoView extends StyledPlayerView {
     private Handler updateHandler = new Handler(Looper.getMainLooper());
     private long duration;
     private long currentPosition;
+    private ProgressiveMediaSource.Factory factory;
 
     public TvVideoView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -230,21 +230,22 @@ public class TvVideoView extends StyledPlayerView {
         /*if (mPlayer.isPlaying()) {
             mPlayer.pause();
         }*/
-        MediaItem item = MediaItem.fromUri(uri);
+       // MediaItem item = MediaItem.fromUri(uri);
 
-        List<MediaItem> mediaItems = new ArrayList<>();
-        mediaItems.add(item);
+        List<MediaSource> mediaItems = new ArrayList<>();
+       // mediaItems.add(item);
 
 
+        MediaItem item;
         for (int i = curIndex + 1; i < files.length; i++) {
-            if (files[i].getdLink() != null) {
-                item = MediaItem.fromUri(files[i].getdLink());
+           // if (files[i].getdLink() != null) {
+                item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vFileUrl?id="+files[i].getId());
+                mediaItems.add(this.getProgressiveMediaSource(item));
 
-                mediaItems.add(item);
-            } else break;
+           // } else break;
         }
         this.curIndex = curIndex;
-        mPlayer.setMediaItems(mediaItems,true);
+        mPlayer.setMediaSources(mediaItems,true);
        // mPlayer.prepare();
         mPlayer.prepare();
 
@@ -259,6 +260,38 @@ public class TvVideoView extends StyledPlayerView {
         // mPlayer.play();
 
 
+    }
+
+    @NonNull
+    private ProgressiveMediaSource.Factory getProgressiveMediaFactory() {
+        String userAgent = Util.getUserAgent(App.getInstance().getApplicationContext(), "test");
+
+        if(this.factory==null){
+            // Default parameters, except allowCrossProtocolRedirects is true
+            DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(
+                    userAgent,
+                    null /* listener */,
+                    DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
+                    DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
+                    true /* allowCrossProtocolRedirects */
+            );
+
+            DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(
+                    App.getInstance().getApplicationContext(),
+                    null /* listener */,
+                    httpDataSourceFactory
+            );
+            this.factory = new ProgressiveMediaSource.Factory(
+                    httpDataSourceFactory);
+        }
+        return factory;
+
+    }
+
+
+    @NonNull
+    private ProgressiveMediaSource getProgressiveMediaSource(MediaItem item) {
+      return  this.getProgressiveMediaFactory().createMediaSource(item);
     }
 
 
