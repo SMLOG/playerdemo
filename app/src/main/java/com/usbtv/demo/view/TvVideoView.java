@@ -20,6 +20,11 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.PlayerController;
@@ -76,7 +81,6 @@ public class TvVideoView extends StyledPlayerView {
                 } else PlayerController.getInstance().playNextFolder();
 
             }
-
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
@@ -231,6 +235,7 @@ public class TvVideoView extends StyledPlayerView {
         List<MediaItem> mediaItems = new ArrayList<>();
         mediaItems.add(item);
 
+
         for (int i = curIndex + 1; i < files.length; i++) {
             if (files[i].getdLink() != null) {
                 item = MediaItem.fromUri(files[i].getdLink());
@@ -262,4 +267,6 @@ public class TvVideoView extends StyledPlayerView {
         mPlayer.release();
         mPlayer = null;
     }
+
+
 }
