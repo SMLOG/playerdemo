@@ -235,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        videoView.release();
     }
 
 
