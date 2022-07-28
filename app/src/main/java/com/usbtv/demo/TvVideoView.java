@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.MediaItem;
@@ -88,20 +89,7 @@ public class TvVideoView extends StyledPlayerView {
                 PlayerController.getInstance().setCurIndex(curIndex);
                 curIndex++;
 
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (mPlayer.getCurrentCues() != null) {
-                        for (Cue currentCue : mPlayer.getCurrentCues()) {
-
-                            if (isAcronym(currentCue.text.toString())) {
-                                getSubtitleView().setVisibility(View.GONE);
-
-                            } else getSubtitleView().setVisibility(View.VISIBLE);
-
-                            break;
-
-                        }
-                    }
-                }, 3000);
+                updateSubTitle();
 
             }
 
@@ -132,6 +120,23 @@ public class TvVideoView extends StyledPlayerView {
                 }
             }
         });
+    }
+
+    private void updateSubTitle() {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (mPlayer.getCurrentCues() != null) {
+                for (Cue currentCue : mPlayer.getCurrentCues()) {
+
+                    if (isAcronym(currentCue.text.toString())) {
+                        getSubtitleView().setVisibility(View.GONE);
+
+                    } else getSubtitleView().setVisibility(View.VISIBLE);
+
+                    break;
+
+                }
+            }
+        }, 3000);
     }
 
     public void updateState() {
@@ -258,9 +263,9 @@ public class TvVideoView extends StyledPlayerView {
 
         files = res.getFolder().getFiles().toArray(new VFile[]{});
 
-        /*if (mPlayer.isPlaying()) {
+        if (mPlayer.isPlaying()) {
             mPlayer.pause();
-        }*/
+        }
         // MediaItem item = MediaItem.fromUri(uri);
 
         List<MediaSource> mediaSources = new ArrayList<>();
@@ -272,7 +277,7 @@ public class TvVideoView extends StyledPlayerView {
         for (int i = curIndex; i < files.length; i++) {
             // if (files[i].getdLink() != null) {
             if (files[i].getdLink() != null) {
-                mediaItems.add(MediaItem.fromUri(files[i].getdLink()));
+                mediaItems.add(MediaItem.fromUri(PlayerController.getUrl(files[i].getdLink())));
             } else {
                 item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId());
                 mediaSources.add(this.getProgressiveMediaSource(item));
@@ -297,6 +302,7 @@ public class TvVideoView extends StyledPlayerView {
         //  mPlayer.prepare();
         // mPlayer.play();
 
+        updateSubTitle();
 
     }
 

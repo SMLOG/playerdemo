@@ -292,6 +292,7 @@ public class IndexController {
             result.put("total", total);
             List<Folder> list = where.queryBuilder()
                     .offset((long) ((page - 1) * pageSize))
+                    .orderBy("orderSeq",false)
                     .limit(20l).query();
             result.put("datas", list);
 
