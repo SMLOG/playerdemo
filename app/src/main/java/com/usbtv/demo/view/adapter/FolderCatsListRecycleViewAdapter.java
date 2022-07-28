@@ -13,7 +13,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.usbtv.demo.R;
-import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.PlayerController;
 
 import java.util.List;
 

@@ -1,11 +1,10 @@
-package com.usbtv.demo.comm;
+package com.usbtv.demo;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.preference.PreferenceManager;
 import android.view.View;
 
 import androidx.leanback.widget.HorizontalGridView;
@@ -13,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.view.TvVideoView;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
@@ -23,7 +22,6 @@ import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;

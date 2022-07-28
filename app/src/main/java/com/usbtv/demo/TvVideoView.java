@@ -1,4 +1,4 @@
-package com.usbtv.demo.view;
+package com.usbtv.demo;
 
 import android.content.Context;
 import android.media.session.PlaybackState;
@@ -26,9 +26,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.usbtv.demo.MainActivity;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
 
@@ -74,13 +72,14 @@ public class TvVideoView extends StyledPlayerView {
         mPlayer.addListener(new Player.EventListener() {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
-               // Player.EventListener.super.onPlayerError(error);
+                // Player.EventListener.super.onPlayerError(error);
                 Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
                 if (mPlayer.getMediaItemCount() > 1 + mPlayer.getCurrentWindowIndex()) {
                     mPlayer.next();
                 } else PlayerController.getInstance().playNextFolder();
 
             }
+
             @Override
             public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
                 Player.EventListener.super.onMediaItemTransition(mediaItem, reason);
@@ -112,7 +111,7 @@ public class TvVideoView extends StyledPlayerView {
 
                 switch (state) {
                     case Player.STATE_READY:
-                        update();
+                        updateState();
                         break;
                     case Player.STATE_ENDED: {
                         PlayerController.getInstance().incPlayCount();
@@ -135,7 +134,7 @@ public class TvVideoView extends StyledPlayerView {
         });
     }
 
-    public void update() {
+    public void updateState() {
         Runnable updateRun = new Runnable() {
             @Override
             public void run() {
@@ -181,34 +180,26 @@ public class TvVideoView extends StyledPlayerView {
 
     public void seekTo(int pos) {
         new Handler(Looper.getMainLooper()).post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mPlayer != null) mPlayer.seekTo(pos);
-                    }
+                () -> {
+                    if (mPlayer != null) mPlayer.seekTo(pos);
+
                 });
     }
 
     public void pause() {
 
         new Handler(Looper.getMainLooper()).post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mPlayer != null) mPlayer.pause();
-                    }
+                () -> {
+                    if (mPlayer != null) mPlayer.pause();
                 });
     }
 
     public void start() {
 
         new Handler(Looper.getMainLooper()).post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mPlayer != null)
-                            mPlayer.play();
-                    }
+                () -> {
+                    if (mPlayer != null)
+                        mPlayer.play();
                 });
 
     }
@@ -222,58 +213,13 @@ public class TvVideoView extends StyledPlayerView {
 
     private int curIndex = 0;
 
-    public void setVideoURI(Uri uri, VFile res, int curIndex) {
-        //mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
 
-        files = res.getFolder().getFiles().toArray(new VFile[]{});
-
-        /*if (mPlayer.isPlaying()) {
-            mPlayer.pause();
-        }*/
-       // MediaItem item = MediaItem.fromUri(uri);
-
-        List<MediaSource> mediaSources = new ArrayList<>();
-        List<MediaItem> mediaItems = new ArrayList<>();
-       // mediaSources.add(item);
-
-
-        MediaItem item;
-        for (int i = curIndex ; i < files.length; i++) {
-           // if (files[i].getdLink() != null) {
-              if(files[i].getdLink()!=null){
-                  mediaItems.add(MediaItem.fromUri(files[i].getdLink()));
-              }else{
-                  item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/vFileUrl?id="+files[i].getId());
-                  mediaSources.add(this.getProgressiveMediaSource(item));
-              }
-
-           // } else break;
-        }
-        this.curIndex = curIndex;
-        if(mediaSources.size()>0)
-        mPlayer.setMediaSources(mediaSources,true);
-        else mPlayer.setMediaItems(mediaItems,true);
-       // mPlayer.prepare();
-        mPlayer.prepare();
-
-        int state = mPlayer.getPlaybackState();
-        if (state == Player.STATE_ENDED) {
-            mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
-        } else {
-            mPlayer.play();
-        }
-
-        //  mPlayer.prepare();
-        // mPlayer.play();
-
-
-    }
 
     @NonNull
     private ProgressiveMediaSource.Factory getProgressiveMediaFactory() {
         String userAgent = Util.getUserAgent(App.getInstance().getApplicationContext(), "test");
 
-        if(this.factory==null){
+        if (this.factory == null) {
             // Default parameters, except allowCrossProtocolRedirects is true
             DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(
                     userAgent,
@@ -298,7 +244,7 @@ public class TvVideoView extends StyledPlayerView {
 
     @NonNull
     private ProgressiveMediaSource getProgressiveMediaSource(MediaItem item) {
-      return  this.getProgressiveMediaFactory().createMediaSource(item);
+        return this.getProgressiveMediaFactory().createMediaSource(item);
     }
 
 
@@ -307,6 +253,51 @@ public class TvVideoView extends StyledPlayerView {
         mPlayer.release();
         mPlayer = null;
     }
+    public void setVideoURI(Uri uri, VFile res, int curIndex) {
+        //mPlayer.setRepeatMode(ExoPlayer.REPEAT_MODE_OFF);
 
+        files = res.getFolder().getFiles().toArray(new VFile[]{});
+
+        /*if (mPlayer.isPlaying()) {
+            mPlayer.pause();
+        }*/
+        // MediaItem item = MediaItem.fromUri(uri);
+
+        List<MediaSource> mediaSources = new ArrayList<>();
+        List<MediaItem> mediaItems = new ArrayList<>();
+        // mediaSources.add(item);
+
+
+        MediaItem item;
+        for (int i = curIndex; i < files.length; i++) {
+            // if (files[i].getdLink() != null) {
+            if (files[i].getdLink() != null) {
+                mediaItems.add(MediaItem.fromUri(files[i].getdLink()));
+            } else {
+                item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId());
+                mediaSources.add(this.getProgressiveMediaSource(item));
+            }
+
+            // } else break;
+        }
+        this.curIndex = curIndex;
+        if (mediaSources.size() > 0)
+            mPlayer.setMediaSources(mediaSources, true);
+        else mPlayer.setMediaItems(mediaItems, true);
+        // mPlayer.prepare();
+        mPlayer.prepare();
+
+        int state = mPlayer.getPlaybackState();
+        if (state == Player.STATE_ENDED) {
+            mPlayer.seekTo(mPlayer.getCurrentWindowIndex(), C.TIME_UNSET);
+        } else {
+            mPlayer.play();
+        }
+
+        //  mPlayer.prepare();
+        // mPlayer.play();
+
+
+    }
 
 }

@@ -7,8 +7,7 @@ import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.usbtv.demo.comm.PlayerController;
-import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.PlayerController;
 
 public class MyNumRecyclerView extends RecyclerView {
     private int mlastFocusPosition = 0;

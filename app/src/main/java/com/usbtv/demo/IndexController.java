@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import com.alibaba.fastjson.JSON;
@@ -19,7 +18,6 @@ import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
-import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;

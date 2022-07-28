@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.usbtv.demo.R;
-import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.data.Folder;
 
 import java.util.List;

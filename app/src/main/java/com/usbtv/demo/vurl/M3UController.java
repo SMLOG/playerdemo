@@ -2,10 +2,8 @@ package com.usbtv.demo.vurl;
 
 
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.ForeignCollection;
-import com.j256.ormlite.dao.LazyForeignCollection;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.sync.SyncCenter;
@@ -17,10 +15,7 @@ import com.yanzhenjie.andserver.http.HttpResponse;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController

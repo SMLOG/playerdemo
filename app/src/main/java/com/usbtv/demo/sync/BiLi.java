@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.PlayerController;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
@@ -16,7 +15,6 @@ import com.usbtv.demo.data.VFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;

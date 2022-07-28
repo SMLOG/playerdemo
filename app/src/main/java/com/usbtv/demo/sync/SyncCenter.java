@@ -12,7 +12,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.cnn.CnnSync;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.PlayerController;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
