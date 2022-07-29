@@ -74,8 +74,7 @@ public final class PlayerController {
 
     public static String getUrl( String link) {
         if(usingProxy){
-            return SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/speech/"+link;
-
+            return SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/speed.m3u8?url="+URLEncoder.encode(link);
         }
         return link;
     }

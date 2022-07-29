@@ -6,8 +6,8 @@ import java.util.Map;
 public class CacheItem {
     public byte[] data;
     public String contentType;
-    protected int status;
+    public int status;
     public String url;
-    protected int id;
+    public int id;
     public Map<String, List<String>> headers;
 }
