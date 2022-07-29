@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @BindView(R.id.videoView)
-    TvVideoView videoView;
+    GsyTvVideoView videoView;
 
 
     @BindView(R.id.menuPanel)
@@ -346,7 +346,6 @@ public class MainActivity extends AppCompatActivity {
        // numTabAdapter.setOnFocusChangeListener(myListener);
 
        PlayerController.getInstance().setUIs(videoView, menuPanel,numTabRecyclerView,qTabRecyclerView,foldersRecyclerView);
-       videoView.setUp(this);
 
         PlayerController.getInstance().setRVAdapts(catsAdaper, foldersAdapter, numAdapter,qAdapter);
         PlayerController.getInstance().refreshCats();

@@ -1,3 +1,4 @@
+/*
 package com.usbtv.demo;
 
 import android.content.Context;
@@ -17,6 +18,7 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -74,6 +76,8 @@ public class TvVideoView extends StyledPlayerView {
             @Override
             public void onPlayerError(ExoPlaybackException error) {
                 // Player.EventListener.super.onPlayerError(error);
+
+
                 Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
                 if (mPlayer.getMediaItemCount() > 1 + mPlayer.getCurrentWindowIndex()) {
                     mPlayer.next();
@@ -228,15 +232,21 @@ public class TvVideoView extends StyledPlayerView {
             // Default parameters, except allowCrossProtocolRedirects is true
             DefaultHttpDataSourceFactory httpDataSourceFactory = new DefaultHttpDataSourceFactory(
                     userAgent,
-                    null /* listener */,
+                    null */
+/* listener *//*
+,
                     DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
                     DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
-                    true /* allowCrossProtocolRedirects */
+                    true */
+/* allowCrossProtocolRedirects *//*
+
             );
 
             DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(
                     App.getInstance().getApplicationContext(),
-                    null /* listener */,
+                    null */
+/* listener *//*
+,
                     httpDataSourceFactory
             );
             this.factory = new ProgressiveMediaSource.Factory(
@@ -307,3 +317,4 @@ public class TvVideoView extends StyledPlayerView {
     }
 
 }
+*/

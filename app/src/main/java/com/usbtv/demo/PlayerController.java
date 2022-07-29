@@ -43,7 +43,7 @@ public final class PlayerController {
 
     private int mode;
 
-    private TvVideoView videoView;
+    private GsyTvVideoView videoView;
     private Uri videoUrl;
     private View girdView;
     private int curIndex;
@@ -444,7 +444,7 @@ public final class PlayerController {
         this.play(vfile);
     }
 
-    public void setUIs(TvVideoView videoView,
+    public void setUIs(GsyTvVideoView videoView,
                        View gridView, RecyclerView numTabRecyclerView, RecyclerView qTabRecyclerView, RecyclerView foldersRecyclerView) {
         this.videoView = videoView;
         this.girdView = gridView;
