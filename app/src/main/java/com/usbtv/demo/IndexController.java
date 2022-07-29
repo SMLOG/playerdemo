@@ -828,7 +828,7 @@ public class IndexController {
     @GetMapping(path = "/api/usingSpeed")
     String getUsingSpeed() {
 
-        return    "{\"startAtBoot\":"+App.usingSpeed+"}";
+        return    "{\"usingSpeed\":"+App.usingSpeed+"}";
     }
 
 }
