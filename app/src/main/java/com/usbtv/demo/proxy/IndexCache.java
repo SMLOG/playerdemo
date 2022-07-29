@@ -67,7 +67,7 @@ public class IndexCache {
 
         CacheItem item = list.get(reqIndex);
 
-        for (int i = reqIndex - 5; i >= 0; i--) {
+        for (int i = reqIndex - 10; i >= 0; i--) {
             list.get(i).data = null;
             list.get(i).status = 0;
         }
@@ -75,9 +75,10 @@ public class IndexCache {
             synchronized (item) {
 
                 System.out.println("req " + reqIndex);
+                this.lastReqIndex  = reqIndex;
+                if(Math.abs(reqIndex-this.fromDownIndex)>10)this.fromDownIndex=reqIndex;
+
                 if (item.status < 2) {
-                    this.lastReqIndex  = reqIndex;
-                    if(Math.abs(reqIndex-this.fromDownIndex)>10)this.fromDownIndex=reqIndex;
                     item.wait();
 
                 }
@@ -180,7 +181,7 @@ public class IndexCache {
     private void downloadItem(CacheItem item) {
 
         int count = 1;
-        int retryCount = 3;
+        int retryCount = 5;
         HttpURLConnection httpURLConnection = null;
         long timeoutMillisecond = 100000L;
 
@@ -208,7 +209,7 @@ public class IndexCache {
 
                 ByteArrayOutputStream byos = new ByteArrayOutputStream();
                 byte[] bytes = new byte[8196];
-                boolean needSkip = !item.url.endsWith(".ts");
+                boolean needSkip = !item.url.contains(".ts");
 
 
                 int len = 0;
@@ -223,7 +224,7 @@ public class IndexCache {
                 if(needSkip)
                 for(int i=0;i<bytes.length;i++) {
 
-                    if(bytes[i]==0x47 && i<=bytes.length-188 && bytes[i+188]==0x47 ) {
+                    if(i<=bytes.length-188 && bytes[i]==0x47 && bytes[i+188]==0x47 ) {
 //
                         byos.write(bytes, i, 188);
                        // break;
