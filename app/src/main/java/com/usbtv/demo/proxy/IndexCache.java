@@ -228,10 +228,12 @@ public class IndexCache {
                 }
                 in.close();
 
-                bytes = byos.toByteArray();
-                byos.reset();
 
-                if(needSkip)
+
+                if(needSkip){
+                    bytes = byos.toByteArray();
+                    byos.reset();
+
                     for(int i=0;i<bytes.length;i++) {
 
                         if(i<=bytes.length-188 && bytes[i]==0x47 && bytes[i+188]==0x47 ) {
@@ -243,6 +245,8 @@ public class IndexCache {
 
 
                     }
+
+                }
 
                 bytes = new byte[byos.size()];
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
