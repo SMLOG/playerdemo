@@ -104,16 +104,18 @@ public class ProxyController {
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
                 byos.close();
                 String str = new String(bytes);
-                ArrayList<String> tsUrls = new ArrayList<String>();
-                boolean isVod = str.contains("#EXTINF:");
+                boolean widthproxy = str.contains(".m3u8");
+                boolean withEnd = str.contains("#EXT-X-ENDLIST");
+                StringBuilder sb = new StringBuilder();
                 Pattern pattern = Pattern.compile(",URI=\"(.*?)\"", Pattern.DOTALL);
+                ArrayList<String> tsUrls = new ArrayList<String>();
+
                 if (contentType.toLowerCase().contains("mpegurl")) {
                     String[] lines = str.split("\n");
-                    StringBuilder sb = new StringBuilder();
                     for (int i=0;i< lines.length;i++) {
                         String line = lines[i];
                         if (line.startsWith("#")) {
-                            if(line.startsWith("#EXT-X-I-FRAME-STREAM-INF")) {
+                            if(line.startsWith("#EXT-X-I-FRAME-STREAM-INF") || line.startsWith("#EXT-X-MEDIA")) {
                                 Matcher m = pattern.matcher(line);
                                 if(m.find()) {
                                     String uri = m.group(1);
@@ -126,24 +128,18 @@ public class ProxyController {
                             String absUrl = getAbsUrl(url, line);
 
 
-
                             if(i>1) {
 
                                 String pline = lines[i-1];
-                                if(pline.startsWith("#EXT-X-STREAM-INF" ) ||pline.startsWith("#EXTINF:" )  )
+                                if(widthproxy && pline.startsWith("#EXT-X-STREAM-INF" ) || withEnd&&pline.startsWith("#EXTINF:" )  )
                                     sb.append("/api/speed.m3u8?url=" + URLEncoder.encode(absUrl));
                                 else
                                     sb.append(absUrl);
 
-                                if( pline.contains("#EXTINF:")) {
+                                if( withEnd&& pline.contains("#EXTINF:")) {
                                     tsUrls.add(absUrl);
                                 }
-
-
                             }else sb.append(line);
-
-
-
 
                         }
 

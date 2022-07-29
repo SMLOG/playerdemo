@@ -5,8 +5,6 @@ package com.usbtv.demo.proxy;/*
  *All rights reserved.
  */
 
-import com.usbtv.demo.proxy.CacheItem;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -14,11 +12,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 
@@ -67,7 +68,7 @@ public class IndexCache {
 
         CacheItem item = list.get(reqIndex);
 
-        for (int i = reqIndex - 10; i >= 0; i--) {
+        for (int i = reqIndex - 5; i >= 0; i--) {
             list.get(i).data = null;
             list.get(i).status = 0;
         }
@@ -75,8 +76,8 @@ public class IndexCache {
             synchronized (item) {
 
                 System.out.println("req " + reqIndex);
+                if(Math.abs(reqIndex-this.lastReqIndex)>1)this.fromDownIndex=reqIndex;
                 this.lastReqIndex  = reqIndex;
-                if(Math.abs(reqIndex-this.fromDownIndex)>10)this.fromDownIndex=reqIndex;
 
                 if (item.status < 2) {
                     item.wait();
@@ -113,75 +114,84 @@ public class IndexCache {
     }
 
     public synchronized void startDownload() {
+
+        synchronized (this) {
+            if(!stop&&pool!=null) {
+                this.notifyAll();
+                return;
+            }
+
+        }
         stop = false;
-        new Thread(() -> {
-            if (this.pool == null) {
-                this.pool = Executors.newFixedThreadPool(5);
 
-                for (int i = 0; i < 5; i++) {
-                    final int threadid = i;
+        Runnable tRunner = () -> {
 
-                    pool.execute(() -> {
+            while (true) {
+                CacheItem item = null;
 
-                        while (true) {
-                            CacheItem item = null;
+                boolean needDown = false;
+                int j;
+                synchronized (list) {
+                    j = this.fromDownIndex++;
+                    //if(j<0)j=0;
+                    if (j <= list.size() - 1) {
+                        item = list.get(j);
+                        needDown = item.status <= 0;
+                        if(needDown)item.status=1;
 
-                            boolean needDown = false;
-                            int j;
-                            synchronized (list) {
-                                j = this.fromDownIndex++;
-                                //if(j<0)j=0;
-                                if (j <= list.size() - 1) {
-                                    item = list.get(j);
-                                    needDown = item.status <= 0;
-                                    item.status=1;
-                                }
-
-                            }
-
-                            if (needDown) {
-                                downloadIndex = j;
-                                item.status = 1;
-                                downloadItem(item);
-                                System.out.println("downloadIndex:" + downloadIndex + " lastINdex:" + lastReqIndex
-                                        + " size:" + list.size());
-
-                            }
-                            if (j >= list.size() - 1 && stop) {
-
-                                System.out.println("finish downloadIndex:" + downloadIndex + " lastINdex:"
-                                        + lastReqIndex + " size:" + list.size());
-                                this.pool = null;
-
-                                return;
-                            }
-                            synchronized (IndexCache.this) {
-                                if (this.fromDownIndex - lastReqIndex > 30) {
-                                    try {
-                                        IndexCache.this.wait();
-                                    } catch (InterruptedException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                            }
-
-                        }
-
-                    });
+                    }
 
                 }
-                pool.shutdown();
+
+                if (needDown) {
+                    downloadIndex = j;
+                    item.status = 1;
+                    downloadItem(item);
+                    System.out.println("downloadIndex:" + downloadIndex + " lastReqIndex:" + lastReqIndex+" fromDownIndex:"+fromDownIndex
+                            + " size:" + list.size());
+
+                }
+                if (j >= list.size() - 1 || stop) {
+
+                    System.out.println("finish downloadIndex:" + downloadIndex + " lastReqIndex:"
+                            + lastReqIndex + " size:" + list.size());
+                    this.pool = null;
+
+                    return;
+                }
+                synchronized (IndexCache.this) {
+                    if (this.fromDownIndex - lastReqIndex > 30) {
+                        try {
+                            IndexCache.this.wait();
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+
             }
-        }).start();
+
+        };
+        if (this.pool == null) {
+            this.pool = Executors.newFixedThreadPool(5);
+
+            for (int i = 0; i < 3; i++) {
+                final int threadid = i;
+                if(pool!=null)
+                    pool.execute(tRunner);
+
+            }
+            pool.shutdown();
+        }
 
     }
 
     private void downloadItem(CacheItem item) {
 
         int count = 1;
-        int retryCount = 5;
+        int retryCount = 3;
         HttpURLConnection httpURLConnection = null;
         long timeoutMillisecond = 100000L;
 
@@ -222,32 +232,27 @@ public class IndexCache {
                 byos.reset();
 
                 if(needSkip)
-                for(int i=0;i<bytes.length;i++) {
+                    for(int i=0;i<bytes.length;i++) {
 
-                    if(i<=bytes.length-188 && bytes[i]==0x47 && bytes[i+188]==0x47 ) {
+                        if(i<=bytes.length-188 && bytes[i]==0x47 && bytes[i+188]==0x47 ) {
 //
-                        byos.write(bytes, i, 188);
-                       // break;
-                        i+=187;
+                            byos.write(bytes, i, 188);
+                            // break;
+                            i+=187;
+                        }
+
+
                     }
 
-
-                }
-
-
-                in.close();
-
                 bytes = new byte[byos.size()];
-
-
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
                 byos.close();
                 item.data = bytes;
 
                 Map<String, List<String>> hfs = httpURLConnection.getHeaderFields();
                 item.headers = hfs;
-                System.out.println("down:" + item.url);
                 item.contentType=contentType;
+                System.out.println("down:" + item.url);
 
                 break;
 
@@ -266,11 +271,11 @@ public class IndexCache {
 
     public boolean canDel() {
 
-        return lastReqIndex >= list.size() || System.currentTimeMillis() - accessTime > 30 * 1000;
+        return this.downloadIndex >= list.size()-1 || System.currentTimeMillis() - accessTime > 30 * 1000;
     }
 
     public boolean needStartCache(int index) {
-        return !isIndexReady(index) || downloadIndex < list.size() && downloadIndex - index < 30;
+        return !isIndexReady(index)|| this.downloadIndex!=this.list.size()-1 && downloadIndex -index  <30 || stop;
     }
 
 }

@@ -1,21 +1,23 @@
-/*
+package com.usbtv.demo.proxy;/*
  *Copyright © 2022 SMLOG
  *SMLOG
  *https://smlog.github.io
  *All rights reserved.
  */
-package com.usbtv.demo.proxy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import com.usbtv.demo.proxy.IndexCache;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MemCacheManager {
 
 
 
-	private static final LinkedHashMap<String,IndexCache> indexCacheMap =new LinkedHashMap<String,IndexCache>();
+	private static LinkedHashMap<String,IndexCache> indexCacheMap =new LinkedHashMap<String,IndexCache>();
 
 	public static   CacheItem  curTsUrl(String url) {
 
