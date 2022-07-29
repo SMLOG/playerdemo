@@ -58,7 +58,8 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
         setUp(urls, false, 0);
 
         setMapHeadData(header);
-        getStartButton().performClick();
+        //getStartButton().performClick();
+        startPlayLogic();
     }
 
     private boolean playing;
