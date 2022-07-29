@@ -77,7 +77,7 @@ public class IndexCache {
                 System.out.println("req " + reqIndex);
                 if (item.status < 2) {
                     this.lastReqIndex  = reqIndex;
-                    if(Math.abs(reqIndex-this.fromDownIndex)>5)this.fromDownIndex=reqIndex;
+                    if(Math.abs(reqIndex-this.fromDownIndex)>10)this.fromDownIndex=reqIndex;
                     item.wait();
 
                 }
@@ -207,14 +207,38 @@ public class IndexCache {
                 in = httpURLConnection.getInputStream();
 
                 ByteArrayOutputStream byos = new ByteArrayOutputStream();
+                byte[] bytes = new byte[8196];
+                boolean needSkip = !item.url.endsWith(".ts");
+
+
                 int len = 0;
-                byte[] bytes = new byte[8192];
                 while ((len = in.read(bytes)) != -1) {
                     byos.write(bytes, 0, len);
                 }
                 in.close();
 
+                bytes = byos.toByteArray();
+                byos.reset();
+
+                if(needSkip)
+                for(int i=0;i<bytes.length;i++) {
+
+                    if(bytes[i]==0x47 && i<=bytes.length-188 && bytes[i+188]==0x47 ) {
+//
+                        byos.write(bytes, i, 188);
+                       // break;
+                        i+=187;
+                    }
+
+
+                }
+
+
+                in.close();
+
                 bytes = new byte[byos.size()];
+
+
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
                 byos.close();
                 item.data = bytes;
