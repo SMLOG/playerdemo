@@ -277,7 +277,7 @@ public class TvVideoView extends StyledPlayerView {
         for (int i = curIndex; i < files.length; i++) {
             // if (files[i].getdLink() != null) {
             if (files[i].getdLink() != null) {
-                mediaItems.add(MediaItem.fromUri(PlayerController.getUrl(files[i].getdLink())));
+                mediaItems.add(MediaItem.fromUri(App.getUrl(files[i].getdLink())));
             } else {
                 item = MediaItem.fromUri(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId());
                 mediaSources.add(this.getProgressiveMediaSource(item));

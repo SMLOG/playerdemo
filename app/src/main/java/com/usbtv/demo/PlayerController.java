@@ -70,14 +70,8 @@ public final class PlayerController {
     private PlayerController() {
     }
 
-    static  boolean  usingProxy=true;
 
-    public static String getUrl( String link) {
-        if(usingProxy){
-            return SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/speed.m3u8?url="+URLEncoder.encode(link);
-        }
-        return link;
-    }
+
 
     public VFile getCurItem(){
         return this.curItem;

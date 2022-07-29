@@ -20,6 +20,17 @@
               /></span>
             </div>
           </li>
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <span>M3U8 using speed</span
+              ><span
+                ><input
+                  type="checkbox"
+                  v-model="usingSpeed"
+                  @change="toggleUsingSpeed()"
+              /></span>
+            </div>
+          </li>
           <li v-for="task in tasks" :key="task.id" class="list-group-item">
             <div class="d-flex justify-content-between">
               <div class="d-flex w-100 justify-content-between flex-grow">
@@ -116,6 +127,7 @@ export default {
       showTest: false,
       curTabIndex: 0,
       showMenu: 0,
+      usingSpeed: 0,
       tasks: [{ name: "test", status: 1, enable: 1, show: 1 }],
       startAtBoot: 0,
       tabs: [{ name: "视频学习", comp: "ByVideo2", label: "video" }],
@@ -148,6 +160,7 @@ export default {
     });
     this.getTasks();
     this.getBootStatus();
+    this.getUsingSpeed();
   },
   filters: {
     fmtDate(lo) {
@@ -188,6 +201,17 @@ export default {
     },
   },
   methods: {
+    getUsingSpeed() {
+      $.getJSON("/api/usingSpeed").then((r) => {
+        this.usingSpeed = r.usingSpeed;
+      });
+    },
+    toggleUsingSpeed() {
+      $.post("/api/usingSpeed").then((r) => {
+        this.getUsingSpeed();
+        // this.startAtBoot = r.startAtBoot;
+      });
+    },
     getBootStatus() {
       $.getJSON("/api/boot").then((r) => {
         this.startAtBoot = r.startAtBoot;

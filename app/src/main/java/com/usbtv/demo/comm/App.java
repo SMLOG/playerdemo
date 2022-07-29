@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ public class App extends Application{
     private static DatabaseHelper databaseHelper = null;
 
     public static String host;
+    public static boolean usingSpeed;
 
     private Context mContext;
     private static App self;
@@ -230,7 +232,7 @@ public class App extends Application{
         this.mContext = getApplicationContext();
 
         this.createAndStartWebServer(mContext);
-
+        loadConfigs();
 
         //InetAddress ipaddr = NetUtils.getLocalIPAddress();
 
@@ -416,6 +418,32 @@ public class App extends Application{
         return DocumentsUtils.getInputStream(App.getInstance().getApplicationContext(), file2);  //获取输出流
 
     }
+    
+    
+    public static  void loadConfigs(){
 
+        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+        App.usingSpeed = sp.getBoolean("usingSpeed",true);
+    }
+
+    public  static void updateConfig(String key,Object val){
+        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sp.edit();
+        if(val instanceof  Boolean)
+        editor.putBoolean(key, (Boolean) val);
+        else if(val instanceof String)
+            editor.putString(key, (String) val);
+
+        editor.apply();
+        sp.edit().commit();
+        loadConfigs();
+    }
+    public static String getUrl( String link) {
+        if(usingSpeed){
+            return SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/speed.m3u8?url="+ URLEncoder.encode(link);
+        }
+        return link;
+    }
 
 }

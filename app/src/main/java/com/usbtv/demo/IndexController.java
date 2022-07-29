@@ -818,4 +818,17 @@ public class IndexController {
 
         return "{\"startAtBoot\":"+startAtBoot+"}";
     }
+    @PostMapping(path = "/api/usingSpeed")
+    String toggleUsingSpeed() {
+        App.updateConfig("usingSpeed",!App.usingSpeed);
+
+        return "ok";
+    }
+
+    @GetMapping(path = "/api/usingSpeed")
+    String getUsingSpeed() {
+
+        return    "{\"startAtBoot\":"+App.usingSpeed+"}";
+    }
+
 }
