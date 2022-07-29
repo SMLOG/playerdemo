@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.parser.Feature;
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.PlayerController;
@@ -446,4 +447,27 @@ public class App extends Application{
         return link;
     }
 
+    private static HttpProxyCacheServer proxy;
+
+    public static HttpProxyCacheServer getProxy(Context context) {
+        App app = (App) context.getApplicationContext();
+        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+    }
+
+    private HttpProxyCacheServer newProxy() {
+        return new HttpProxyCacheServer.Builder(this)
+                .maxCacheSize(1)
+                .build();
+    }
+
+    public static String getProxyUrl(String url) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            if (App.proxy == null) {
+                proxy = getInstance().newProxy();
+            }
+            return proxy.getProxyUrl(url);
+        }
+        return url;
+
+    }
 }

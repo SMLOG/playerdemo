@@ -30,7 +30,7 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
         super(context, attrs);
        // PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         PlayerFactory.setPlayManager(IjkPlayerManager.class);
-        CacheFactory.setCacheManager(ProxyCacheManager.class);
+      //  CacheFactory.setCacheManager(ProxyCacheManager.class);
        // CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
 
     }
@@ -49,11 +49,13 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
 
         for (int i = curIndex; i < files.length; i++) {
             urls.add(
-                    new GSYVideoModel(files[i].getdLink() != null ? App.getUrl(files[i].getdLink()) : SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId()
+                    new GSYVideoModel(files[i].getdLink() != null ? App.getUrl(files[i].getdLink()) :
+                            App.getProxyUrl(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId())
+
                             , files[i].getName()));
         }
 
-        setUp(urls, true, 0);
+        setUp(urls, false, 0);
 
         setMapHeadData(header);
         getStartButton().performClick();
