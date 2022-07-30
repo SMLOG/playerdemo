@@ -56,7 +56,7 @@ public class ProxyController {
         HashMap<String, String> requestHeaderMap = new HashMap<String, String>();
         requestHeaderMap.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
         String contentType = null;
-
+        System.out.println(url);
 
         InputStream in = null;
         if (url.indexOf("m3u8") == -1) {
@@ -71,7 +71,8 @@ public class ProxyController {
                 }
 
                 StreamBody responseBody = new StreamBody(new ByteArrayInputStream(item.data), item.data.length, MediaType.parseMediaType(item.contentType));
-
+                System.out.println("response:"+item.id+"\tsize:"+item.data.length);
+                item.release();
                 response.setBody(responseBody);
                 return responseBody;
 
@@ -217,8 +218,8 @@ public class ProxyController {
                 }
 
                 StreamBody responseBody = new StreamBody(new ByteArrayInputStream(item.data), item.data.length, MediaType.parseMediaType(item.contentType));
-                item.data=null;
-                item.status=0;
+                System.out.println("response:"+item.id+"\tsize:"+item.data.length);
+                item.release();
                 response.setBody(responseBody);
                 return responseBody;
 

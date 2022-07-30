@@ -23,7 +23,7 @@ public class MemCacheManager {
 
 	//private static BlockingQueue queue = new LinkedBlockingDeque<IndexCache>() ;
 
-	public static synchronized   CacheItem  curTsUrl(String url) {
+	public static    CacheItem  curTsUrl(String url) {
 
 		IndexCache cache;
 
@@ -31,28 +31,24 @@ public class MemCacheManager {
 		CacheItem cacheItem = null;
 		while(it.hasNext()) {
 			String key = it.next();
-			cache = indexCacheMap.get(key);
+			synchronized(indexCacheMap){
+				cache = indexCacheMap.get(key);
+			}
 			int index = cache.belongCache(url);
 			if(index>-1) {
-
-				cache.accessTime = System.currentTimeMillis();
-
-				if(cache.needStartCache(index)) {
-					cache.startDownload();
-					synchronized (cache) {
-						cache.notifyAll();
-					}
-				}
 
 				cacheItem = cache.waitForReady(index);
 
 
 			}else if(cache.canDel()) {
-				System.out.println("stop delete cache");
-				cache.stopAllDownload();
-				System.out.println("remove from cache:"+key);
-				it.remove();
-				//indexCacheMap.remove(key);
+				synchronized(indexCacheMap){
+					System.out.println("stop delete cache");
+					cache.stopAllDownload();
+					System.out.println("remove from cache:"+key);
+					it.remove();
+					//indexCacheMap.remove(key);
+				}
+
 			}
 
 

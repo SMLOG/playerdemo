@@ -66,23 +66,26 @@ public class IndexCache {
 
     public CacheItem waitForReady(int reqIndex) {
 
-
         CacheItem item = list.get(reqIndex);
-
-
         try {
             synchronized (item) {
 
                 System.out.println("req " + reqIndex+" fromDownIndex:"+fromDownIndex +" lastReqIndex:"+lastReqIndex);
 
-                if(Math.abs(reqIndex-this.lastReqIndex)>1)this.fromDownIndex=reqIndex;
+                if(list.get(reqIndex).status <=0) this.fromDownIndex=reqIndex;
                 this.lastReqIndex  = reqIndex;
 
+                accessTime = System.currentTimeMillis();
+
+                if(needStartCache(reqIndex)) {
+                    startDownload();
+                    synchronized (this) {
+                        this.notifyAll();
+                    }
+                }
+
                 if (item.status < 2) {
-
-
                     item.wait();
-
                 }
                 this.finishId=reqIndex;
                 System.out.println("finish " + finishId);
@@ -150,9 +153,9 @@ public class IndexCache {
                 }
 
                 if (needDown) {
-                    downloadIndex = j;
                     item.status = 1;
                     downloadItem(item);
+                    downloadIndex = j;
                     System.out.println("downloadIndex:" + downloadIndex + " lastReqIndex:" + lastReqIndex+" fromDownIndex:"+fromDownIndex
                             + " size:" + list.size());
 
@@ -291,7 +294,7 @@ public class IndexCache {
     }
 
     public boolean canDel() {
-        return this.finishId >= list.size()-1 || System.currentTimeMillis() - accessTime > 60 * 1000;
+        return this.finishId >= list.size()-1 || System.currentTimeMillis() - accessTime > 10*60 * 1000;
     }
 
     public boolean needStartCache(int index) {

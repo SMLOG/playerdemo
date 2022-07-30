@@ -10,4 +10,13 @@ public class CacheItem {
     public String url;
     public int id;
     public Map<String, List<String>> headers;
+
+    public void release() {
+        this.status = 0;
+        this.data=null;
+        this.headers=null;
+        this.contentType=null;
+        System.out.println("released "+ id);
+
+    }
 }
