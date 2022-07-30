@@ -230,7 +230,7 @@ public class IndexCache {
 
                 ByteArrayOutputStream byos = new ByteArrayOutputStream();
                 byte[] bytes = new byte[8196];
-                boolean needSkip = !item.url.contains(".ts");
+                boolean needSkip = false && !item.url.contains(".ts");
 
 
                 int len = 0;
@@ -238,8 +238,6 @@ public class IndexCache {
                     byos.write(bytes, 0, len);
                 }
                 in.close();
-
-
 
                 if(needSkip){
                     bytes = byos.toByteArray();

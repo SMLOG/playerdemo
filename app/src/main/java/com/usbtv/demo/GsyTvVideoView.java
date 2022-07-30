@@ -12,6 +12,7 @@ import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.video.ListGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
@@ -25,7 +26,7 @@ import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 import tv.danmaku.ijk.media.exo2.ExoSourceManager;
 
-public class GsyTvVideoView extends ListGSYVideoPlayer {
+public class GsyTvVideoView extends StandardGSYVideoPlayer {
     public GsyTvVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
        // PlayerFactory.setPlayManager(Exo2PlayerManager.class);
@@ -33,6 +34,14 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
       //  CacheFactory.setCacheManager(ProxyCacheManager.class);
        // CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
 
+
+
+    }
+
+    @Override
+    public void onError(int what, int extra) {
+        super.onError(what, extra);
+        PlayerController.getInstance().next();
     }
 
     public void setVideoURI(Uri videoUrl, VFile res, int fi) {
@@ -45,7 +54,7 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
         VFile[] files = res.getFolder().getFiles().toArray(new VFile[]{});
         int curIndex = 0;
 
-        List<GSYVideoModel> urls = new ArrayList<>();
+        /*List<GSYVideoModel> urls = new ArrayList<>();
 
         for (int i = curIndex; i < files.length; i++) {
             urls.add(
@@ -53,13 +62,18 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
                             App.getProxyUrl(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + files[i].getId())
 
                             , files[i].getName()));
-        }
+        }*/
 
-        setUp(urls, false, 0);
+        setUp(res.getdLink() != null ? App.getUrl(res.getdLink()) :
+                App.getProxyUrl(SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl?id=" + res.getId()),
+false
+                , res.getName());
 
         setMapHeadData(header);
-        //getStartButton().performClick();
+        prepareVideo();
         startPlayLogic();
+
+
     }
 
     private boolean playing;
@@ -67,7 +81,7 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
     public boolean isPlaying() {
 
         updateHandler.post(() -> {
-            playing = this.isInPlayingState();
+            playing = this.getCurrentState()==CURRENT_STATE_PLAYING;
         });
         return playing;
 
@@ -86,7 +100,7 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
     public long getCurrentPosition() {
 
         updateHandler.post(() -> {
-            currentPosition = super.getPlayPosition();
+            currentPosition = super.getCurrentPositionWhenPlaying();
         });
         return currentPosition;
     }
@@ -95,19 +109,21 @@ public class GsyTvVideoView extends ListGSYVideoPlayer {
         updateHandler.post(() -> {
             super.onVideoPause();
 
-            //super.pauseLogic(null, true);
+           // super.pauseLogic(null, true);
         });
     }
 
     public void start() {
-        updateHandler.post(() -> {
+       /* updateHandler.post(() -> {
             super.onVideoResume();
             // super.startPlayLogic();
-        });
+        });*/
     }
 
     public void resume() {
-        super.onVideoResume();
+        updateHandler.post(() -> {
+            super.onVideoResume();
+        });
     }
 
     public boolean onKeyDown(int keyCode) {
