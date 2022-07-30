@@ -61,6 +61,8 @@ public class MemCacheManager {
 	public static void buildIndexFrom(String index,ArrayList<String> tsUrls) {
 
 		synchronized (indexCacheMap) {
+
+			index= index.split(".m3u8")[0];
 			if(indexCacheMap.get(index)==null)
 				indexCacheMap.put(index, new IndexCache(tsUrls));
 		}
