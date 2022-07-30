@@ -1,63 +1,73 @@
-/*
+package com.usbtv.demo.proxy;/*
  *Copyright © 2022 SMLOG
  *SMLOG
  *https://smlog.github.io
  *All rights reserved.
  */
-package com.usbtv.demo.proxy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import com.usbtv.demo.proxy.IndexCache;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class MemCacheManager {
 
 
 
-	private static final LinkedHashMap<String,IndexCache> indexCacheMap =new LinkedHashMap<String,IndexCache>();
+	private static LinkedHashMap<String,IndexCache> indexCacheMap =new LinkedHashMap<String,IndexCache>();
 
-	public static   CacheItem  curTsUrl(String url) {
+	//private static BlockingQueue queue = new LinkedBlockingDeque<IndexCache>() ;
+
+	public static    CacheItem  curTsUrl(String url) {
 
 		IndexCache cache;
 
 		Iterator<String> it = indexCacheMap.keySet().iterator();
+		CacheItem cacheItem = null;
 		while(it.hasNext()) {
 			String key = it.next();
-			cache = indexCacheMap.get(key);
+			synchronized(indexCacheMap){
+				cache = indexCacheMap.get(key);
+			}
 			int index = cache.belongCache(url);
 			if(index>-1) {
 
-				if(cache.needStartCache(index)) {
-					cache.startDownload();
-					synchronized (cache) {
-						cache.notifyAll();
-					}
-				}
-
-				return cache.waitForReady(index);
+				cacheItem = cache.waitForReady(index);
 
 
 			}else if(cache.canDel()) {
-				cache.stopAllDownload();
-				System.out.println("remove from cache:"+key);
-				it.remove();
-				//indexCacheMap.remove(key);
+				synchronized(indexCacheMap){
+					System.out.println("stop delete cache");
+					cache.stopAllDownload();
+					System.out.println("remove from cache:"+key);
+					it.remove();
+					//indexCacheMap.remove(key);
+				}
+
 			}
 
 
 		}
 
-		return null;
+		return cacheItem;
 
 	}
 
 	public static void buildIndexFrom(String index,ArrayList<String> tsUrls) {
 
 		synchronized (indexCacheMap) {
+
+			index= index.split(".m3u8")[0];
 			if(indexCacheMap.get(index)==null)
 				indexCacheMap.put(index, new IndexCache(tsUrls));
 		}
+
+
 
 
 	}
