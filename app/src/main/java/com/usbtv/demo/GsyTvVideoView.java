@@ -39,6 +39,12 @@ public class GsyTvVideoView extends StandardGSYVideoPlayer {
     }
 
     @Override
+    public void onCompletion() {
+        super.onCompletion();
+        PlayerController.getInstance().next();
+    }
+
+    @Override
     public void onError(int what, int extra) {
         super.onError(what, extra);
         PlayerController.getInstance().next();
