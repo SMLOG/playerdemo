@@ -10,8 +10,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class MemCacheManager {
 
@@ -19,16 +21,21 @@ public class MemCacheManager {
 
 	private static LinkedHashMap<String,IndexCache> indexCacheMap =new LinkedHashMap<String,IndexCache>();
 
-	public static   CacheItem  curTsUrl(String url) {
+	//private static BlockingQueue queue = new LinkedBlockingDeque<IndexCache>() ;
+
+	public static synchronized   CacheItem  curTsUrl(String url) {
 
 		IndexCache cache;
 
 		Iterator<String> it = indexCacheMap.keySet().iterator();
+		CacheItem cacheItem = null;
 		while(it.hasNext()) {
 			String key = it.next();
 			cache = indexCacheMap.get(key);
 			int index = cache.belongCache(url);
 			if(index>-1) {
+
+				cache.accessTime = System.currentTimeMillis();
 
 				if(cache.needStartCache(index)) {
 					cache.startDownload();
@@ -37,10 +44,11 @@ public class MemCacheManager {
 					}
 				}
 
-				return cache.waitForReady(index);
+				cacheItem = cache.waitForReady(index);
 
 
 			}else if(cache.canDel()) {
+				System.out.println("stop delete cache");
 				cache.stopAllDownload();
 				System.out.println("remove from cache:"+key);
 				it.remove();
@@ -50,7 +58,7 @@ public class MemCacheManager {
 
 		}
 
-		return null;
+		return cacheItem;
 
 	}
 
@@ -60,6 +68,8 @@ public class MemCacheManager {
 			if(indexCacheMap.get(index)==null)
 				indexCacheMap.put(index, new IndexCache(tsUrls));
 		}
+
+
 
 
 	}

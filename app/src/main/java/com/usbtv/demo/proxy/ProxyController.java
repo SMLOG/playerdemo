@@ -217,7 +217,8 @@ public class ProxyController {
                 }
 
                 StreamBody responseBody = new StreamBody(new ByteArrayInputStream(item.data), item.data.length, MediaType.parseMediaType(item.contentType));
-
+                item.data=null;
+                item.status=0;
                 response.setBody(responseBody);
                 return responseBody;
 

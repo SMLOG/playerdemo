@@ -34,9 +34,11 @@ public class IndexCache {
 
     private ExecutorService pool;
 
-    private long accessTime;
+    long accessTime;
 
     private int fromDownIndex;
+
+    private int finishId;
 
 
     public IndexCache(ArrayList<String> tsUrls) {
@@ -64,26 +66,26 @@ public class IndexCache {
 
     public CacheItem waitForReady(int reqIndex) {
 
-        this.accessTime = System.currentTimeMillis();
 
         CacheItem item = list.get(reqIndex);
 
-        for (int i = reqIndex - 5; i >= 0; i--) {
-            list.get(i).data = null;
-            list.get(i).status = 0;
-        }
+
         try {
             synchronized (item) {
 
-                System.out.println("req " + reqIndex);
+                System.out.println("req " + reqIndex+" fromDownIndex:"+fromDownIndex +" lastReqIndex:"+lastReqIndex);
+
                 if(Math.abs(reqIndex-this.lastReqIndex)>1)this.fromDownIndex=reqIndex;
                 this.lastReqIndex  = reqIndex;
 
                 if (item.status < 2) {
+
+
                     item.wait();
 
                 }
-                System.out.println("get " + reqIndex);
+                this.finishId=reqIndex;
+                System.out.println("finish " + finishId);
 
             }
         } catch (InterruptedException e) {
@@ -111,6 +113,10 @@ public class IndexCache {
     public void stopAllDownload() {
         this.stop = true;
 
+        synchronized (this) {
+            this.notifyAll();
+            return;
+        }
     }
 
     public synchronized void startDownload() {
@@ -160,8 +166,9 @@ public class IndexCache {
                     return;
                 }
                 synchronized (IndexCache.this) {
-                    if (this.fromDownIndex - lastReqIndex > 30) {
+                    if (this.fromDownIndex - lastReqIndex > 10) {
                         try {
+                            System.out.println("wait...");
                             IndexCache.this.wait();
                         } catch (InterruptedException e) {
                             // TODO Auto-generated catch block
@@ -175,6 +182,7 @@ public class IndexCache {
 
         };
         if (this.pool == null) {
+
             this.pool = Executors.newFixedThreadPool(5);
 
             for (int i = 0; i < 3; i++) {
@@ -234,19 +242,28 @@ public class IndexCache {
                     bytes = byos.toByteArray();
                     byos.reset();
 
-                    for(int i=0;i<bytes.length;i++) {
+                    int beg=-1;
 
-                        if(i<=bytes.length-188 && bytes[i]==0x47 && bytes[i+188]==0x47 ) {
-//
-                            byos.write(bytes, i, 188);
-                            // break;
-                            i+=187;
+                    for(int i=0;i<bytes.length;) {
+
+                        if(bytes[i]==0x47 ) {
+                            if(i<bytes.length-188&&  bytes[i+188]==0x47 || i==bytes.length-188) {
+
+                                if(beg<0) {
+                                    beg=i;
+                                }
+                                byos.write(bytes, i, 188);
+                                i+=188;
+                                continue;
+                            }
+
                         }
-
+                        i++;
 
                     }
 
                 }
+
 
                 bytes = new byte[byos.size()];
                 System.arraycopy(byos.toByteArray(), 0, bytes, 0, bytes.length);
@@ -274,12 +291,11 @@ public class IndexCache {
     }
 
     public boolean canDel() {
-
-        return this.downloadIndex >= list.size()-1 || System.currentTimeMillis() - accessTime > 30 * 1000;
+        return this.finishId >= list.size()-1 || System.currentTimeMillis() - accessTime > 60 * 1000;
     }
 
     public boolean needStartCache(int index) {
-        return !isIndexReady(index)|| this.downloadIndex!=this.list.size()-1 && downloadIndex -index  <30 || stop;
+        return !isIndexReady(index)|| this.finishId!=this.list.size()-1 && downloadIndex -index  <10 || stop;
     }
 
 }
