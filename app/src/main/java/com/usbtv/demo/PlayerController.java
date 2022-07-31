@@ -264,7 +264,9 @@ public final class PlayerController {
             if (catFolerList.size() > 0 && catFolerList.size() > nextPos && nextPos >= 0) {
                 folder = this.getCurCatList().get(nextPos);
                 this.play(folder, nextPos, 0);
-                return folder.getFiles().iterator().next();
+                if(folder.getFiles().size()>0)
+                     return folder.getFiles().iterator().next();
+                folder =null;
             }
             if (folder == null) {
                 Dao<Folder, ?> folderDao = App.getHelper().getDao(Folder.class);
@@ -477,7 +479,7 @@ public final class PlayerController {
 
     public PlayerController setCurIndex(int i) {
         this.curIndex = i;
-        if(this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null && i<this.curItem.getFolder().getFiles().size()){
+        if(this.curItem!=null && this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null && i<this.curItem.getFolder().getFiles().size()){
             this.curItem=this.curItem.getFolder().getFiles().toArray(new VFile[]{})[i];
             storePosition(curItem);
 

@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.yanzhenjie.andserver'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -78,8 +79,15 @@ dependencies {
     //implementation 'com.eclipsesource.j2v8:j2v8_win32_x86_64:2.2.1'
     implementation 'com.eclipsesource.j2v8:j2v8:6.2.0@aar'
     // implementation 'com.google.android.exoplayer:exoplayer:2.13.2'
-     implementation 'com.google.android.exoplayer:exoplayer-ui:2.11.3'
+    // implementation 'com.google.android.exoplayer:exoplayer-ui:2.11.3'
     //implementation 'com.danikula:videocache:2.6.4'
     //完整版引入
-    implementation 'com.shuyu:GSYVideoPlayer:8.1.2'
+   // implementation 'com.shuyu:GSYVideoPlayer:8.3.3'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:8.3.3'
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core-ktx:1.6.0'
+            force 'androidx.core:core:1.6.0'
+        }
+    }
 }
