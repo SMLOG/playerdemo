@@ -229,7 +229,7 @@ export default {
         });
         $(".progress").mouseup(function () {
           tag = false;
-          // my.onProgress(parseInt((my.left / progresswidth) * my.duration));
+           my.onProgress(parseInt((my.left / progresswidth) * my.duration));
         });
 
         $(".progress").mousemove((e) => {

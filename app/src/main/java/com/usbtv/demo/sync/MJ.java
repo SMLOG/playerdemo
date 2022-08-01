@@ -62,7 +62,7 @@ public class MJ {
                 try {
                     Element item = itmes.get(i);
                     Element linke = item.select("a").get(0);
-                    String cat = item.select("a[rel=category]").get(0).text().trim();
+                    String cat = item.select("a[rel=category tag]").get(0).text().trim();
                     String rate = item.select(".entry-rating").text().replaceAll("[^0-9.]+", "");
                     String status = item.select(".entry-status").text().replaceAll("[^0-9.]+", "");
 

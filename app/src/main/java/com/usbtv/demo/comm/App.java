@@ -441,7 +441,7 @@ public class App extends Application{
         loadConfigs();
     }
     public static String getUrl( String link) {
-        if(usingSpeed){
+        if(false){
             return SSLSocketClient.ServerManager.getServerHttpAddress()+"/api/speed.m3u8?url="+ URLEncoder.encode(link);
         }
         return link;

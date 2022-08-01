@@ -189,7 +189,7 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         GSYVideoViewBridge videomManager = getGSYVideoManager();
         if(videomManager instanceof  GSYExoVideoManager)
             ((GSYExoVideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
-        else getGSYVideoManager().prepare(urls.get(mPlayPosition),
+        else if(urls.size()>0) getGSYVideoManager().prepare(urls.get(mPlayPosition),
                 (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData,
                 mLooping,
                 mSpeed,
