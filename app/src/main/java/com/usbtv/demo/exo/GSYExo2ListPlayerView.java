@@ -17,6 +17,7 @@ import com.shuyu.gsyvideoplayer.utils.Debuger;
 import com.shuyu.gsyvideoplayer.video.ListGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoControlView;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
 
@@ -169,6 +170,10 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        prepareDatasources();
+    }
+
+    public void prepareDatasources() {
         mBackUpPlayingBufferState = -1;
 
         //prepare通过list初始化
@@ -183,7 +188,7 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
 
         GSYVideoViewBridge videomManager = getGSYVideoManager();
         if(videomManager instanceof  GSYExoVideoManager)
-        ((GSYExoVideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
+            ((GSYExoVideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
         else getGSYVideoManager().prepare(urls.get(mPlayPosition),
                 (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData,
                 mLooping,
@@ -195,8 +200,71 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         setStateAndUi(CURRENT_STATE_PREPAREING);
     }
 
+    /**
+     * 设置播放显示状态
+     *
+     * @param state
+     */
+    @Override
+    protected void setStateAndUi(int state) {
+        mCurrentState = state;
+        if ((state == CURRENT_STATE_NORMAL && isCurrentMediaListener())
+                || state == CURRENT_STATE_AUTO_COMPLETE || state == CURRENT_STATE_ERROR) {
+            mHadPrepared = false;
+        }
 
-
+        switch (mCurrentState) {
+            case CURRENT_STATE_NORMAL:
+                if (isCurrentMediaListener()) {
+                    Debuger.printfLog(GSYExo2ListPlayerView.this.hashCode() + "------------------------------ dismiss CURRENT_STATE_NORMAL");
+                    cancelProgressTimer();
+                    getGSYVideoManager().releaseMediaPlayer();
+                    releasePauseCover();
+                    mBufferPoint = 0;
+                    mSaveChangeViewTIme = 0;
+                    if (mAudioManager != null) {
+                        mAudioManager.abandonAudioFocus(onAudioFocusChangeListener);
+                    }
+                }
+                releaseNetWorkState();
+                break;
+            case CURRENT_STATE_PREPAREING:
+                resetProgressAndTime();
+                break;
+            case CURRENT_STATE_PLAYING:
+                if (isCurrentMediaListener()) {
+                    Debuger.printfLog(GSYExo2ListPlayerView.this.hashCode() + "------------------------------ CURRENT_STATE_PLAYING");
+                    startProgressTimer();
+                }
+                break;
+            case CURRENT_STATE_PAUSE:
+                Debuger.printfLog(GSYExo2ListPlayerView.this.hashCode() + "------------------------------ CURRENT_STATE_PAUSE");
+                startProgressTimer();
+                break;
+            case CURRENT_STATE_ERROR:
+               /* if (isCurrentMediaListener()) {
+                    getGSYVideoManager().releaseMediaPlayer();
+                }*/
+                break;
+            case CURRENT_STATE_AUTO_COMPLETE:
+                Debuger.printfLog(GSYExo2ListPlayerView.this.hashCode() + "------------------------------ dismiss CURRENT_STATE_AUTO_COMPLETE");
+                cancelProgressTimer();
+                if (mProgressBar != null) {
+                    mProgressBar.setProgress(100);
+                }
+                if (mCurrentTimeTextView != null && mTotalTimeTextView != null) {
+                    mCurrentTimeTextView.setText(mTotalTimeTextView.getText());
+                }
+                if (mBottomProgressBar != null) {
+                    mBottomProgressBar.setProgress(100);
+                }
+                break;
+        }
+        resolveUIState(state);
+        if (mGsyStateUiListener != null) {
+            mGsyStateUiListener.onStateChanged(state);
+        }
+    }
 
     public void setExoCache(boolean exoCache) {
         this.mExoCache = exoCache;
@@ -260,7 +328,7 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         GSYVideoViewBridge videomManager = getGSYVideoManager();
 
         if(videomManager instanceof  GSYExoVideoManager){
-
+            //videomManager.getPlayPosition()
         }else{
             playNext();
         }
@@ -348,7 +416,7 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         GSYVideoViewBridge videomManager = getGSYVideoManager();
 
         if(videomManager instanceof  GSYExoVideoManager){
-          return  ((GSYExoVideoManager) getGSYVideoManager()).next();
+            return  ((GSYExoVideoManager) getGSYVideoManager()).next();
         }
         return super.playNext();
     }

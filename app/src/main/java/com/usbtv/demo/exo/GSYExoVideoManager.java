@@ -19,11 +19,13 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+
 /**
  * Created by guoshuyu on 2018/5/16.
  * 自定义管理器，连接自定义exo view 和 exo player，实现无缝切换效果
  */
-public class GSYExoVideoManager extends GSYVideoBaseManager {
+public class GSYExoVideoManager extends GSYVideoBaseManager{
     public static final int SMALL_ID = com.shuyu.gsyvideoplayer.R.id.small_id;
 
     public static final int FULLSCREEN_ID = com.shuyu.gsyvideoplayer.R.id.full_id;
@@ -113,7 +115,18 @@ public class GSYExoVideoManager extends GSYVideoBaseManager {
         GSYExoVideoManager.instance().releaseMediaPlayer();
     }
 
-
+    @Override
+    public void onCompletion(IMediaPlayer mp) {
+        mainThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                cancelTimeOutBuffer();
+                if (listener() != null) {
+                    listener().onCompletion();
+                }
+            }
+        });
+    }
     /**
      * 暂停播放
      */

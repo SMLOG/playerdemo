@@ -5,10 +5,13 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
@@ -16,9 +19,11 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 
 import java.io.FileDescriptor;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.exo2.ExoSourceManager;
 import tv.danmaku.ijk.media.exo2.IjkExo2MediaPlayer;
 import tv.danmaku.ijk.media.exo2.demo.EventLogger;
 
@@ -39,6 +44,10 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
 
     public GSYExo2MediaPlayer(Context context) {
         super(context);
+        this.mHeaders = new HashMap<>();
+        mHeaders.put("allowCrossProtocolRedirects", "true");
+
+        this.mExoHelper = ExoSourceManager.newInstance(context, this.mHeaders);
     }
 
     @Override
@@ -185,5 +194,13 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
             return 0;
         }
         return mInternalPlayer.getCurrentMediaItemIndex();
+    }
+
+    @Override
+    public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+        super.onMediaItemTransition(mediaItem, reason);
+
+        GSYExoVideoManager.instance().listener().onAutoCompletion();
+
     }
 }

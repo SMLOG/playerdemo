@@ -287,6 +287,8 @@ public class BiLi {
                             //folder.setBvid(bvid);
                         }
 
+                        folder.setBvid(bvid);
+                        folder.setAid(""+aid);
                         folder.setCoverUrl(cover);
                         folder.setTypeId(typeId2);
                         folder.setOrderSeq(orderSeq);
@@ -410,6 +412,8 @@ public class BiLi {
                        folder.setCoverUrl(cover);
                        folder.setTypeId(typeId);
                        folder.setOrderSeq(orderSeq);
+                       folder.setAid(""+aid);
+                       folder.setBvid(bvid);
                        folderDao.create(folder);
 
                       /*  Map<String, Object> infoMap = new HashMap<String, Object>();

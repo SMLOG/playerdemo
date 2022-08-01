@@ -55,6 +55,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -669,7 +670,14 @@ public class IndexController {
         return "forward:/index.html";
     }*/
 
-    @GetMapping(path = "/api/vFileUrl")
+    private Map<Integer,UrlCache> urlCache = new HashMap<Integer,UrlCache>();
+
+    class UrlCache{
+         int id;
+         String url;
+         long accessTime;
+    }
+    @GetMapping(path = "/api/vFileUrl.mp4")
     com.yanzhenjie.andserver.http.ResponseBody vFileUrl(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
@@ -718,17 +726,44 @@ public class IndexController {
         if (vfile.getdLink() != null) {
             url = vfile.getdLink();
         } else {
-            String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
-            if (bvid!=null){
-                com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
 
-                if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                    url = vidoInfo.getString("video");
+            if(urlCache.get(vfile.getId())!=null){
+                UrlCache cache = urlCache.get(vfile.getId());
+                cache.accessTime = System.currentTimeMillis();
+                url = cache.url;
+
+            }else{
+
+                String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
+                if (bvid!=null){
+                    com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+
+                    if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                        url = vidoInfo.getString("video");
+                        UrlCache cache = new UrlCache();
+                        cache.accessTime = System.currentTimeMillis();
+                         cache.url=url;
+                         urlCache.put(vfile.getId(),cache);
+
+                        Iterator<Integer> it = urlCache.keySet().iterator();
+
+                        while(it.hasNext()){
+                            Integer cid =it.next();
+                            if(System.currentTimeMillis() - urlCache.get(cid).accessTime >10*60*1000){
+                                it.remove();
+                                urlCache.remove(cid);
+                            }
+                        }
+
+                    }
                 }
             }
+
         }
 
        // App.cache2Disk(vfile, url);
+
+
 
 
         System.out.println(url);
