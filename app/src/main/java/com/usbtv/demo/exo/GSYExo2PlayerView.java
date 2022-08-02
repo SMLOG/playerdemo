@@ -3,9 +3,7 @@ package com.usbtv.demo.exo;
 import static com.usbtv.demo.exo.GSYExo2MediaPlayer.POSITION_DISCONTINUITY;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -16,7 +14,6 @@ import android.widget.SeekBar;
 
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.utils.Debuger;
-import com.shuyu.gsyvideoplayer.utils.NetworkUtils;
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
@@ -185,8 +182,8 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
         }
 
         GSYVideoViewBridge videomManager = getGSYVideoManager();
-        if(videomManager instanceof  GSYExoVideoManager)
-        ((GSYExoVideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
+        if(videomManager instanceof MyExo2VideoManager)
+        ((MyExo2VideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
         else getGSYVideoManager().prepare(urls.get(0),
                 (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData,
                 mLooping,
@@ -298,28 +295,28 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
 
     @Override
     public GSYVideoViewBridge getGSYVideoManager() {
-        GSYExoVideoManager.instance().initContext(getContext().getApplicationContext());
-        return GSYExoVideoManager.instance();
+        MyExo2VideoManager.instance().initContext(getContext().getApplicationContext());
+        return MyExo2VideoManager.instance();
     }
 
     @Override
     protected boolean backFromFull(Context context) {
-        return GSYExoVideoManager.backFromWindowFull(context);
+        return MyExo2VideoManager.backFromWindowFull(context);
     }
 
     @Override
     protected void releaseVideos() {
-        GSYExoVideoManager.releaseAllVideos();
+        MyExo2VideoManager.releaseAllVideos();
     }
 
     @Override
     protected int getFullId() {
-        return GSYExoVideoManager.FULLSCREEN_ID;
+        return MyExo2VideoManager.FULLSCREEN_ID;
     }
 
     @Override
     protected int getSmallId() {
-        return GSYExoVideoManager.SMALL_ID;
+        return MyExo2VideoManager.SMALL_ID;
     }
 
     @Override

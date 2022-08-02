@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |  Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                     }
-                    startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + i);
+                    //startActivityForResult(intent, DocumentsUtils.OPEN_DOCUMENT_TREE_CODE + i);
                 }
             }
         }
@@ -221,13 +221,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        videoView.resume();
+        videoView.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        videoView.pause();
+        videoView.onPause();
     }
 
     @Override

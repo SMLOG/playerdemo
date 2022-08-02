@@ -7,22 +7,18 @@ import android.os.Looper;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
-import com.shuyu.gsyvideoplayer.GSYVideoBaseManager;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
 import com.shuyu.gsyvideoplayer.utils.Debuger;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
-import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.exo.GSYExo2ListPlayerView;
-import com.usbtv.demo.exo.GSYExo2PlayerView;
-import com.usbtv.demo.exo.GSYExoPlayerManager;
-import com.usbtv.demo.exo.GSYExoVideoManager;
+import com.usbtv.demo.exo.MyExo2PlayerManager;
+import com.usbtv.demo.exo.MyExo2VideoManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +39,7 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
 
         //  CacheFactory.setCacheManager(ProxyCacheManager.class);
         // CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
-        //IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
+        IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 
     }
 
@@ -54,7 +50,7 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
         PlayerController.getInstance().incPlayCount();
         PlayerController.getInstance().setCurIndex(PlayerController.getInstance().getCurIndex()+1);
 
-        if(getGSYVideoManager() instanceof  GSYExoVideoManager){
+        if(getGSYVideoManager() instanceof MyExo2VideoManager){
             mPlayPosition++;
         }else{
             playNext();
@@ -79,9 +75,9 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
 
     @Override
     public GSYVideoViewBridge getGSYVideoManager() {
-        if( PlayerFactory.getPlayManager() instanceof  GSYExoPlayerManager){
-            GSYExoVideoManager.instance().initContext(getContext().getApplicationContext());
-            return GSYExoVideoManager.instance();
+        if( PlayerFactory.getPlayManager() instanceof  MyExo2PlayerManager){
+            MyExo2VideoManager.instance().initContext(getContext().getApplicationContext());
+            return MyExo2VideoManager.instance();
         }else{
             GSYVideoManager.instance().initContext(getContext().getApplicationContext());
             return GSYVideoManager.instance();
@@ -90,21 +86,6 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
     }
 
 
-    /*@Override
-    protected void releaseVideos() {
-        this.releaseCompleted=true;
-
-        if( PlayerFactory.getPlayManager() instanceof  GSYExoPlayerManager){
-            GSYExoVideoManager.releaseAllVideos();
-            GSYExoVideoManager.onPause();
-
-        }else{
-
-            GSYVideoManager.releaseAllVideos();
-
-        }
-
-    }*/
 
     public void setVideoURI(Uri videoUrl, VFile res, int fi) {
 
@@ -116,13 +97,19 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
             // GSYVideoManager.onPause();
             //  GSYExoVideoManager.onPause();
         }else{
-            PlayerFactory.setPlayManager(GSYExoPlayerManager.class);
+            PlayerFactory.setPlayManager(MyExo2PlayerManager.class);
             //  GSYVideoManager.onPause();
 
         }
 
-        //player.setUp(urls,0);
+        setUpUrls(res, fi);
+        releaseCompleted = true;
+        startPlayLogic();
+        releaseCompleted = false;
 
+    }
+
+    private void setUpUrls(VFile res, int fi) {
         Map header = new HashMap<>();
 
         header.put("allowCrossProtocolRedirects", "true");
@@ -143,17 +130,10 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
         }
 
         setMapHeadData(header);
-        // prepareVideo();
-        // GSYExoVideoManager ee = (GSYExoVideoManager) getGSYVideoManager();
 
-        // ee.prepare(urls2,header,0,false,1.0f,false,null,null);
-       // setUp(urls,0);
         setUp(urls, 0, null, header);
-        releaseCompleted = true;
-        startPlayLogic();
-        releaseCompleted = false;
-
     }
+
     @Override
     protected void startButtonLogic() {
         if (mVideoAllCallBack != null && (mCurrentState == CURRENT_STATE_NORMAL
@@ -175,16 +155,14 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
             Debuger.printfLog("onClickStartThumb");
             mVideoAllCallBack.onClickStartThumb(mOriginUrl, mTitle, this);
         }
-        boolean hasPrepare = getGSYVideoManager().listener()!=null;
-        if(!hasPrepare)
-            prepareVideo();
-        else
-        prepareDatasources();
+       // boolean hasPrepare = getGSYVideoManager().listener()
+       // if(!hasPrepare)
+            super.prepareVideo();
+       // else
+      //  prepareDatasources();
 
-        //if(hasPrepare){
-            mHadPrepared=true;
-           // startAfterPrepared();
-             getGSYVideoManager().start();;
+       // mHadPrepared=true;
+        getGSYVideoManager().start();;
 
 
         startDismissControlViewTimer();
@@ -200,12 +178,13 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
         return playing;
 
     }
+    private long seekTime;
     @Override
     public void seekTo(long time) {
-
-        updateHandler.post(() -> {
-            super.seekTo(time);
-        });
+        seekTime = time;
+        updateHandler.postDelayed(() -> {
+            super.seekTo(seekTime);
+        },300);
 
     }
     private Handler updateHandler = new Handler(Looper.getMainLooper());
@@ -226,7 +205,7 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
         return currentPosition;
     }
 
-    public void pause() {
+    public void onPause() {
         updateHandler.post(() -> {
             super.onVideoPause();
 
@@ -235,13 +214,13 @@ public class GsyTvVideoView extends GSYExo2ListPlayerView {
     }
 
     public void start() {
-       resume();
+       onResume();
     }
 
-    public void resume() {
+    public void onResume() {
         updateHandler.post(() -> {
             onVideoResume();
-            startButtonLogic();
+           getGSYVideoManager().start();
         });
     }
 

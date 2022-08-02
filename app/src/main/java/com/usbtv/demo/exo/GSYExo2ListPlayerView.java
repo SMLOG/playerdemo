@@ -15,9 +15,7 @@ import android.widget.SeekBar;
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.utils.Debuger;
 import com.shuyu.gsyvideoplayer.video.ListGSYVideoPlayer;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
-import com.shuyu.gsyvideoplayer.video.base.GSYVideoControlView;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
 
@@ -187,8 +185,8 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
         }
 
         GSYVideoViewBridge videomManager = getGSYVideoManager();
-        if(videomManager instanceof  GSYExoVideoManager)
-            ((GSYExoVideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
+        if(videomManager instanceof MyExo2VideoManager)
+            ((MyExo2VideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
         else if(urls.size()>0) getGSYVideoManager().prepare(urls.get(mPlayPosition),
                 (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData,
                 mLooping,
@@ -327,7 +325,7 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
 
         GSYVideoViewBridge videomManager = getGSYVideoManager();
 
-        if(videomManager instanceof  GSYExoVideoManager){
+        if(videomManager instanceof MyExo2VideoManager){
             //videomManager.getPlayPosition()
         }else{
             playNext();
@@ -373,28 +371,28 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
 
     @Override
     public GSYVideoViewBridge getGSYVideoManager() {
-        GSYExoVideoManager.instance().initContext(getContext().getApplicationContext());
-        return GSYExoVideoManager.instance();
+        MyExo2VideoManager.instance().initContext(getContext().getApplicationContext());
+        return MyExo2VideoManager.instance();
     }
 
     @Override
     protected boolean backFromFull(Context context) {
-        return GSYExoVideoManager.backFromWindowFull(context);
+        return MyExo2VideoManager.backFromWindowFull(context);
     }
 
     @Override
     protected void releaseVideos() {
-        GSYExoVideoManager.releaseAllVideos();
+        MyExo2VideoManager.releaseAllVideos();
     }
 
     @Override
     protected int getFullId() {
-        return GSYExoVideoManager.FULLSCREEN_ID;
+        return MyExo2VideoManager.FULLSCREEN_ID;
     }
 
     @Override
     protected int getSmallId() {
-        return GSYExoVideoManager.SMALL_ID;
+        return MyExo2VideoManager.SMALL_ID;
     }
 
     @Override
@@ -415,8 +413,8 @@ public class GSYExo2ListPlayerView extends ListGSYVideoPlayer {
     public boolean playNext() {
         GSYVideoViewBridge videomManager = getGSYVideoManager();
 
-        if(videomManager instanceof  GSYExoVideoManager){
-            return  ((GSYExoVideoManager) getGSYVideoManager()).next();
+        if(videomManager instanceof MyExo2VideoManager){
+            return  ((MyExo2VideoManager) getGSYVideoManager()).next();
         }
         return super.playNext();
     }

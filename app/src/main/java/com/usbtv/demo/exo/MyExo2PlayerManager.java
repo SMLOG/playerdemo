@@ -20,7 +20,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
  * Created by guoshuyu on 2018/5/16.
  * 自定义player管理器，装载自定义exo player，实现无缝切换效果
  */
-public class GSYExoPlayerManager extends BasePlayerManager {
+public class MyExo2PlayerManager extends BasePlayerManager {
 
     private GSYExo2MediaPlayer mediaPlayer;
 

@@ -200,7 +200,7 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
     public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
         super.onMediaItemTransition(mediaItem, reason);
 
-        GSYExoVideoManager.instance().listener().onAutoCompletion();
+        MyExo2VideoManager.instance().listener().onAutoCompletion();
 
     }
 }

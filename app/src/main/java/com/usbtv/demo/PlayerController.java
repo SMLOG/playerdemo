@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
@@ -21,7 +20,6 @@ import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
-import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -167,7 +165,7 @@ public final class PlayerController {
     }
 
     public void pause() {
-        if (videoView != null) videoView.pause();
+        if (videoView != null) videoView.onPause();
     }
 
     public void start() {
