@@ -16,7 +16,7 @@ import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.exo.GSYExo2ListPlayerView;
+import com.usbtv.demo.exo.MyExo2ListPlayerView;
 import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.exo.MyExo2VideoManager;
 
@@ -28,7 +28,7 @@ import java.util.Map;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
-public class GsyTvVideoView extends GSYExo2ListPlayerView {
+public class GsyTvVideoView extends MyExo2ListPlayerView {
     private boolean releaseCompleted;
 
     public GsyTvVideoView(Context context, AttributeSet attrs) {

@@ -14,7 +14,7 @@ import android.widget.SeekBar;
 
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.utils.Debuger;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.ListGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYBaseVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
@@ -33,24 +33,23 @@ import java.util.Map;
  * 诸如此类，还可以实现AdsMediaSource等
  */
 
-public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
+public class MyExo2ListPlayerView extends ListGSYVideoPlayer {
 
-    protected List<GSYVideoModel> mUriList = new ArrayList<>();
-    protected int mPlayPosition;
+
     protected boolean mExoCache = false;
 
     /**
      * 1.5.0开始加入，如果需要不同布局区分功能，需要重载
      */
-    public GSYExo2PlayerView(Context context, Boolean fullFlag) {
+    public MyExo2ListPlayerView(Context context, Boolean fullFlag) {
         super(context, fullFlag);
     }
 
-    public GSYExo2PlayerView(Context context) {
+    public MyExo2ListPlayerView(Context context) {
         super(context);
     }
 
-    public GSYExo2PlayerView(Context context, AttributeSet attrs) {
+    public MyExo2ListPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -118,8 +117,8 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
     @Override
     protected void cloneParams(GSYBaseVideoPlayer from, GSYBaseVideoPlayer to) {
         super.cloneParams(from, to);
-        GSYExo2PlayerView sf = (GSYExo2PlayerView) from;
-        GSYExo2PlayerView st = (GSYExo2PlayerView) to;
+        MyExo2ListPlayerView sf = (MyExo2ListPlayerView) from;
+        MyExo2ListPlayerView st = (MyExo2ListPlayerView) to;
         st.mPlayPosition = sf.mPlayPosition;
         st.mUriList = sf.mUriList;
         st.mExoCache = sf.mExoCache;
@@ -130,7 +129,7 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
     public GSYBaseVideoPlayer startWindowFullscreen(Context context, boolean actionBar, boolean statusBar) {
         GSYBaseVideoPlayer gsyBaseVideoPlayer = super.startWindowFullscreen(context, actionBar, statusBar);
         if (gsyBaseVideoPlayer != null) {
-            GSYExo2PlayerView GSYExo2PlayerView = (GSYExo2PlayerView) gsyBaseVideoPlayer;
+            MyExo2ListPlayerView GSYExo2PlayerView = (MyExo2ListPlayerView) gsyBaseVideoPlayer;
             GSYVideoModel gsyVideoModel = mUriList.get(mPlayPosition);
             if (!TextUtils.isEmpty(gsyVideoModel.getTitle())) {
                 GSYExo2PlayerView.mTitleTextView.setText(gsyVideoModel.getTitle());
@@ -169,6 +168,10 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        prepareDatasources();
+    }
+
+    public void prepareDatasources() {
         mBackUpPlayingBufferState = -1;
 
         //prepare通过list初始化
@@ -183,8 +186,8 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
 
         GSYVideoViewBridge videomManager = getGSYVideoManager();
         if(videomManager instanceof MyExo2VideoManager)
-        ((MyExo2VideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
-        else getGSYVideoManager().prepare(urls.get(0),
+            ((MyExo2VideoManager) getGSYVideoManager()).prepare(urls, (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData, mPlayPosition, mLooping, mSpeed, mExoCache, mCachePath, mOverrideExtension);
+        else if(urls.size()>0) getGSYVideoManager().prepare(urls.get(mPlayPosition),
                 (mMapHeadData == null) ? new HashMap<String, String>() : mMapHeadData,
                 mLooping,
                 mSpeed,
@@ -195,8 +198,71 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
         setStateAndUi(CURRENT_STATE_PREPAREING);
     }
 
+    /**
+     * 设置播放显示状态
+     *
+     * @param state
+     */
+    @Override
+    protected void setStateAndUi(int state) {
+        mCurrentState = state;
+        if ((state == CURRENT_STATE_NORMAL && isCurrentMediaListener())
+                || state == CURRENT_STATE_AUTO_COMPLETE || state == CURRENT_STATE_ERROR) {
+            mHadPrepared = false;
+        }
 
-
+        switch (mCurrentState) {
+            case CURRENT_STATE_NORMAL:
+                if (isCurrentMediaListener()) {
+                    Debuger.printfLog(MyExo2ListPlayerView.this.hashCode() + "------------------------------ dismiss CURRENT_STATE_NORMAL");
+                    cancelProgressTimer();
+                    getGSYVideoManager().releaseMediaPlayer();
+                    releasePauseCover();
+                    mBufferPoint = 0;
+                    mSaveChangeViewTIme = 0;
+                    if (mAudioManager != null) {
+                        mAudioManager.abandonAudioFocus(onAudioFocusChangeListener);
+                    }
+                }
+                releaseNetWorkState();
+                break;
+            case CURRENT_STATE_PREPAREING:
+                resetProgressAndTime();
+                break;
+            case CURRENT_STATE_PLAYING:
+                if (isCurrentMediaListener()) {
+                    Debuger.printfLog(MyExo2ListPlayerView.this.hashCode() + "------------------------------ CURRENT_STATE_PLAYING");
+                    startProgressTimer();
+                }
+                break;
+            case CURRENT_STATE_PAUSE:
+                Debuger.printfLog(MyExo2ListPlayerView.this.hashCode() + "------------------------------ CURRENT_STATE_PAUSE");
+                startProgressTimer();
+                break;
+            case CURRENT_STATE_ERROR:
+               /* if (isCurrentMediaListener()) {
+                    getGSYVideoManager().releaseMediaPlayer();
+                }*/
+                break;
+            case CURRENT_STATE_AUTO_COMPLETE:
+                Debuger.printfLog(MyExo2ListPlayerView.this.hashCode() + "------------------------------ dismiss CURRENT_STATE_AUTO_COMPLETE");
+                cancelProgressTimer();
+                if (mProgressBar != null) {
+                    mProgressBar.setProgress(100);
+                }
+                if (mCurrentTimeTextView != null && mTotalTimeTextView != null) {
+                    mCurrentTimeTextView.setText(mTotalTimeTextView.getText());
+                }
+                if (mBottomProgressBar != null) {
+                    mBottomProgressBar.setProgress(100);
+                }
+                break;
+        }
+        resolveUIState(state);
+        if (mGsyStateUiListener != null) {
+            mGsyStateUiListener.onStateChanged(state);
+        }
+    }
 
     public void setExoCache(boolean exoCache) {
         this.mExoCache = exoCache;
@@ -256,6 +322,14 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
             Debuger.printfLog("onAutoComplete");
             mVideoAllCallBack.onAutoComplete(mOriginUrl, mTitle, this);
         }
+
+        GSYVideoViewBridge videomManager = getGSYVideoManager();
+
+        if(videomManager instanceof MyExo2VideoManager){
+            //videomManager.getPlayPosition()
+        }else{
+            playNext();
+        }
     }
 
     @Override
@@ -287,6 +361,8 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
         }
 
         releaseNetWorkState();
+
+
     }
 
 
@@ -333,6 +409,15 @@ public class GSYExo2PlayerView extends StandardGSYVideoPlayer {
         }
     }
 
+    @Override
+    public boolean playNext() {
+        GSYVideoViewBridge videomManager = getGSYVideoManager();
+
+        if(videomManager instanceof MyExo2VideoManager){
+            return  ((MyExo2VideoManager) getGSYVideoManager()).next();
+        }
+        return super.playNext();
+    }
 
     public void nextUI() {
         resetProgressAndTime();
