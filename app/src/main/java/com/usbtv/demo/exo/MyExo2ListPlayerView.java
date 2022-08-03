@@ -1,6 +1,6 @@
 package com.usbtv.demo.exo;
 
-import static com.usbtv.demo.exo.GSYExo2MediaPlayer.POSITION_DISCONTINUITY;
+import static com.usbtv.demo.exo.MyExo2MediaPlayer.POSITION_DISCONTINUITY;
 
 import android.app.Activity;
 import android.content.Context;
@@ -398,7 +398,7 @@ public class MyExo2ListPlayerView extends ListGSYVideoPlayer {
     @Override
     public void onInfo(int what, int extra) {
         if (what == POSITION_DISCONTINUITY) {
-            int window = ((GSYExo2MediaPlayer) getGSYVideoManager().getPlayer().getMediaPlayer()).getCurrentWindowIndex();
+            int window = ((MyExo2MediaPlayer) getGSYVideoManager().getPlayer().getMediaPlayer()).getCurrentWindowIndex();
             mPlayPosition = window;
             GSYVideoModel gsyVideoModel = mUriList.get(window);
             if (!TextUtils.isEmpty(gsyVideoModel.getTitle())) {

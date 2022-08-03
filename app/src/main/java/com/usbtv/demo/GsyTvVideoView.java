@@ -1,12 +1,18 @@
 package com.usbtv.demo;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.text.CueGroup;
+import com.google.android.exoplayer2.ui.CaptionStyleCompat;
+import com.google.android.exoplayer2.ui.SubtitleView;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
@@ -17,6 +23,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.exo.MyExo2ListPlayerView;
+import com.usbtv.demo.exo.MyExo2MediaPlayer;
 import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.exo.MyExo2VideoManager;
 
@@ -28,7 +35,7 @@ import java.util.Map;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
-public class GsyTvVideoView extends MyExo2ListPlayerView {
+public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Listener{
     private boolean releaseCompleted;
 
     public GsyTvVideoView(Context context, AttributeSet attrs) {
@@ -42,6 +49,37 @@ public class GsyTvVideoView extends MyExo2ListPlayerView {
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
 
     }
+    private SubtitleView mSubtitleView;
+
+    @Override
+    protected void init(Context context) {
+        super.init(context);
+        mSubtitleView = findViewById(R.id.sub_title_view);
+
+
+        mSubtitleView.setStyle(new CaptionStyleCompat(Color.RED, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_NONE, CaptionStyleCompat.EDGE_TYPE_NONE, null));
+        mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+    }
+    @Override
+    public void onCues(CueGroup cueGroup) {
+        if (mSubtitleView != null) {
+            mSubtitleView.setCues(cueGroup.cues);
+        }
+    }
+    @Override
+    public int getLayoutId() {
+        return R.layout.video_layout_subtitle;
+    }
+
+    @Override
+    public void onPrepared() {
+        super.onPrepared();
+       if( false && getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer){
+           ((MyExo2MediaPlayer) (getGSYVideoManager().getPlayer().getMediaPlayer())).addCutesListener(this);
+       }
+    }
+
+
 
     @Override
     public void onAutoCompletion() {

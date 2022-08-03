@@ -22,7 +22,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
  */
 public class MyExo2PlayerManager extends BasePlayerManager {
 
-    private GSYExo2MediaPlayer mediaPlayer;
+    private MyExo2MediaPlayer mediaPlayer;
 
     private Surface surface;
 
@@ -35,7 +35,7 @@ public class MyExo2PlayerManager extends BasePlayerManager {
 
     @Override
     public void initVideoPlayer(Context context, Message msg, List<VideoOptionModel> optionModelList, ICacheManager cacheManager) {
-        mediaPlayer = new GSYExo2MediaPlayer(context);
+        mediaPlayer = new MyExo2MediaPlayer(context);
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         if (dummySurface == null) {
             dummySurface = PlaceholderSurface.newInstanceV17(context, false);

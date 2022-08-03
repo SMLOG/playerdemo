@@ -1,7 +1,6 @@
 package com.usbtv.demo.exo;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -16,9 +15,10 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.usbtv.demo.GsyTvVideoView;
 
-import java.io.FileDescriptor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +30,7 @@ import tv.danmaku.ijk.media.exo2.demo.EventLogger;
 /**
  * 自定义exo player，实现不同于库的exo 无缝切换效果
  */
-public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
+public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
 
     private static final String TAG = "GSYExo2MediaPlayer";
 
@@ -42,14 +42,18 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
 
     private int playIndex = 0;
 
-    public GSYExo2MediaPlayer(Context context) {
+    public MyExo2MediaPlayer(Context context) {
         super(context);
         this.mHeaders = new HashMap<>();
         mHeaders.put("allowCrossProtocolRedirects", "true");
 
         this.mExoHelper = ExoSourceManager.newInstance(context, this.mHeaders);
     }
-
+    @Override
+    public void onCues(List<Cue> cues) {
+        super.onCues(cues);
+        /// 这里
+    }
     @Override
     public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, @Player.DiscontinuityReason int reason) {
         super.onPositionDiscontinuity(oldPosition, newPosition, reason);
@@ -122,8 +126,8 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
                         .setTrackSelector(mTrackSelector)
                         .setLoadControl(mLoadControl).build();
 
-                    mInternalPlayer.addListener(GSYExo2MediaPlayer.this);
-                    mInternalPlayer.addAnalyticsListener(GSYExo2MediaPlayer.this);
+                    mInternalPlayer.addListener(MyExo2MediaPlayer.this);
+                    mInternalPlayer.addAnalyticsListener(MyExo2MediaPlayer.this);
                     mInternalPlayer.addListener(mEventLogger);
                     if (mSpeedPlaybackParameters != null) {
                         mInternalPlayer.setPlaybackParameters(mSpeedPlaybackParameters);
@@ -178,5 +182,9 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
 
         MyExo2VideoManager.instance().listener().onAutoCompletion();
 
+    }
+
+    public void addCutesListener(Player.Listener lis) {
+        this.mInternalPlayer.addListener(lis);
     }
 }
