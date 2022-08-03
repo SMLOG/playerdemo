@@ -422,4 +422,6 @@ public class MyExo2ListPlayerView extends ListGSYVideoPlayer {
     public void nextUI() {
         resetProgressAndTime();
     }
+
+
 }

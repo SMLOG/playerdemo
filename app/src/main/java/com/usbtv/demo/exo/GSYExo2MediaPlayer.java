@@ -51,30 +51,6 @@ public class GSYExo2MediaPlayer extends IjkExo2MediaPlayer {
     }
 
     @Override
-    @Deprecated
-    public void setDataSource(Context context, Uri uri) {
-        throw new UnsupportedOperationException("Deprecated, try setDataSource(List<String> uris, Map<String, String> headers)");
-    }
-
-    @Override
-    @Deprecated
-    public void setDataSource(Context context, Uri uri, Map<String, String> headers) {
-        throw new UnsupportedOperationException("Deprecated, try setDataSource(List<String> uris, Map<String, String> headers)");
-    }
-
-    @Override
-    @Deprecated
-    public void setDataSource(String path) {
-        throw new UnsupportedOperationException("Deprecated, try setDataSource(List<String> uris, Map<String, String> headers)");
-    }
-
-    @Override
-    @Deprecated
-    public void setDataSource(FileDescriptor fd) {
-        throw new UnsupportedOperationException("Deprecated, try setDataSource(List<String> uris, Map<String, String> headers)");
-    }
-
-    @Override
     public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, @Player.DiscontinuityReason int reason) {
         super.onPositionDiscontinuity(oldPosition, newPosition, reason);
         notifyOnInfo(POSITION_DISCONTINUITY, reason);
