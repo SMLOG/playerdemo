@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.CueGroup;
 import com.google.android.exoplayer2.ui.CaptionStyleCompat;
 import com.google.android.exoplayer2.ui.SubtitleView;
@@ -47,6 +48,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         //  CacheFactory.setCacheManager(ProxyCacheManager.class);
         // CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
+        this.mDismissControlTime = 0;
 
     }
     private SubtitleView mSubtitleView;
@@ -61,10 +63,32 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         //mSubtitleView.setStyle(new CaptionStyleCompat(Color.RED, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_NONE, CaptionStyleCompat.EDGE_TYPE_NONE, null));
        // mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
     }
+
+    private static boolean isAcronym(String word) {
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (Character.isLowerCase(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    int cueCount=0;
     @Override
     public void onCues(CueGroup cueGroup) {
         if (mSubtitleView != null) {
             mSubtitleView.setCues(cueGroup.cues);
+            for(Cue cue:cueGroup.cues){
+               if(cue.text!=null &&
+                       !"".equals(cue.text.toString().trim()) &&
+                       isAcronym(cue.text.toString())){
+                   cueCount++;
+               }else cueCount=0;
+            }
+            if(cueCount>3)
+            mSubtitleView.setVisibility(GONE);
+            else mSubtitleView.setVisibility(VISIBLE);
+
         }
     }
     @Override
@@ -77,7 +101,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         super.onPrepared();
        if(  getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer){
            ((MyExo2MediaPlayer) (getGSYVideoManager().getPlayer().getMediaPlayer())).addCutesListener(this);
-           mSubtitleView.setVisibility(VISIBLE);
+           mSubtitleView.setVisibility(GONE);
        }else{
            mSubtitleView.setVisibility(GONE);
 
