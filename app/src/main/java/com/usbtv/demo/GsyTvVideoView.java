@@ -55,10 +55,11 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     protected void init(Context context) {
         super.init(context);
         mSubtitleView = findViewById(R.id.sub_title_view);
+        mSubtitleView.setUserDefaultStyle();
+        mSubtitleView.setUserDefaultTextSize();
 
-
-        mSubtitleView.setStyle(new CaptionStyleCompat(Color.RED, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_NONE, CaptionStyleCompat.EDGE_TYPE_NONE, null));
-        mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        //mSubtitleView.setStyle(new CaptionStyleCompat(Color.RED, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_NONE, CaptionStyleCompat.EDGE_TYPE_NONE, null));
+       // mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
     }
     @Override
     public void onCues(CueGroup cueGroup) {
@@ -74,8 +75,12 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     @Override
     public void onPrepared() {
         super.onPrepared();
-       if( false && getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer){
+       if(  getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer){
            ((MyExo2MediaPlayer) (getGSYVideoManager().getPlayer().getMediaPlayer())).addCutesListener(this);
+           mSubtitleView.setVisibility(VISIBLE);
+       }else{
+           mSubtitleView.setVisibility(GONE);
+
        }
     }
 
