@@ -180,7 +180,6 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
     public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
         super.onMediaItemTransition(mediaItem, reason);
 
-        MyExo2VideoManager.instance().listener().onAutoCompletion();
 
     }
 

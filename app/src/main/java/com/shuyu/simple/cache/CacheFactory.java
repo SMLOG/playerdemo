@@ -1,7 +1,5 @@
 package com.shuyu.simple.cache;
 
-import com.shuyu.gsyvideoplayer.cache.ICacheManager;
-
 /**
  * 缓存到本地服务工厂
  * Created by guoshuyu on 2018/5/21.

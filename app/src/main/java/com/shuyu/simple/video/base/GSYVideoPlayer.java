@@ -3,7 +3,7 @@ package com.shuyu.simple.video.base;
 import android.content.Context;
 import android.util.AttributeSet;
 
-import com.shuyu.simple.GSYVideoManager;
+import com.shuyu.simple.IPlayerListenerImp;
 
 
 /**
@@ -31,30 +31,21 @@ public abstract class GSYVideoPlayer extends GSYBaseVideoPlayer {
 
     /*******************************下面方法为管理器和播放控件交互的方法****************************************/
 
-    @Override
-    public GSYVideoViewBridge getGSYVideoManager() {
-        GSYVideoManager.instance().initContext(getContext().getApplicationContext());
-        return GSYVideoManager.instance();
-    }
+
 
     @Override
     protected boolean backFromFull(Context context) {
-        return GSYVideoManager.backFromWindowFull(context);
-    }
-
-    @Override
-    protected void releaseVideos() {
-        GSYVideoManager.releaseAllVideos();
+        return false;
     }
 
     @Override
     protected int getFullId() {
-        return GSYVideoManager.FULLSCREEN_ID;
+        return IPlayerListenerImp.FULLSCREEN_ID;
     }
 
     @Override
     protected int getSmallId() {
-        return GSYVideoManager.SMALL_ID;
+        return IPlayerListenerImp.SMALL_ID;
     }
 
 }

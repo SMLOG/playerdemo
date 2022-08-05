@@ -1,33 +1,29 @@
 package com.shuyu.simple.player;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
-import android.os.ParcelFileDescriptor;
-import android.text.TextUtils;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 
-import com.shuyu.gsyvideoplayer.cache.ICacheManager;
-import com.shuyu.gsyvideoplayer.model.GSYModel;
-import com.shuyu.gsyvideoplayer.model.VideoOptionModel;
-import com.shuyu.gsyvideoplayer.player.BasePlayerManager;
+import com.shuyu.simple.model.GSYVideoModel;
+import com.shuyu.simple.model.VideoOptionModel;
 import com.shuyu.simple.utils.Debuger;
 import com.shuyu.simple.utils.GSYVideoType;
-import com.shuyu.simple.utils.RawDataSourceProvider;
-import com.shuyu.simple.utils.StreamDataSourceProvider;
+import com.shuyu.simple.video.base.GSYVideoView;
 
-import java.io.BufferedInputStream;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkLibLoader;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+import tv.danmaku.ijk.media.player.MediaInfo;
+import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
 /**
@@ -35,7 +31,7 @@ import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
  * Created by guoshuyu on 2018/1/11.
  */
 
-public class IjkPlayerManager extends BasePlayerManager {
+public class IjkPlayer extends BasePlayer {
 
     /**
      * log level
@@ -49,15 +45,15 @@ public class IjkPlayerManager extends BasePlayerManager {
     private List<VideoOptionModel> optionModelList;
 
     private Surface surface;
+    private Context context;
 
+    public IjkPlayer(Context context){
 
-    @Override
-    public IMediaPlayer getMediaPlayer() {
-        return mediaPlayer;
+        this.context = context;
+        this.init(context);
     }
 
-    @Override
-    public void initVideoPlayer(Context context, Message msg, List<VideoOptionModel> optionModelList, ICacheManager cacheManager) {
+    private void init(Context context) {
         mediaPlayer = (ijkLibLoader == null) ? new IjkMediaPlayer() : new IjkMediaPlayer(ijkLibLoader);
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setOnNativeInvokeListener(new IjkMediaPlayer.OnNativeInvokeListener() {
@@ -67,12 +63,8 @@ public class IjkPlayerManager extends BasePlayerManager {
             }
         });
 
-        GSYModel gsyModel = (GSYModel) msg.obj;
-        String url = gsyModel.getUrl();
-        BufferedInputStream videoBufferedInputStream = gsyModel.getVideoBufferedInputStream();
 
 
-        try {
             //开启硬解码
             if (GSYVideoType.isMediaCodec()) {
                 Debuger.printfLog("enable mediaCodec");
@@ -81,45 +73,12 @@ public class IjkPlayerManager extends BasePlayerManager {
                 mediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 1);
             }
 
-            if (gsyModel.isCache() && cacheManager != null) {
-                cacheManager.doCacheLogic(context, mediaPlayer, url, gsyModel.getMapHeadData(), gsyModel.getCachePath());
-            } else {
-                if (!TextUtils.isEmpty(url)) {
-                    Uri uri = Uri.parse(url);
-                    if (uri != null && uri.getScheme() != null && (uri.getScheme().equals(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                        || uri.getScheme().equals("assets"))) {
-                        RawDataSourceProvider rawDataSourceProvider = RawDataSourceProvider.create(context, uri);
-                        mediaPlayer.setDataSource(rawDataSourceProvider);
-                    } else if (uri != null && uri.getScheme() != null && uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-                        ParcelFileDescriptor descriptor;
-                        try {
-                            descriptor = context.getContentResolver().openFileDescriptor(uri, "r");
-                            FileDescriptor fileDescriptor = descriptor.getFileDescriptor();
-                            mediaPlayer.setDataSource(fileDescriptor);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        mediaPlayer.setDataSource(url, gsyModel.getMapHeadData());
-                    }
-                } else if (videoBufferedInputStream != null) {
-                    mediaPlayer.setDataSource(new StreamDataSourceProvider(videoBufferedInputStream));
-                } else {
-                    mediaPlayer.setDataSource(url, gsyModel.getMapHeadData());
-                }
-            }
 
-            mediaPlayer.setLooping(gsyModel.isLooping());
-            if (gsyModel.getSpeed() != 1 && gsyModel.getSpeed() > 0) {
-                mediaPlayer.setSpeed(gsyModel.getSpeed());
-            }
+
             mediaPlayer.native_setLogLevel(logLevel);
             initIJKOption(mediaPlayer, optionModelList);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        initSuccess(gsyModel);
+
     }
 
     @Override
@@ -180,6 +139,76 @@ public class IjkPlayerManager extends BasePlayerManager {
     }
 
     @Override
+    public int getAudioSessionId() {
+        return mediaPlayer.getAudioSessionId();
+    }
+
+    @Override
+    public MediaInfo getMediaInfo() {
+        return mediaPlayer.getMediaInfo();
+    }
+
+    @Override
+    public void setLogEnabled(boolean enable) {
+        mediaPlayer.setLogEnabled(enable);
+    }
+
+    @Override
+    public boolean isPlayable() {
+        return mediaPlayer.isPlayable();
+    }
+
+    @Override
+    public void setOnPreparedListener(OnPreparedListener listener) {
+        mediaPlayer.setOnPreparedListener(listener);
+    }
+
+    @Override
+    public void setOnCompletionListener(OnCompletionListener listener) {
+        mediaPlayer.setOnCompletionListener(listener);
+    }
+
+    @Override
+    public void setOnBufferingUpdateListener(OnBufferingUpdateListener listener) {
+        mediaPlayer.setOnBufferingUpdateListener(listener);
+    }
+
+    @Override
+    public void setOnSeekCompleteListener(OnSeekCompleteListener listener) {
+        mediaPlayer.setOnSeekCompleteListener(listener);
+    }
+
+    @Override
+    public void setOnVideoSizeChangedListener(OnVideoSizeChangedListener listener) {
+        mediaPlayer.setOnVideoSizeChangedListener(listener);
+    }
+
+    @Override
+    public void setOnErrorListener(OnErrorListener listener) {
+        mediaPlayer.setOnErrorListener(listener);
+    }
+
+    @Override
+    public void setOnInfoListener(OnInfoListener listener) {
+        mediaPlayer.setOnInfoListener(listener);
+    }
+
+    @Override
+    public void setOnTimedTextListener(OnTimedTextListener listener) {
+        mediaPlayer.setOnTimedTextListener(listener);
+    }
+
+    @Override
+    public void setAudioStreamType(int streamtype) {
+        mediaPlayer.setAudioStreamType(streamtype);
+    }
+
+    @Override
+    public void setKeepInBackground(boolean keepInBackground) {
+        mediaPlayer.setKeepInBackground(keepInBackground);
+    }
+
+    @Override
     public void releaseSurface() {
         if (surface != null) {
             //surface.release();
@@ -193,6 +222,11 @@ public class IjkPlayerManager extends BasePlayerManager {
             mediaPlayer.release();
             mediaPlayer = null;
         }
+    }
+
+    @Override
+    public void reset() {
+        mediaPlayer.reset();
     }
 
     @Override
@@ -217,10 +251,43 @@ public class IjkPlayerManager extends BasePlayerManager {
     }
 
     @Override
+    public void setDisplay(SurfaceHolder sh) {
+        mediaPlayer.setDisplay(sh);
+    }
+
+    @Override
+    public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        mediaPlayer.setDataSource(context,uri);
+    }
+
+    @Override
+    public void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        mediaPlayer.setDataSource(context,uri,headers);
+    }
+
+    @Override
+    public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
+        mediaPlayer.setDataSource(fd);
+    }
+
+    @Override
+    public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        mediaPlayer.setDataSource(path);
+    }
+
+    @Override
+    public String getDataSource() {
+        return mediaPlayer.getDataSource();
+    }
+
+    @Override
+    public void prepareAsync() throws IllegalStateException {
+        mediaPlayer.prepareAsync();
+    }
+
+    @Override
     public void start() {
-        if (mediaPlayer != null) {
             mediaPlayer.start();
-        }
     }
 
     @Override
@@ -238,42 +305,33 @@ public class IjkPlayerManager extends BasePlayerManager {
     }
 
     @Override
+    public void setScreenOnWhilePlaying(boolean screenOn) {
+        mediaPlayer.setScreenOnWhilePlaying(screenOn);
+    }
+
+    @Override
     public int getVideoWidth() {
-        if (mediaPlayer != null) {
             return mediaPlayer.getVideoWidth();
-        }
-        return 0;
     }
 
     @Override
     public int getVideoHeight() {
-        if (mediaPlayer != null) {
             return mediaPlayer.getVideoHeight();
-        }
-        return 0;
     }
 
     @Override
     public boolean isPlaying() {
-        if (mediaPlayer != null) {
             return mediaPlayer.isPlaying();
-        }
-        return false;
     }
 
     @Override
     public void seekTo(long time) {
-        if (mediaPlayer != null) {
             mediaPlayer.seekTo(time);
-        }
     }
 
     @Override
     public long getCurrentPosition() {
-        if (mediaPlayer != null) {
             return mediaPlayer.getCurrentPosition();
-        }
-        return 0;
     }
 
     @Override
@@ -302,6 +360,101 @@ public class IjkPlayerManager extends BasePlayerManager {
 
 
     @Override
+    public void setMediaItems(List<GSYVideoModel> urls, int i) {
+
+        this.mediaItems = urls;
+        if(i>=0 && i<this.mediaItems.size()){
+            this.curMediaIndex = i;
+        }else this.curMediaIndex = 0 ;
+
+        playIndex(this.curMediaIndex);
+
+    }
+
+    private void playIndex(int i){
+
+        GSYVideoModel item = this.mediaItems.get(i);
+        try {
+            setDataSource(context,Uri.parse(item.getUrl()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.curMediaIndex = i;
+    }
+    @Override
+    public boolean next() {
+        if(curMediaIndex < this.getMediaItemCount()-1){
+            playIndex(curMediaIndex+1);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean prev() {
+        return false;
+    }
+
+    @Override
+    public int getCurPlayIndex() {
+        return this.curMediaIndex;
+    }
+
+    @Override
+    public int getMediaItemCount() {
+        return this.mediaItems.size();
+    }
+
+
+
+    @Override
+    public int getCurrentVideoWidth() {
+        return this.mediaPlayer.getVideoWidth();
+    }
+
+    @Override
+    public int getCurrentVideoHeight() {
+        return this.mediaPlayer.getVideoHeight();
+    }
+
+    @Override
+    public void setDisplay(Surface surface) {
+
+        this.mediaPlayer.setSurface(surface);
+    }
+
+    @Override
+    public void releaseSurface(Surface surface) {
+
+    }
+
+    @Override
+    public int getLastState() {
+        return 0;
+    }
+
+    @Override
+    public int getRotateInfoFlag() {
+        return 0;
+    }
+
+    @Override
+    public void setWakeMode(Context context, int mode) {
+        mediaPlayer.setWakeMode(context,mode);
+    }
+
+    @Override
+    public void setLooping(boolean looping) {
+        mediaPlayer.setLooping(looping);
+    }
+
+    @Override
+    public boolean isLooping() {
+        return mediaPlayer.isLooping();
+    }
+
+
+    @Override
     public boolean isSurfaceSupportLockCanvas() {
         return true;
     }
@@ -312,6 +465,16 @@ public class IjkPlayerManager extends BasePlayerManager {
             return mediaPlayer.getTrackInfo();
         }
         return null;
+    }
+
+    @Override
+    public void setSurface(Surface surface) {
+        mediaPlayer.setSurface(surface);
+    }
+
+    @Override
+    public void setDataSource(IMediaDataSource mediaDataSource) {
+        mediaPlayer.setDataSource(mediaDataSource);
     }
 
     public int getSelectedTrack(int trackType) {
@@ -360,7 +523,7 @@ public class IjkPlayerManager extends BasePlayerManager {
     }
 
     public static void setIjkLibLoader(IjkLibLoader ijkLibLoader) {
-        IjkPlayerManager.ijkLibLoader = ijkLibLoader;
+        IjkPlayer.ijkLibLoader = ijkLibLoader;
     }
 
     public static int getLogLevel() {
@@ -368,6 +531,6 @@ public class IjkPlayerManager extends BasePlayerManager {
     }
 
     public static void setLogLevel(int logLevel) {
-        IjkPlayerManager.logLevel = logLevel;
+        IjkPlayer.logLevel = logLevel;
     }
 }

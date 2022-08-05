@@ -8,7 +8,6 @@ import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
 import com.danikula.videocache.file.FileNameGenerator;
 import com.danikula.videocache.file.Md5FileNameGenerator;
-import com.shuyu.gsyvideoplayer.cache.ICacheManager;
 import com.danikula.videocache.StorageUtils;
 import com.shuyu.simple.utils.CommonUtil;
 import com.shuyu.simple.utils.FileUtils;

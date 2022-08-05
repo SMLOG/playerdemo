@@ -19,6 +19,8 @@ import android.widget.TextView;
 
 
 import com.shuyu.gsyvideoplayer.R;
+import com.shuyu.simple.IPlayerListenerImp;
+import com.shuyu.simple.player.IPlayer;
 import com.shuyu.simple.utils.Debuger;
 import com.shuyu.simple.utils.NetworkUtils;
 import com.shuyu.simple.listener.GSYVideoShotListener;
@@ -99,7 +101,7 @@ public class StandardGSYVideoPlayer extends GSYVideoPlayer {
     protected void init(Context context) {
         super.init(context);
 
-
+        this.componetListener =  new IPlayerListenerImp(this);
         //增加自定义ui
 
         if (mBottomProgressDrawable != null) {
@@ -116,6 +118,50 @@ public class StandardGSYVideoPlayer extends GSYVideoPlayer {
 
     }
 
+    private  IPlayer player;
+
+    public void setPlayer(IPlayer player) {
+        if(this.player==player){
+            return;
+        }
+        if(this.player!=null){
+            player.setOnCompletionListener(null);
+            player.setOnBufferingUpdateListener(null);
+            player.setScreenOnWhilePlaying(false);
+            player.setOnPreparedListener(null);
+            player.setOnSeekCompleteListener(null);
+            player.setOnErrorListener(null);
+            player.setOnInfoListener(null);
+            player.setOnVideoSizeChangedListener(null);
+
+            this.player.release();
+        }
+
+        player.setOnCompletionListener(componetListener);
+        player.setOnBufferingUpdateListener(componetListener);
+        player.setScreenOnWhilePlaying(true);
+        player.setOnPreparedListener(componetListener);
+        player.setOnSeekCompleteListener(componetListener);
+        player.setOnErrorListener(componetListener);
+        player.setOnInfoListener(componetListener);
+        player.setOnVideoSizeChangedListener(componetListener);
+
+        this.player = player;
+    }
+    @Override
+    public void onPrepared(){
+        super.onPrepared();
+    }
+    @Override
+    protected void releaseVideos() {
+
+    }
+
+    @Override
+    public IPlayer getIPlayer() {
+        return player;
+    }
+
     /**
      * 继承后重写可替换为你需要的布局
      *
@@ -125,6 +171,7 @@ public class StandardGSYVideoPlayer extends GSYVideoPlayer {
     public int getLayoutId() {
         return R.layout.video_layout_standard;
     }
+
 
     /**
      * 开始播放

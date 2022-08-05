@@ -84,7 +84,10 @@ dependencies {
     //implementation 'com.danikula:videocache:2.6.4'
     //完整版引入
    // implementation 'com.shuyu:GSYVideoPlayer:8.3.3'
-    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:8.3.3'
+    implementation ('com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:8.3.3') {
+        exclude group: "com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-java"
+        exclude group : "com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer-base"
+    }
     configurations.all {
         resolutionStrategy {
             force 'androidx.core:core-ktx:1.6.0'
