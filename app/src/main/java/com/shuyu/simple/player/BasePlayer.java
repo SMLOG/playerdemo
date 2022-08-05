@@ -7,12 +7,14 @@ import com.usbtv.demo.exo.GSYExoModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import tv.danmaku.ijk.media.player.AbstractMediaPlayer;
+
 /**
  * 播放器差异管理接口
  Created by guoshuyu on 2018/1/11.
  */
 
-public abstract class BasePlayer implements IPlayer {
+public abstract class BasePlayer  implements IPlayer {
 
     protected  int curMediaIndex=0;
     protected List<GSYVideoModel> mediaItems = new ArrayList<>();

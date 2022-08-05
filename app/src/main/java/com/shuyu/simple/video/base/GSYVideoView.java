@@ -563,7 +563,7 @@ public abstract class GSYVideoView extends GSYTextureRenderView implements GSYMe
     @Override
     public void onPrepared() {
 
-        if (mCurrentState != CURRENT_STATE_PREPAREING) return;
+       // if (mCurrentState != CURRENT_STATE_PREPAREING) return;
 
         mHadPrepared = true;
 

@@ -318,5 +318,6 @@ public abstract class BaseIPlayerListener implements IPlayerListener {
         player.setOnErrorListener(this);
         player.setOnInfoListener(this);
         player.setOnVideoSizeChangedListener(this);
+        this.player = player;
     }
 }

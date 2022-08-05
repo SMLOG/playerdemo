@@ -131,6 +131,12 @@ public class StandardGSYVideoPlayer extends GSYVideoPlayer {
     public void onPrepared(){
         super.onPrepared();
     }
+
+    @Override
+    public void onPlayNext() {
+
+    }
+
     @Override
     protected void releaseVideos() {
 

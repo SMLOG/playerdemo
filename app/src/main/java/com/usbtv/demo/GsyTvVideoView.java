@@ -12,6 +12,8 @@ import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.CueGroup;
 import com.google.android.exoplayer2.ui.SubtitleView;
 import com.shuyu.simple.model.GSYVideoModel;
+import com.shuyu.simple.player.Exo2Player;
+import com.shuyu.simple.player.IPlayer;
 import com.shuyu.simple.player.IjkPlayer;
 import com.shuyu.simple.video.StandardGSYVideoPlayer;
 import com.usbtv.demo.comm.App;
@@ -29,9 +31,10 @@ public class GsyTvVideoView extends StandardGSYVideoPlayer implements Player.Lis
 
         this.mDismissControlTime = 2000;
 
-        IjkPlayer ijkplayer = new IjkPlayer(context);
+       // IjkPlayer ijkplayer = new IjkPlayer(context);
+        IPlayer exo2Player = new Exo2Player(context);
 
-        setPlayer(ijkplayer);
+        setPlayer(exo2Player);
 
 
     }
