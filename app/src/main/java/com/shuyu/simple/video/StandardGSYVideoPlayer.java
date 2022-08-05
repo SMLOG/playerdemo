@@ -124,28 +124,7 @@ public class StandardGSYVideoPlayer extends GSYVideoPlayer {
         if(this.player==player){
             return;
         }
-        if(this.player!=null){
-            player.setOnCompletionListener(null);
-            player.setOnBufferingUpdateListener(null);
-            player.setScreenOnWhilePlaying(false);
-            player.setOnPreparedListener(null);
-            player.setOnSeekCompleteListener(null);
-            player.setOnErrorListener(null);
-            player.setOnInfoListener(null);
-            player.setOnVideoSizeChangedListener(null);
-
-            this.player.release();
-        }
-
-        player.setOnCompletionListener(componetListener);
-        player.setOnBufferingUpdateListener(componetListener);
-        player.setScreenOnWhilePlaying(true);
-        player.setOnPreparedListener(componetListener);
-        player.setOnSeekCompleteListener(componetListener);
-        player.setOnErrorListener(componetListener);
-        player.setOnInfoListener(componetListener);
-        player.setOnVideoSizeChangedListener(componetListener);
-
+        componetListener.setIPlayer(player);
         this.player = player;
     }
     @Override

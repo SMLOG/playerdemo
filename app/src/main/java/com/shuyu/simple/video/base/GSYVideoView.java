@@ -138,7 +138,7 @@ public abstract class GSYVideoView extends GSYTextureRenderView implements GSYMe
     protected String mOriginUrl;
 
     //转化后的URL
-    protected String mUrl;
+    //protected String mUrl;
 
     //标题
     protected String mTitle;
@@ -485,7 +485,7 @@ public abstract class GSYVideoView extends GSYTextureRenderView implements GSYMe
             (System.currentTimeMillis() - mSaveChangeViewTIme) < CHANGE_DELAY_TIME)
             return false;
         mCurrentState = CURRENT_STATE_NORMAL;
-        this.mUrl = url;
+       // this.mUrl = url;
         this.mTitle = title;
         if (changeState)
             setStateAndUi(CURRENT_STATE_NORMAL);

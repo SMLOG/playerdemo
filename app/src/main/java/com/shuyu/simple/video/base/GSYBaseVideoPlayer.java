@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Handler;
+import android.transition.TransitionManager;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -15,7 +16,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
-import androidx.transition.TransitionManager;
 
 import com.shuyu.gsyvideoplayer.R;
 import com.shuyu.simple.utils.CommonUtil;
@@ -262,7 +262,7 @@ public abstract class GSYBaseVideoPlayer extends GSYVideoControlView {
         to.mNeedOrientationUtils = from.mNeedOrientationUtils;
         if (from.mSetUpLazy) {
             to.setUpLazy(from.mOriginUrl, from.mCache, from.mCachePath, from.mMapHeadData, from.mTitle);
-            to.mUrl = from.mUrl;
+
         } else {
             to.setUp(from.mOriginUrl, from.mCache, from.mCachePath, from.mMapHeadData, from.mTitle);
         }

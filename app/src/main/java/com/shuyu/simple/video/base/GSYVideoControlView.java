@@ -395,11 +395,7 @@ public abstract class GSYVideoControlView extends GSYVideoView implements View.O
             if (!mThumbPlay) {
                 return;
             }
-            if (TextUtils.isEmpty(mUrl)) {
-                Debuger.printfError("********" + getResources().getString(R.string.no_url));
-                //Toast.makeText(getActivityContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
-                return;
-            }
+
             if (mCurrentState == CURRENT_STATE_NORMAL) {
                 if (isShowNetConfirm()) {
                     showWifiDialog();
@@ -853,11 +849,7 @@ public abstract class GSYVideoControlView extends GSYVideoView implements View.O
      * 播放按键点击
      */
     protected void clickStartIcon() {
-        if (TextUtils.isEmpty(mUrl)) {
-            Debuger.printfError("********" + getResources().getString(R.string.no_url));
-            //Toast.makeText(getActivityContext(), getResources().getString(R.string.no_url), Toast.LENGTH_SHORT).show();
-            return;
-        }
+
         if (mCurrentState == CURRENT_STATE_NORMAL || mCurrentState == CURRENT_STATE_ERROR) {
             if (isShowNetConfirm()) {
                 showWifiDialog();
@@ -1150,7 +1142,6 @@ public abstract class GSYVideoControlView extends GSYVideoView implements View.O
         if (
                 (System.currentTimeMillis() - mSaveChangeViewTIme) < CHANGE_DELAY_TIME)
             return false;
-        mUrl = "waiting";
         mCurrentState = CURRENT_STATE_NORMAL;
         return true;
     }

@@ -12,7 +12,6 @@ import com.shuyu.simple.model.GSYVideoModel;
 import com.shuyu.simple.model.VideoOptionModel;
 import com.shuyu.simple.utils.Debuger;
 import com.shuyu.simple.utils.GSYVideoType;
-import com.shuyu.simple.video.base.GSYVideoView;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -25,11 +24,6 @@ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.MediaInfo;
 import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
-
-/**
- * IJKPLayer
- * Created by guoshuyu on 2018/1/11.
- */
 
 public class IjkPlayer extends BasePlayer {
 
@@ -336,26 +330,17 @@ public class IjkPlayer extends BasePlayer {
 
     @Override
     public long getDuration() {
-        if (mediaPlayer != null) {
             return mediaPlayer.getDuration();
-        }
-        return 0;
     }
 
     @Override
     public int getVideoSarNum() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.getVideoSarNum();
-        }
-        return 1;
+        return mediaPlayer.getVideoSarNum();
     }
 
     @Override
     public int getVideoSarDen() {
-        if (mediaPlayer != null) {
-            return mediaPlayer.getVideoSarDen();
-        }
-        return 1;
+        return mediaPlayer.getVideoSarDen();
     }
 
 
@@ -425,7 +410,7 @@ public class IjkPlayer extends BasePlayer {
 
     @Override
     public void releaseSurface(Surface surface) {
-
+        mediaPlayer.setSurface(null);
     }
 
     @Override

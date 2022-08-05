@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.shuyu.simple.cache.ICacheManager;
 import com.shuyu.simple.model.VideoOptionModel;
+import com.shuyu.simple.player.IPlayer;
 import com.shuyu.simple.player.IPlayerInitSuccessListener;
 import com.shuyu.simple.cache.CacheFactory;
 import com.shuyu.simple.utils.Debuger;
@@ -107,40 +108,12 @@ public abstract class BaseIPlayerListener implements IPlayerListener {
      */
     protected boolean needTimeOutOther;
 
-    /**
-     删除默认所有缓存文件
-     */
-    public void clearAllDefaultCache(Context context) {
-        clearDefaultCache(context, null, null);
-    }
 
-    /**
-     清除缓存
-
-     @param cacheDir 缓存目录，为空是使用默认目录
-     @param url      指定url缓存，为空时清除所有
-     */
-    public void clearDefaultCache(Context context, @Nullable File cacheDir, @Nullable String url) {
-        if (cacheManager != null) {
-            cacheManager.clearCache(context, cacheDir, url);
-        } else {
-            if (getCacheManager() != null) {
-                getCacheManager().clearCache(context, cacheDir, url);
-            }
-        }
-    }
 
     protected void init(GSYVideoView videoView) {
         this.videoView = videoView;
         mainThreadHandler = new Handler();
     }
-
-
-
-    protected ICacheManager getCacheManager() {
-        return CacheFactory.getCacheManager();
-    }
-
 
 
     @Override
@@ -157,14 +130,19 @@ public abstract class BaseIPlayerListener implements IPlayerListener {
 
     @Override
     public void onCompletion(IMediaPlayer mp) {
-        mainThreadHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                cancelTimeOutBuffer();
-                videoView.onAutoCompletion();
+        if(!player.next()){
+            mainThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cancelTimeOutBuffer();
+                    videoView.onAutoCompletion();
 
-            }
-        });
+                }
+            });
+        }else{
+            videoView.onPlayNext();
+        }
+
     }
 
     @Override
@@ -317,5 +295,28 @@ public abstract class BaseIPlayerListener implements IPlayerListener {
      */
     public void setPlayerInitSuccessListener(IPlayerInitSuccessListener listener) {
         this.mPlayerInitSuccessListener = listener;
+    }
+
+    protected IPlayer player;
+    public  void setIPlayer(IPlayer player){
+        if(this.player!=null){
+            player.setOnCompletionListener(null);
+            player.setOnBufferingUpdateListener(null);
+            player.setScreenOnWhilePlaying(false);
+            player.setOnPreparedListener(null);
+            player.setOnSeekCompleteListener(null);
+            player.setOnErrorListener(null);
+            player.setOnInfoListener(null);
+            player.setOnVideoSizeChangedListener(null);
+        }
+
+        player.setOnCompletionListener(this);
+        player.setOnBufferingUpdateListener(this);
+        player.setScreenOnWhilePlaying(true);
+        player.setOnPreparedListener(this);
+        player.setOnSeekCompleteListener(this);
+        player.setOnErrorListener(this);
+        player.setOnInfoListener(this);
+        player.setOnVideoSizeChangedListener(this);
     }
 }

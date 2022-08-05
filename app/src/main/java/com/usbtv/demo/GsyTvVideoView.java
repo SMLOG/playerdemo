@@ -27,7 +27,7 @@ public class GsyTvVideoView extends StandardGSYVideoPlayer implements Player.Lis
     public GsyTvVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        this.mDismissControlTime = 0;
+        this.mDismissControlTime = 2000;
 
         IjkPlayer ijkplayer = new IjkPlayer(context);
 
@@ -90,13 +90,19 @@ public class GsyTvVideoView extends StandardGSYVideoPlayer implements Player.Lis
     @Override
     public void onAutoCompletion() {
 
+        PlayerController.getInstance().incPlayCount();
+        PlayerController.getInstance().setCurIndex(PlayerController.getInstance().getCurIndex()+1);
+        mPlayPosition++;
 
+    }
+
+    @Override
+    public void onPlayNext() {
         PlayerController.getInstance().incPlayCount();
         PlayerController.getInstance().setCurIndex(PlayerController.getInstance().getCurIndex()+1);
 
-            mPlayPosition++;
-
     }
+
     @Override
     public void onCompletion() {
         super.onCompletion();

@@ -4,6 +4,7 @@ public interface GSYMediaPlayerListener {
     void onPrepared();
 
     void onAutoCompletion();
+    void onPlayNext();
 
     void onCompletion();
 
