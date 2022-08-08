@@ -396,7 +396,7 @@ public class BiLi {
                    title = title.replaceAll("<.*?>", "");
                    Folder folder;
 
-                   folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", startTypeId).queryForFirst();
+                   folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", typeId).queryForFirst();
 
                    if (folder == null) {
 

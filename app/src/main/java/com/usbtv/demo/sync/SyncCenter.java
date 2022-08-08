@@ -154,13 +154,24 @@ public class SyncCenter {
 
         SharedPreferences.Editor editor = sp.edit();
         Map<String, Integer> map = App.getStoreTypeMap();
-        map.putAll(typesMap);
 
         Iterator<String> it = map.keySet().iterator();
 
+        while(it.hasNext()){
+            String key=it.next();
+            if(typesMap.get(key)!=null && typesMap.get(key).intValue()!= map.get(key).intValue()){
+                it.remove();
+            }
+        }
+
+        map.putAll(typesMap);
+
+         it = map.keySet().iterator();
+
+
         while (it.hasNext()) {
             String cat = it.next();
-            if (!isCatHasItem(map.get(cat))) {
+            if (  !isCatHasItem(map.get(cat))) {
                 it.remove();
             }
         }

@@ -291,6 +291,11 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         });
     }
 
+  public void release(){
+        super.release();
+        super.releaseVideos();
+  }
+
     public boolean onKeyDown(int keyCode) {
         return false;
     }
