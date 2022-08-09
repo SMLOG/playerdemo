@@ -1,8 +1,12 @@
 package com.usbtv.demo.sync;
 
+import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
+
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -18,6 +22,8 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +41,6 @@ public class BiLi {
     private static V8ScriptEngine v8scriptEngine;
 
 
-
     public static String join(String s, List<String> values) {
         StringBuilder sb = new StringBuilder();
         for (String v : values) {
@@ -44,12 +49,12 @@ public class BiLi {
         return sb.toString();
     }
 
-    private static JSONObject getResouceData(String link) throws  IOException {
+    private static JSONObject getResouceData(String link) throws IOException {
 
 
         String resp = Utils.get("http://192.168.0.10:8084/resource?url=" + URLEncoder.encode(link));
         if (resp != null && resp.trim().length() > 0) {
-          return (JSONObject) JSONObject.parseObject(resp);
+            return (JSONObject) JSONObject.parseObject(resp);
 
         }
 
@@ -58,7 +63,7 @@ public class BiLi {
     }
 
     private static JSONObject requestData(V8ScriptEngine scriptEngine, String link, OkHttpClient okHttpClient,
-                                          List<String> cookies, MediaType JSON) throws  IOException {
+                                          List<String> cookies, MediaType JSON) throws IOException {
 
         for (int k = 0; k < 2; k++) {
 
@@ -115,7 +120,7 @@ public class BiLi {
                                                Map<String, String> headerMap, int methodType, RequestBody requestBody) throws IOException {
         Request.Builder builder = new Request.Builder().url(url).addHeader("User-Agent", Utils.AGENT);
         if (headerMap != null) {
-            for(String e:headerMap.keySet()){
+            for (String e : headerMap.keySet()) {
                 builder.addHeader(e, headerMap.get(e));
             }
         }
@@ -138,23 +143,22 @@ public class BiLi {
     }
 
     public static JSONObject getVidoInfo(String bvid, Integer p) {
-        V8ScriptEngine  v8scriptEngine2 = new V8ScriptEngine();
+        V8ScriptEngine v8scriptEngine2 = new V8ScriptEngine();
 
         try {
             //if(v8scriptEngine==null) {
 
-              //  V8ScriptEngine scriptEngine=new V8ScriptEngine();
-                InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
-                InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
+            //  V8ScriptEngine scriptEngine=new V8ScriptEngine();
+            InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
+            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
 
 
-                //scriptEngine.eval(new FileReader(path + "/md5.js"));
+            //scriptEngine.eval(new FileReader(path + "/md5.js"));
 
-                // scriptEngine.eval(new InputStreamReader(fd));
+            // scriptEngine.eval(new InputStreamReader(fd));
             v8scriptEngine2.eval(fd1);
             v8scriptEngine2.eval(fd2);
             //}
-
 
 
             JSONObject info = getVideoInfo(v8scriptEngine2, "https://www.bilibili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
@@ -162,14 +166,14 @@ public class BiLi {
 
             info = info.getJSONObject("data");
             return info;
-          //return   getResouceData("https://www.bi libili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
+            //return   getResouceData("https://www.bi libili.com/video/" + bvid + "?p=" + p + "&spm_id_from=pageDriver");
 
         } catch (Throwable e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             try {
                 if (v8scriptEngine2 != null) v8scriptEngine2.release();
-            }catch (Throwable ee){
+            } catch (Throwable ee) {
                 ee.printStackTrace();
             }
         }
@@ -178,7 +182,7 @@ public class BiLi {
     }
 
 
-    public static JSONObject getVideoInfo(V8ScriptEngine scriptEngine, String link) throws  IOException {
+    public static JSONObject getVideoInfo(V8ScriptEngine scriptEngine, String link) throws IOException {
 
 
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder().connectTimeout(10, TimeUnit.SECONDS)// 设置连接超时时间
@@ -209,12 +213,22 @@ public class BiLi {
 
     }
 
-    public static void bilibiliVideos(RunCron.Period srcPeriod,final int startTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws IOException, SQLException {
+
+    public static void bilibiliVideos(RunCron.Period srcPeriod, final int startTypeId, ArrayList<Integer> housekeepTypeIdList,
+                                      Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao,
+                                      Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap,
+                                      Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
         JSONObject jsonObj = JSONObject.parseObject(resp);
 
 
         JSONArray list = (JSONArray) ((JSONObject) (jsonObj.get("data"))).get("list");
+
+        Collections.sort(list, (l1, l2) -> {
+            JSONObject o1 = (JSONObject) l1;
+            JSONObject o2 = (JSONObject) l2;
+            return o1.getString("title").compareTo(o2.getString("title"));
+        });
 
 
         StringBuilder sbSearch = new StringBuilder();
@@ -222,22 +236,21 @@ public class BiLi {
             JSONObject item = (JSONObject) list.get(i);
 
             String catName = item.getString("title");
-            if(catName.startsWith("@")){
+            if (catName.startsWith("@")) {
 
-                if(catName.startsWith("@@")){
+                if (catName.startsWith("@@")) {
                     sbSearch.append(catName).append("\n");
                 }
                 continue;
             }
 
-            Integer typeId = (Integer) item.get("id");
-            Integer typeId2 = d + startTypeId;
-            housekeepTypeIdList.add(typeId2);
+            Integer btypeId = d + startTypeId;
+            housekeepTypeIdList.add(btypeId);
             Integer media_count = (Integer) item.get("media_count");
 
 
             if (media_count > 0 && catName.indexOf("_") == -1) {
-                typesMap.put(catName, typeId2);
+                typesMap.put(catName, btypeId);
                 d++;
             }
 
@@ -248,72 +261,54 @@ public class BiLi {
             int pn = 1;
 
             do {
-                resp = Utils.get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + typeId + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
+                resp = Utils.get("https://api.bilibili.com/x/v3/fav/resource/list?media_id=" + item.get("id") + "&pn=" + pn + "&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp");
                 jsonObj = JSONObject.parseObject(resp);
                 JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("medias");
 
                 if (medias == null) break;
                 for (int j = 0; j < medias.size(); j++) {
                     JSONObject media = ((JSONObject) medias.get(j));
-                    String title = media.getString("title");
-                    Integer aid = media.getInteger("id");
+                    String folderTitle = media.getString("title");
+                    String aid = "" + media.getInteger("id");
                     String bvid = media.getString("bvid");
                     String cover = media.getString("cover");
                     int pages = media.getInteger("page");
-                    System.out.println(title);
+                    System.out.println(folderTitle);
 
-                    if (title == null || title.indexOf("失效") > -1) continue;
+                    if (folderTitle == null || folderTitle.indexOf("失效") > -1) continue;
 
                     Folder folder;
-                    if (catName.indexOf("_") > -1) {
-                        typeId2 = typesMap.get(catName.split("_")[0]);
-                        folder = folderDao.queryBuilder().where().eq("aid", catName.split("_")[1]).queryForFirst();
-                    } else folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    if (catName.indexOf("_") > -1 && typesMap.get(catName.split("_")[0]) != null) {
+                        btypeId = typesMap.get(catName.split("_")[0]);
+                        aid=folderTitle = catName.split("_")[1];
+                        //aid = catName.split("_")[1];
+                        // folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    }
+
+                    folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
 
                     if (folder == null) {
 
                         folder = new Folder();
 
-                        folder.setJob(srcPeriod.getId());
-                        if (catName.indexOf("_") > -1) {
-                            String name = catName.split("_")[1];
-                            folder.setName(name);
-                            folder.setAid(name);
-
-                        } else {
-                            folder.setName(title);
-                            //folder.setRoot(rootDriv);
-                            //  folder.setAid("" + aid);
-                            //folder.setBvid(bvid);
-                        }
-
-                        folder.setBvid(bvid);
-                        folder.setAid(""+aid);
-                        folder.setCoverUrl(cover);
-                        folder.setTypeId(typeId2);
-                        folder.setOrderSeq(orderSeq);
-                        folderDao.create(folder);
-
-                      /*  Map<String, Object> infoMap = new HashMap<String, Object>();
-                        infoMap.put("Aid", "" + aid);
-                        infoMap.put("Bid", "" + bvid);
-                        infoMap.put("Title", "" + title);
-                        infoMap.put("CoverURL", "" + cover);*/
-
-
-                    } else {
-                        folder.setTypeId(typeId2);
-                        folder.setName(title);
-                        folder.setCoverUrl(cover);
-                        folder.setOrderSeq(orderSeq);
-
-                        folderDao.update(folder);
 
                     }
+
+                    folder.setJob(srcPeriod.getId());
+                    folder.setBvid(bvid);
+                    folder.setAid(aid);
+                    folder.setOrderSeq(orderSeq);
+                    folder.setTypeId(btypeId);
+                    folder.setName(folderTitle);
+                    folder.setCoverUrl(cover);
+
+                    folderDao.createOrUpdate(folder);
+
+
                     orderSeq--;
 
                     validFoldersMap.put(folder.getId(), true);
-                    validAidsMap.put(aid.toString(), true);
+                    validAidsMap.put(aid, true);
 
                     for (int k = 1; k <= pages; k++) {
 
@@ -321,12 +316,12 @@ public class BiLi {
                                 .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
                         if (vfile == null) {
                             vfile = new VFile();
-                            vfile.setFolder(folder);
-                            vfile.setBvid(bvid);
-                            vfile.setAid("" + aid);
-                            vfile.setPage(k);
-                            vfile.setOrderSeq(k);
                         }
+                        vfile.setFolder(folder);
+                        vfile.setBvid(bvid);
+                        vfile.setAid("" + aid);
+                        vfile.setPage(k);
+                        vfile.setOrderSeq(k);
                         vFileDao.createOrUpdate(vfile);
 
                     }
@@ -334,7 +329,10 @@ public class BiLi {
 
                 }
 
-                if (pn * 20 > media_count) break;
+                if (pn * 20 > media_count){
+                    updateScreenTabs(typesMap);
+                    break;
+                }
                 pn++;
 
             } while (true);
@@ -354,113 +352,96 @@ public class BiLi {
 
 
         SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
-       String search =  sp.getString("search","");
-       if(search==null || search.equals(""))return;
-       int iiii=0;
-       for(String line:search.split("\n")){
-           String[] names = line.replaceAll("@@","").split("\\|");
-           String name=names[0];
+        String search = sp.getString("search", "");
+        if (search == null || search.equals("")) return;
+        int iiii = 0;
+        for (String line : search.split("\n")) {
+            String[] names = line.replaceAll("@@", "").split("\\|");
+            String name = names[0];
 
-           for(int e=names.length>1?1:0;e<names.length;e++){
-               String keyword=names[e];
+            for (int e = names.length > 1 ? 1 : 0; e < names.length; e++) {
+                String keyword = names[e];
 
-           int orderSeq = 10000;
+                int orderSeq = 10000;
 
-           int pn = 1;
-           int total = 0;
-           int typeId = ++iiii + startTypeId;
+                int pn = 1;
+                int total = 0;
+                int typeId = ++iiii + startTypeId;
 
-           typesMap.put(name, typeId);
+                typesMap.put(name, typeId);
 
-           housekeepTypeIdList.add(typeId);
-           do {
-               String resp = Utils.get("https://api.bilibili.com/x/web-interface/search/type?page=1&page_size=50&latform=pc&keyword="
-                       // + "%E8%8B%B1%E6%96%87%E5%84%BF%E6%AD%8C"
-                       + URLEncoder.encode(keyword, "UTF-8") +
-                       "&category_id=&search_type=video");
-               JSONObject jsonObj = JSONObject.parseObject(resp);
-               JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("result");
-               total = ((JSONObject) jsonObj.get("data")).getIntValue("numResults");
+                housekeepTypeIdList.add(typeId);
+                do {
+                    String resp = Utils.get("https://api.bilibili.com/x/web-interface/search/type?page=1&page_size=50&latform=pc&keyword="
+                            // + "%E8%8B%B1%E6%96%87%E5%84%BF%E6%AD%8C"
+                            + URLEncoder.encode(keyword, "UTF-8") +
+                            "&category_id=&search_type=video");
+                    JSONObject jsonObj = JSONObject.parseObject(resp);
+                    JSONArray medias = (JSONArray) ((JSONObject) jsonObj.get("data")).get("result");
+                    total = ((JSONObject) jsonObj.get("data")).getIntValue("numResults");
 
-               if (medias == null) break;
-               for (int j = 0; j < medias.size(); j++) {
-                   JSONObject media = ((JSONObject) medias.get(j));
-                   String title = media.getString("title");
-                   Integer aid = media.getInteger("id");
-                   String bvid = media.getString("bvid");
-                   String cover = "http:" + media.getString("pic");
-                   // int pages = media.getInteger("page");
-                   System.out.println(title);
+                    if (medias == null) break;
+                    for (int j = 0; j < medias.size(); j++) {
+                        JSONObject media = ((JSONObject) medias.get(j));
+                        String title = media.getString("title");
+                        Integer aid = media.getInteger("id");
+                        String bvid = media.getString("bvid");
+                        String cover = "http:" + media.getString("pic");
+                        // int pages = media.getInteger("page");
+                        System.out.println(title);
 
-                   if (title == null || title.indexOf("失效") > -1) continue;
-                   title = title.replaceAll("<.*?>", "");
-                   Folder folder;
+                        if (title == null || title.indexOf("失效") > -1) continue;
+                        title = title.replaceAll("<.*?>", "");
+                        Folder folder;
 
-                   folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", typeId).queryForFirst();
+                        folder = folderDao.queryBuilder().where().eq("aid", aid).and().eq("typeId", typeId).queryForFirst();
 
-                   if (folder == null) {
+                        if (folder == null) {
+                            folder = new Folder();
+                        }
+                        folder.setJob(srcPeriod.getId());
 
-                       folder = new Folder();
-                       folder.setJob(srcPeriod.getId());
+                        folder.setName(title);
 
-                       folder.setName(title);
-                       //folder.setRoot(rootDriv);
-                       //  folder.setAid("" + aid);
-                       //folder.setBvid(bvid);
+                        folder.setCoverUrl(cover);
+                        folder.setTypeId(typeId);
+                        folder.setOrderSeq(orderSeq);
+                        folder.setAid("" + aid);
+                        folder.setBvid(bvid);
+                        folderDao.createOrUpdate(folder);
 
+                        orderSeq--;
 
-                       folder.setCoverUrl(cover);
-                       folder.setTypeId(typeId);
-                       folder.setOrderSeq(orderSeq);
-                       folder.setAid(""+aid);
-                       folder.setBvid(bvid);
-                       folderDao.create(folder);
+                        validFoldersMap.put(folder.getId(), true);
+                        validAidsMap.put(aid.toString(), true);
 
-                      /*  Map<String, Object> infoMap = new HashMap<String, Object>();
-                        infoMap.put("Aid", "" + aid);
-                        infoMap.put("Bid", "" + bvid);
-                        infoMap.put("Title", "" + title);
-                        infoMap.put("CoverURL", "" + cover);*/
+                        for (int k = 1; k <= 1; k++) {
 
+                            VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
+                                    .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
+                            if (vfile == null) {
+                                vfile = new VFile();
+                            }
+                            vfile.setFolder(folder);
+                            vfile.setBvid(bvid);
+                            vfile.setAid("" + aid);
+                            vfile.setPage(k);
+                            vfile.setOrderSeq(k);
+                            vFileDao.createOrUpdate(vfile);
 
-                   } else {
-                       folder.setName(title);
-                       folder.setCoverUrl(cover);
-                       folder.setOrderSeq(orderSeq);
-                       folderDao.update(folder);
-                   }
-                   orderSeq--;
-
-                   validFoldersMap.put(folder.getId(), true);
-                   validAidsMap.put(aid.toString(), true);
-
-                   for (int k = 1; k <= 1; k++) {
-
-                       VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
-                               .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
-                       if (vfile == null) {
-                           vfile = new VFile();
-                           vfile.setFolder(folder);
-                           vfile.setBvid(bvid);
-                           vfile.setAid("" + aid);
-                           vfile.setPage(k);
-                           vfile.setOrderSeq(k);
-                       }
-                       vFileDao.createOrUpdate(vfile);
-
-                   }
+                        }
 
 
-               }
+                    }
 
-               if (pn * 50 > total || pn * 50 > 400) break;
-               pn++;
+                    if (pn * 50 > total || pn * 50 > 400) break;
+                    pn++;
 
-           } while (true);
+                } while (true);
 
-           }
+            }
 
-       }
+        }
 
 
     }

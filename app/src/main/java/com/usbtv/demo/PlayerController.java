@@ -10,6 +10,7 @@ import android.view.View;
 import androidx.leanback.widget.HorizontalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.App;
@@ -53,9 +54,17 @@ public final class PlayerController {
     private List<String> cats;
     private int curFocusFolderIndex;
     private int curCatId;
+
+    @JSONField(serialize = false)
     private Map<String, Integer> allTypeMap;
+
+    @JSONField(serialize = false)
     private LinkedHashMap<Integer, String> typeIdMap;
+
+    @JSONField(serialize = false)
     private Folder curFolder;
+
+    @JSONField(serialize = false)
     private VFile[] numFiles;
     private List<Folder> curCatList;
     private RecyclerView qTabRecyclerView;
@@ -69,11 +78,10 @@ public final class PlayerController {
     }
 
 
-
-
     public VFile getCurItem(){
         return this.curItem;
     }
+    @JSONField(serialize = false)
     public List<Folder> getCurCatList() {
         return this.curCatList;
     }
@@ -127,7 +135,7 @@ public final class PlayerController {
         this.numAdapter = numAdapter;
         this.qAdapter=qAdapter;
     }
-
+    @JSONField(serialize = false)
     public List<String> getCats() {
 
         return this.cats;
@@ -626,6 +634,7 @@ public final class PlayerController {
              this.play(this.curItem);
     }
 
+    @JSONField(serialize = false)
     private String[] rates = new String[]{"1080","720","540"};
 
     private int curRateIndex=0;
