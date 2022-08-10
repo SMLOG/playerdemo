@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import moe.codeest.enviews.ENDownloadView;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
@@ -48,7 +49,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         //  CacheFactory.setCacheManager(ProxyCacheManager.class);
         // CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         IjkPlayerManager.setLogLevel(IjkMediaPlayer.IJK_LOG_SILENT);
-        this.mDismissControlTime = 0;
+        this.mDismissControlTime = 200;
 
     }
     private SubtitleView mSubtitleView;
@@ -64,6 +65,22 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
        // mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
     }
 
+    @Override
+    protected void startDismissControlViewTimer() {
+        super.startDismissControlViewTimer();
+        mPostDismiss = false;
+    }
+
+    @Override
+    protected void changeUiToPlayingShow() {
+        super.changeUiToPlayingShow();
+        setViewShowState(mBottomProgressBar, GONE);
+    }
+    @Override
+    protected void hideAllWidget() {
+        super.hideAllWidget();
+        setViewShowState(mBottomProgressBar, GONE);
+    }
     private static boolean isAcronym(String word) {
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
@@ -292,7 +309,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     }
 
   public void release(){
-        super.release();
+       //super.release();
         super.releaseVideos();
   }
 
