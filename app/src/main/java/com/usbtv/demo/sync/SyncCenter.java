@@ -72,7 +72,7 @@ public class SyncCenter {
                 RunCron.addPeriod(new RunCron.Period(arr[k][2], arr[fk][1], 24l * 30 * 3600 * 1000, false) {
                     @Override
                     public void doRun() throws Throwable {
-                        MJ.syncList(this, 500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
+                        MJ2.syncList(this, 500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
                         updateScreenTabs(typesMap);
                     }
                 });
@@ -83,7 +83,7 @@ public class SyncCenter {
             RunCron.addPeriod(new RunCron.Period("dsj", "dsj", 24l * 3600 * 1000, false) {
                 @Override
                 public void doRun() throws Throwable {
-                    MJ.syncFromRecnetlyUpate(this, 500, arr, typesMap, folderDao, vFileDao);
+                    MJ2.syncFromRecnetlyUpate(this, 500, arr, typesMap, folderDao, vFileDao);
                 }
             });
 

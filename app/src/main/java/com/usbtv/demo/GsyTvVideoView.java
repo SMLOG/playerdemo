@@ -149,10 +149,10 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
     @Override
     public void onError(int what, int extra) {
-        super.onError(what, extra);
+        //super.onError(what, extra);
         Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
 
-        if(mPlayPosition<=mUriList.size()-1){
+        if(mPlayPosition<mUriList.size()-1){
             playNext();
         }else PlayerController.getInstance().playNextFolder();
     }
@@ -207,7 +207,12 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
         for (int i = curIndex; i < files.length; i++) {
             urls.add(
-                    new GSYVideoModel(files[i].getdLink() != null ? App.getUrl(files[i].getdLink()) :
+
+                    new GSYVideoModel(
+                            res.getFolder().getTypeId()>=500&& res.getFolder().getTypeId()<600?
+                                    SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId()  :
+                            files[i].getdLink() != null ? App.getUrl(files[i].getdLink()) :
+
                             (SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.mp4?id=" + files[i].getId())
 
                             , files[i].getName()));

@@ -49,6 +49,7 @@ public class VFile {
 
     private int type;
 
+
     public VFile() {
     }
 

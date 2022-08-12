@@ -17,6 +17,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.sync.BiLi;
+import com.usbtv.demo.sync.MJ2;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
@@ -51,6 +52,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -677,8 +679,13 @@ public class IndexController {
          String url;
          long accessTime;
     }
-    @GetMapping(path = "/api/vFileUrl.mp4")
-    com.yanzhenjie.andserver.http.ResponseBody vFileUrl(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
+
+    @GetMapping(path = "/api/vFileUrl.m3u8")
+    com.yanzhenjie.andserver.http.ResponseBody vFileM3u8(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException, URISyntaxException {
+        return this.vFileUrl(request,id,response);
+    }
+        @GetMapping(path = "/api/vFileUrl.mp4")
+    com.yanzhenjie.andserver.http.ResponseBody vFileUrl(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException, URISyntaxException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
@@ -725,39 +732,53 @@ public class IndexController {
 
         if (vfile.getdLink() != null) {
             url = vfile.getdLink();
+
         } else {
 
-            if(urlCache.get(vfile.getId())!=null){
-                UrlCache cache = urlCache.get(vfile.getId());
-                cache.accessTime = System.currentTimeMillis();
-                url = cache.url;
+            int typeId = vfile.getFolder().getTypeId();
+            if(typeId>=500 && typeId<600){
+                MJ2.updateVfileLink(vfile);
+                url =  vfile.getdLink();
+                dao.createOrUpdate(vfile);
+                response.setHeader("Content-Type", "audio/x-mpegurl");
 
+                response.sendRedirect(url);
+                return null;
             }else{
+                if(urlCache.get(vfile.getId())!=null){
+                    UrlCache cache = urlCache.get(vfile.getId());
+                    cache.accessTime = System.currentTimeMillis();
+                    url = cache.url;
 
-                String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
-                if (bvid!=null){
-                    com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+                }else{
 
-                    if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                        url = vidoInfo.getString("video");
-                        UrlCache cache = new UrlCache();
-                        cache.accessTime = System.currentTimeMillis();
-                         cache.url=url;
-                         urlCache.put(vfile.getId(),cache);
+                    String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
+                    if (bvid!=null){
+                        com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
 
-                        Iterator<Integer> it = urlCache.keySet().iterator();
+                        if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                            url = vidoInfo.getString("video");
+                            UrlCache cache = new UrlCache();
+                            cache.accessTime = System.currentTimeMillis();
+                            cache.url=url;
+                            urlCache.put(vfile.getId(),cache);
 
-                        while(it.hasNext()){
-                            Integer cid =it.next();
-                            if(System.currentTimeMillis() - urlCache.get(cid).accessTime >10*60*1000){
-                                it.remove();
-                                urlCache.remove(cid);
+                            Iterator<Integer> it = urlCache.keySet().iterator();
+
+                            while(it.hasNext()){
+                                Integer cid =it.next();
+                                if(System.currentTimeMillis() - urlCache.get(cid).accessTime >10*60*1000){
+                                    it.remove();
+                                    urlCache.remove(cid);
+                                }
                             }
-                        }
 
+                        }
                     }
                 }
             }
+
+
 
         }
 
@@ -767,6 +788,11 @@ public class IndexController {
 
 
         System.out.println(url);
+        if(url.indexOf(".m3u8")>-1){
+
+            response.setHeader("Content-Type", "audio/x-mpegurl");
+
+        }else
         response.setHeader("Content-Type", "video/mp4");
 
         response.sendRedirect(url);
