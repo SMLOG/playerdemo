@@ -7,15 +7,18 @@ import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.data.Video;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -23,7 +26,9 @@ import java.util.regex.Pattern;
 
 public class CnnSync {
 
-    public static void cnnVideos(RunCron.Period srcPeriod,int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
+    public static void cnnVideos(RunCron.Period srcPeriod,int cnnStartTypeId, ArrayList<Integer> housekeepTypeIdList,
+                                  Dao<Folder, Integer> folderDao,
+                                 Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> keepFoldersMap) throws IOException, SQLException {
         int channelId = cnnStartTypeId;
         //int typeId = cnnStartTypeId + 1;
 
@@ -42,7 +47,8 @@ public class CnnSync {
 
         Dao<Video, Integer> videoDao = App.getHelper().getDao(Video.class);
         Pattern pattern = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
-        int keepdate = Integer.parseInt(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")))-7;
+
+        int keepdate = Integer.parseInt(new SimpleDateFormat("yyyyMMdd").format(new Date()))-7;
 
         for (String feedUrl : urls) {
 
@@ -157,7 +163,14 @@ public class CnnSync {
         }
        // typesMap.put("CNN2", typeId);
 
-        typesMap.put("CNN", channelId);
+
+        CatType type = new CatType();
+        type.setStatus("A");
+        type.setJob(srcPeriod.getId());
+        type.setTypeId(channelId);
+        type.setName("CNN");
+        App.getCatTypeDao().createOrUpdate(type);
+
        // housekeepTypeIdList.add(channelId);
         List<Folder> dels = folderDao.queryBuilder().where().eq("typeId", channelId).and().lt("orderSeq", keepdate).query();
         if(dels.size()>0)folderDao.delete(dels);

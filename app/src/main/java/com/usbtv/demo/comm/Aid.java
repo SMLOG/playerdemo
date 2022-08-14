@@ -3,6 +3,7 @@ package com.usbtv.demo.comm;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -75,7 +76,8 @@ public class Aid {
     }
 
 
-    public static void scanAllDrive(RunCron.Period period, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
+    public static void scanAllDrive(RunCron.Period period, ArrayList<Integer> housekeepTypeIdList,
+                                    Map<Integer, Boolean> validFoldersMap, Map<String, Boolean> validAidsMap) throws Exception {
 
         for (Drive root : Utils.getSysAllDriveList()) {
 
@@ -90,7 +92,14 @@ public class Aid {
 
             App.getHelper().getDao(Drive.class).createOrUpdate(root);
 
-            typesMap.put("Local", 10);
+
+            CatType catType = new CatType();
+            catType.setStatus("A");
+            catType.setJob(period.getId());
+            catType.setName("Local");
+            catType.setTypeId(10);
+            App.getCatTypeDao().createOrUpdate(catType);
+
             housekeepTypeIdList.add(0);
             for (File aidDir : aidDirs) {
                 scanFolder(period,10, root, aidDir, validFoldersMap, validAidsMap);

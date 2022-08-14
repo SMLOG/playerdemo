@@ -14,6 +14,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
@@ -215,7 +216,7 @@ public class BiLi {
 
 
     public static void bilibiliVideos(RunCron.Period srcPeriod, final int startTypeId, ArrayList<Integer> housekeepTypeIdList,
-                                      Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao,
+                                      Dao<Folder, Integer> folderDao,
                                       Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap,
                                       Map<String, Boolean> validAidsMap) throws IOException, SQLException {
         String resp = Utils.get("https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=358543891&jsonp=jsonp");
@@ -250,7 +251,13 @@ public class BiLi {
 
 
             if (media_count > 0 && catName.indexOf("_") == -1) {
-                typesMap.put(catName, btypeId);
+                CatType catType = new CatType();
+                catType.setStatus("A");
+                catType.setJob(srcPeriod.getId());
+                catType.setName(catName);
+                catType.setTypeId(btypeId);
+                App.getCatTypeDao().createOrUpdate(catType);
+               // typesMap.put(catName, btypeId);
                 d++;
             }
 
@@ -278,11 +285,14 @@ public class BiLi {
                     if (folderTitle == null || folderTitle.indexOf("失效") > -1) continue;
 
                     Folder folder;
-                    if (catName.indexOf("_") > -1 && typesMap.get(catName.split("_")[0]) != null) {
-                        btypeId = typesMap.get(catName.split("_")[0]);
-                        aid=folderTitle = catName.split("_")[1];
-                        //aid = catName.split("_")[1];
-                        // folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
+                    if (catName.indexOf("_") > -1 ) {
+                        CatType catType = App.getCatTypeDao().queryBuilder().where().eq("name", catName.split("_")[0]).queryForFirst();
+                        if(catType!=null){
+
+                            btypeId = catType.getTypeId();
+                            aid=folderTitle = catName.split("_")[1];
+                        }
+
                     }
 
                     folder = folderDao.queryBuilder().where().eq("aid", aid).queryForFirst();
@@ -330,7 +340,7 @@ public class BiLi {
                 }
 
                 if (pn * 20 > media_count){
-                    updateScreenTabs(typesMap);
+                    updateScreenTabs();
                     break;
                 }
                 pn++;
@@ -346,7 +356,7 @@ public class BiLi {
     }
 
     public static void bilibiliVideosSearchByKeyWord(RunCron.Period srcPeriod, final int startTypeId, ArrayList<Integer> housekeepTypeIdList,
-                                                     Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao,
+                                                     Dao<Folder, Integer> folderDao,
                                                      Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap,
                                                      Map<String, Boolean> validAidsMap) throws IOException, SQLException {
 
@@ -368,7 +378,12 @@ public class BiLi {
                 int total = 0;
                 int typeId = ++iiii + startTypeId;
 
-                typesMap.put(name, typeId);
+                CatType catType = new CatType();
+                catType.setStatus("A");
+                catType.setJob(srcPeriod.getId());
+                catType.setName(name);
+                catType.setTypeId(typeId);
+                App.getCatTypeDao().createOrUpdate(catType);
 
                 housekeepTypeIdList.add(typeId);
                 do {

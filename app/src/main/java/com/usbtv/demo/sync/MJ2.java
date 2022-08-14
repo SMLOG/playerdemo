@@ -6,8 +6,10 @@ import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
 import androidx.annotation.Nullable;
 
 import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.news.BtoAAtoB;
@@ -30,7 +32,10 @@ import java.util.Map;
 
 public class MJ2 {
 
-    public static void syncFromRecnetlyUpate(RunCron.Period srcPeriod,int startTypeId, String[][] arr, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
+    public static boolean stop;
+
+    public static void syncFromRecnetlyUpate(RunCron.Period srcPeriod, int startTypeId, String[][] arr,
+                                             Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
 
         Map<String,Integer> strIdMap = new HashMap<>();
         Map<String,String> strTaskIdMap = new HashMap<>();
@@ -119,11 +124,19 @@ public class MJ2 {
     }
 
 
-    public static void syncList(RunCron.Period srcPeriod, int startTypeId, String tag, String chName, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
+    public static void syncList(RunCron.Period srcPeriod, int startTypeId, String tag, String chName,
+                                Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) throws IOException, ParseException, InterruptedException, URISyntaxException, SQLException {
 
         String next = "https://www.kanju5.com/category/"+tag;
         Document doc;
-        typesMap.put(chName,startTypeId);
+        CatType catType = new CatType();
+        catType.setName(chName);
+        catType.setTypeId(startTypeId);
+        catType.setStatus("A");
+        catType.setJob(srcPeriod.getId());
+
+        App.getCatTypeDao().createOrUpdate(catType);
+        //typesMap.put(chName,startTypeId);
         boolean isFirstUpdate=false;
         while(!next.equals("")) {
             System.out.println(next);
@@ -134,6 +147,11 @@ public class MJ2 {
                 next = nextLink.get(0).absUrl("href");
             else
                 next = "";
+            
+            if(MJ2.stop){
+                stop=false;
+                return;
+            }
 
             for (int i = 0; i < itmes.size(); i++) {
 
@@ -192,7 +210,7 @@ public class MJ2 {
 
             }
 
-            if(isFirstUpdate) updateScreenTabs(typesMap);
+            if(isFirstUpdate) updateScreenTabs();
 
         }
 
@@ -231,6 +249,7 @@ public class MJ2 {
         String watchUrl = urls.get(vfile.getPage());
 
         String m3u8 = getM3u8LinkFromWatchUrl(watchUrl);
+        if(m3u8!=null&&m3u8.contains(""))m3u8=m3u8.replace("new.qqaku.com","new.iskcd.com");
         vfile.setdLink(m3u8);
 
     }

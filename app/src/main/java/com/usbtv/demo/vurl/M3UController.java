@@ -57,9 +57,8 @@ public class M3UController {
                 vFileDao.create(vfile);
             }
         }
-        Map<String, Integer> typesMap = new LinkedHashMap<>();
-        typesMap.put("Manual",1);
-        SyncCenter.updateScreenTabs(typesMap);
+
+        SyncCenter.updateScreenTabs();
         PlayerController.getInstance().play(folder,0);
         return "OK";
     }

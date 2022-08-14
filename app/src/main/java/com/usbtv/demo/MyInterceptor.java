@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.proxy.CacheItem;
@@ -137,9 +138,14 @@ public class MyInterceptor implements ExceptionResolver {
             vfile.setFolder(folder);
             vFileDao.create(vfile);
         }
-        Map<String, Integer> typesMap = new LinkedHashMap<>();
-        typesMap.put("Manual", 1);
-        SyncCenter.updateScreenTabs(typesMap);
+
+        CatType catType = new CatType();
+        catType.setStatus("A");
+        catType.setName("Manual");
+        catType.setTypeId(1);
+        App.getCatTypeDao().createOrUpdate(catType);
+
+        SyncCenter.updateScreenTabs();
         PlayerController.getInstance().play(folder, 0);
         return "OK";
     }

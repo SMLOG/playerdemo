@@ -14,6 +14,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.comm.App;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
@@ -23,6 +24,7 @@ import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,14 +53,14 @@ public final class PlayerController {
     private FolderCatsListRecycleViewAdapter catsAdaper;
     private FolderListAdapter foldersAdapter;
     private FolderNumListRecycleViewAdapter numAdapter;
-    private List<String> cats;
+    //private List<String> cats;
     private int curFocusFolderIndex;
     private int curCatId;
 
     @JSONField(serialize = false)
     private Map<String, Integer> allTypeMap;
 
-    @JSONField(serialize = false)
+    //@JSONField(serialize = false)
     private LinkedHashMap<Integer, String> typeIdMap;
 
     @JSONField(serialize = false)
@@ -72,6 +74,7 @@ public final class PlayerController {
     private RecyclerView foldersRecyclerView;
     private Timer timerCat =new Timer();
     private Timer timer2 = new Timer();
+    private List<CatType> cats;
 
 
     private PlayerController() {
@@ -110,16 +113,25 @@ public final class PlayerController {
 
     public synchronized void refreshCats() {
 
-        this.cats = new ArrayList<String>();
-        Map<String, Integer> allMap = App.getInstance().getStoreTypeMap();
-        this.allTypeMap = new LinkedHashMap<>();
-        this.typeIdMap = new LinkedHashMap<>();
-        for (String key : allMap.keySet()) {
-            Integer value = allMap.get(key);
-                this.cats.add(key);
-                allTypeMap.put(key, value);
-                typeIdMap.put(value, key);
+        try {
+            CatType fav = new CatType();
+            fav.setTypeId(0);
+            fav.setName("Fav");
+            fav.setStatus("A");
+            fav.setOrderSeq(0);
+            App.getCatTypeDao().createOrUpdate(fav);
 
+            this.cats = App.getCatTypeDao().queryBuilder().orderBy("orderSeq",true).where().eq("status","A").query();
+
+            allTypeMap = new LinkedHashMap<>();
+            typeIdMap = new LinkedHashMap<>();
+            for(CatType cat:cats){
+                allTypeMap.put(cat.getName(),cat.getTypeId());
+                typeIdMap.put(cat.getTypeId(),cat.getName());
+            }
+
+        }catch (Throwable e){
+            e.printStackTrace();
         }
 
 
@@ -136,7 +148,8 @@ public final class PlayerController {
         this.qAdapter=qAdapter;
     }
     @JSONField(serialize = false)
-    public List<String> getCats() {
+    public List<CatType> getCats() {
+
 
         return this.cats;
 

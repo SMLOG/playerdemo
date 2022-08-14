@@ -17,6 +17,7 @@ import com.danikula.videocache.HttpProxyCacheServer;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.PlayerController;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -470,4 +471,42 @@ public class App extends Application{
         return url;
 
     }
+
+    private static Dao<Folder, Integer> folderDao = null;
+    private static Dao<VFile, Integer> vFileDao = null;
+    private static Dao<CatType,Integer> catTypeDao =null;
+
+    public static Dao<Folder, Integer> getFolderDao(){
+        if (folderDao == null) {
+            try {
+                folderDao = App.getHelper().getDao(Folder.class);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return folderDao;
+
+    }
+    public static Dao<VFile, Integer> getVFileDao(){
+            try {
+                if (vFileDao == null) vFileDao = App.getHelper().getDao(VFile.class);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        return vFileDao;
+
+    }
+
+    public static Dao<CatType, Integer> getCatTypeDao(){
+        try {
+            if (catTypeDao == null) catTypeDao = App.getHelper().getDao(CatType.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return catTypeDao;
+
+    }
+
 }

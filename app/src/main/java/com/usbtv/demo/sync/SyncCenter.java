@@ -14,6 +14,7 @@ import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.RunCron;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
@@ -25,30 +26,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class SyncCenter {
 
-    private static Dao<Folder, Integer> folderDao = null;
-    private static Dao<VFile, Integer> vFileDao = null;
+
     public static  void syncData(String id) throws SQLException {
 
-        if (folderDao == null) folderDao = App.getHelper().getDao(Folder.class);
 
-        if (vFileDao == null) vFileDao = App.getHelper().getDao(VFile.class);
 
         Map<Integer, Boolean> keepFoldersMap = new HashMap<Integer, Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String, Boolean>();
-        Map<String, Integer> typesMap = new LinkedHashMap<>();
+       // Map<String, Integer> typesMap = new LinkedHashMap<>();
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
+
+        Dao<CatType, Integer> catTypeDao = App.getCatTypeDao();
+        Dao<Folder, Integer> folderDao = App.getFolderDao();
+        Dao<VFile, Integer> vFileDao = App.getVFileDao();
 
         if (RunCron.peroidMap.size()==0) {
 
             RunCron.addPeriod(new RunCron.Period("cnn", "cnn", 12l * 3600 * 1000, false) {
                 @Override
                 public void doRun() throws Throwable {
-                    CnnSync.cnnVideos(this, 400, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
-                    updateScreenTabs(typesMap);
-
+                    CnnSync.cnnVideos(this, 400, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
+                    updateScreenTabs();
                 }
 
             });
@@ -72,8 +74,8 @@ public class SyncCenter {
                 RunCron.addPeriod(new RunCron.Period(arr[k][2], arr[fk][1], 24l * 30 * 3600 * 1000, false) {
                     @Override
                     public void doRun() throws Throwable {
-                        MJ2.syncList(this, 500 + fk, arr[fk][0], arr[fk][1], typesMap, folderDao, vFileDao);
-                        updateScreenTabs(typesMap);
+                        MJ2.syncList(this, 500 + fk, arr[fk][0], arr[fk][1], folderDao, vFileDao);
+                        updateScreenTabs();
                     }
                 });
 
@@ -83,40 +85,40 @@ public class SyncCenter {
             RunCron.addPeriod(new RunCron.Period("dsj", "dsj", 24l * 3600 * 1000, false) {
                 @Override
                 public void doRun() throws Throwable {
-                    MJ2.syncFromRecnetlyUpate(this, 500, arr, typesMap, folderDao, vFileDao);
+                    MJ2.syncFromRecnetlyUpate(this, 500, arr, folderDao, vFileDao);
                 }
             });
 
             RunCron.addPeriod(new RunCron.Period("bili", "bili", 3l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
-                    BiLi.bilibiliVideos(this, 100, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap);
-                    updateScreenTabs(typesMap);
+                    BiLi.bilibiliVideos(this, 100, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, validAidsMap);
+                    updateScreenTabs();
                 }
             });
 
             RunCron.addPeriod(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
-                    BiLi.bilibiliVideosSearchByKeyWord(this, 200, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap, validAidsMap
+                    BiLi.bilibiliVideosSearchByKeyWord(this, 200, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, validAidsMap
                     );
-                    updateScreenTabs(typesMap);
+                    updateScreenTabs();
                 }
             });
 
             RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
-                    TV.liveStream(this, 300, housekeepTypeIdList, typesMap, folderDao, vFileDao, keepFoldersMap);
-                    updateScreenTabs(typesMap);
+                    TV.liveStream(this, 300, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
+                    updateScreenTabs();
                 }
             });
 
             RunCron.addPeriod(new RunCron.Period("local", "local", 0, true) {
                 @Override
                 public void doRun() throws Throwable {
-                    Aid.scanAllDrive(this, housekeepTypeIdList, typesMap, keepFoldersMap, validAidsMap);
-                    updateScreenTabs(typesMap);
+                    Aid.scanAllDrive(this, housekeepTypeIdList,  keepFoldersMap, validAidsMap);
+                    updateScreenTabs();
                 }
             });
         }
@@ -139,7 +141,7 @@ public class SyncCenter {
         }
 
 
-        updateScreenTabs(typesMap);
+        updateScreenTabs();
 
         /*new Thread(new Runnable() {
             @Override
@@ -149,8 +151,8 @@ public class SyncCenter {
         }).start();*/
     }
 
-    public static void updateScreenTabs(Map<String, Integer> typesMap) {
-        SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
+    public static void updateScreenTabs() {
+        /*SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         SharedPreferences.Editor editor = sp.edit();
         Map<String, Integer> map = App.getStoreTypeMap();
@@ -179,7 +181,7 @@ public class SyncCenter {
         String jsonStr = JSON.toJSONString(map);
         editor.putString("typesMap", jsonStr);
         editor.apply();
-        editor.commit();
+        editor.commit();*/
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {

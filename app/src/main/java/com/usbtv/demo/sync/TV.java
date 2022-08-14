@@ -7,6 +7,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Cache;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.ChannelCheck;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
@@ -351,7 +352,8 @@ public class TV {
     }
 
     public static void channelTV(RunCron.Period srcPeriod,List<Channel> channels, int channelID, String channelname,
-                                 ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
+                                 ArrayList<Integer> housekeepTypeIdList,
+                                 Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws InterruptedException, SQLException {
         try {
 
 
@@ -402,7 +404,13 @@ public class TV {
                   validFoldersMap.put(zhbFolder.getId(), true);
             }
 
-            typesMap.put(channelname, channelID);
+            CatType catType = new CatType();
+            catType.setStatus("A");
+            catType.setJob(srcPeriod.getId());
+            catType.setName(channelname);
+            catType.setTypeId(channelID);
+            App.getCatTypeDao().createOrUpdate(catType);
+
              housekeepTypeIdList.add(channelID);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -418,7 +426,8 @@ public class TV {
 
 
 
-    public static void liveStream(RunCron.Period srcPeriod,int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList, Map<String, Integer> typesMap, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
+    public static void liveStream(RunCron.Period srcPeriod,int tvStartTypeId, ArrayList<Integer> housekeepTypeIdList,
+                                  Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao, Map<Integer, Boolean> validFoldersMap) throws SQLException, InterruptedException, IOException {
 
         LinkedHashMap<String, List<Channel>> map = new LinkedHashMap<String, List<Channel>>();
         String[] urls = new String[]{"https://smlog.github.io/data/iptv.m3u"};
@@ -436,38 +445,11 @@ public class TV {
 
         }
 
-/*        LinkedHashMap<String, List<Channel>> map = (LinkedHashMap<String, List<Channel>>) TV.getChannels(
-                new ChannelFilter[]{new ChannelFilter() {
-                    @Override
-                    public String getChannelName() {
-                        return "Kids(English)";
-                    }
-
-                    @Override
-                    public boolean filter(Channel ch) {
-                        return
-                                ch.language.indexOf("English") > -1
-                                        && ch.groupTitle.indexOf("Kids") > -1
-
-                                ;
-                    }map
-
-                    @Override
-                    public int compare(Channel o1, Channel o2) {
-
-                        return (int) (o1.speech - o2.speech);
-
-                    }
-                },
-
-
-                }
-        );*/
 
         int startTypeId = tvStartTypeId;
         for (String name : map.keySet()) {
-            channelTV(srcPeriod,map.get(name), startTypeId++, name, housekeepTypeIdList, typesMap, folderDao, vFileDao, validFoldersMap);
-            updateScreenTabs(typesMap);
+            channelTV(srcPeriod,map.get(name), startTypeId++, name, housekeepTypeIdList, folderDao, vFileDao, validFoldersMap);
+            updateScreenTabs();
         }
 
         System.out.println("done");

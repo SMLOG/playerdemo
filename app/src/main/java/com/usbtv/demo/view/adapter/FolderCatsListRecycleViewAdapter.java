@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.usbtv.demo.R;
 import com.usbtv.demo.PlayerController;
+import com.usbtv.demo.data.CatType;
 
 import java.util.List;
 
@@ -50,11 +51,11 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
-        String cat = PlayerController.getInstance().getCats().get(position);
-        viewHolder.catText.setText(cat);
+        CatType cat = PlayerController.getInstance().getCats().get(position);
+        viewHolder.catText.setText(cat.getName());
 
 
-        viewHolder.catText.setTextColor(cat.equals( PlayerController.getInstance().getCurCat()) ? Color.RED : Color.WHITE);
+        viewHolder.catText.setTextColor(cat.getName().equals( PlayerController.getInstance().getCurCat()) ? Color.RED : Color.WHITE);
 
         viewHolder.itemView.setFocusable(true);
         viewHolder.itemView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -127,7 +128,7 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
     @Override
     public int getItemCount() {
 
-        List<String> datas = PlayerController.getInstance().getCats();
+        List<CatType> datas = PlayerController.getInstance().getCats();
         if (datas != null)
             return datas.size();
         return 0;

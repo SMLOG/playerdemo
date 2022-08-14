@@ -1,6 +1,8 @@
 package com.usbtv.demo;
 
 
+import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -16,6 +18,7 @@ import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.RunCron;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.MJ2;
 import com.usbtv.demo.sync.SyncCenter;
@@ -850,6 +853,18 @@ public class IndexController {
                     editor.putString(pid,JSON.toJSONString(period));
                     editor.apply();
                     editor.commit();
+
+                    List<CatType> cats = App.getCatTypeDao().queryBuilder().where().eq("job", period.getId()).query();
+
+                    for(CatType cat:cats){
+                        cat.setStatus(period.getEnable()?"A":"D");
+                        App.getCatTypeDao().update(cat);
+                    }
+                    if(! period.getEnable() && period.getId().startsWith("dsj")){
+                        MJ2.stop=true;
+                    }
+
+                    updateScreenTabs();
                     break;
             }
 
