@@ -32,12 +32,12 @@ module.exports = {
       },
 
       "/api": {
-        target: "http://192.168.0.108:9191",
+        target: "http://192.168.0.102:9191",
         changeOrigin: true,
         pathRewrite: {
           "^/api": "/api",
         },
-	logLevel:'debug'
+        logLevel: "debug",
       },
     },
   },

@@ -437,6 +437,12 @@ public final class PlayerController {
 
     }
 
+    public int len(){
+        if(this.curItem!=null && this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null){
+            return  this.curItem.getFolder().getFiles().size();
+        }
+        return 0;
+    }
     public void playVFile(VFile vfile) {
         String curCat = this.typeIdMap.get( vfile.getFolder().getTypeId());
         if(curCat==null && this.typeIdMap.values().size()>0){

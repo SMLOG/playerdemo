@@ -276,6 +276,7 @@ public class BiLi {
                 for (int j = 0; j < medias.size(); j++) {
                     JSONObject media = ((JSONObject) medias.get(j));
                     String folderTitle = media.getString("title");
+                    String title = media.getString("title");
                     String aid = "" + media.getInteger("id");
                     String bvid = media.getString("bvid");
                     String cover = media.getString("cover");
@@ -322,8 +323,8 @@ public class BiLi {
 
                     for (int k = 1; k <= pages; k++) {
 
-                        VFile vfile = vFileDao.queryBuilder().where().eq("folder_id", folder.getId())
-                                .and().eq("bvid", bvid).and().eq("page", k).queryForFirst();
+                        VFile vfile = vFileDao.queryBuilder().where()/*.eq("folder_id", folder.getId())
+                                .and()*/.eq("bvid", bvid).and().eq("page", k).queryForFirst();
                         if (vfile == null) {
                             vfile = new VFile();
                         }
@@ -332,7 +333,9 @@ public class BiLi {
                         vfile.setAid("" + aid);
                         vfile.setPage(k);
                         vfile.setOrderSeq(k);
+                        vfile.setName(title);
                         vFileDao.createOrUpdate(vfile);
+
 
                     }
 

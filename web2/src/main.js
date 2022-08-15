@@ -47,6 +47,8 @@ const store = new Vuex.Store({
       mode: 0,
       coverUrl: "",
       name: "",
+      curIndex: 0,
+      len: 0,
     },
     showEdit: false,
     showPlayer: true,

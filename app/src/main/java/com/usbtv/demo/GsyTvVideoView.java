@@ -215,7 +215,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
                             (SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.mp4?id=" + files[i].getId())
 
-                            , files[i].getName()));
+                            , files[i].getName()+"("+files[i].getPage()+")"));
         }
 
         setMapHeadData(header);

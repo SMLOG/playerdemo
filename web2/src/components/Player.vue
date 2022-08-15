@@ -27,7 +27,14 @@
               />
             </div>
             <div class="x-media-name">
-              <h3>{{ $store.state.playController.name }}</h3>
+              <h3>
+                {{ $store.state.playController.name }}
+                <span v-if="$store.state.playController.len > 1"
+                  >-{{ 1 + $store.state.playController.curIndex }}/{{
+                    $store.state.playController.len
+                  }}</span
+                >
+              </h3>
               <h5></h5>
             </div>
           </div>
@@ -229,7 +236,7 @@ export default {
         });
         $(".progress").mouseup(function () {
           tag = false;
-           my.onProgress(parseInt((my.left / progresswidth) * my.duration));
+          my.onProgress(parseInt((my.left / progresswidth) * my.duration));
         });
 
         $(".progress").mousemove((e) => {
