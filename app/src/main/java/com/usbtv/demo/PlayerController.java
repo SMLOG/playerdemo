@@ -437,7 +437,7 @@ public final class PlayerController {
 
     }
 
-    public int len(){
+    public int getLen(){
         if(this.curItem!=null && this.curItem.getFolder()!=null && this.curItem.getFolder().getFiles()!=null){
             return  this.curItem.getFolder().getFiles().size();
         }
