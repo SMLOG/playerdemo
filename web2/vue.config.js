@@ -1,6 +1,11 @@
 const webpack = require("webpack");
+const path = require("path");
+
 module.exports = {
+
+filenameHashing:false,
   configureWebpack: {
+
     //支持jquery
     plugins: [
       new webpack.ProvidePlugin({

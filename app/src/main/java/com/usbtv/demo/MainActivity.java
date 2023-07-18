@@ -1,5 +1,9 @@
 package com.usbtv.demo;
 
+import static android.view.View.FOCUS_DOWN;
+import static android.view.View.FOCUS_UP;
+import static android.view.View.VISIBLE;
+
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
@@ -45,10 +49,6 @@ import java.util.List;
 
 import butterknife.BindView;
 
-import static android.view.View.FOCUS_DOWN;
-import static android.view.View.FOCUS_UP;
-import static android.view.View.VISIBLE;
-
 public class MainActivity extends AppCompatActivity {
 
 
@@ -59,18 +59,18 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.menuPanel)
     BrowseFrameLayout menuPanel;
 
-    public static RecyclerView folderCatsRV;
 
 
     private final BroadcastReceiver receiver = new MyBroadcastReceiver();
 
-
-    public static FolderNumListRecycleViewAdapter numAdapter;
-    private RecyclerView numTabRecyclerView;
+    public static RecyclerView folderCatsRV;
+    private FolderCatsListRecycleViewAdapter catsAdaper;
     private RecyclerView foldersRecyclerView;
     public static FolderListAdapter foldersAdapter;
+    private RecyclerView numTabRecyclerView;
+    public static FolderNumListRecycleViewAdapter numAdapter;
+
     private List<String> storagePathList;
-    private FolderCatsListRecycleViewAdapter catsAdaper;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -90,31 +90,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        registBroadcastReceiver();
-        bindElementViews();
-        initVideo();
-
-        continuePlayPrevious();
-
-        try {
-            //android 10.0 startup when completed
-            if (!Settings.canDrawOverlays(getApplicationContext())) {
-                startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
-            }
-        }catch (Throwable e){
-
-        }
-
-    }
-
-    private void registBroadcastReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(App.URLACTION);
         intentFilter.addAction(App.CMD);
         registerReceiver(receiver, intentFilter);
-    }
 
-    private void continuePlayPrevious() {
+        bindElementViews();
+        initVideo();
+
         Intent intent = getIntent();
 
         long id = -1;
@@ -122,7 +105,21 @@ public class MainActivity extends AppCompatActivity {
 
         PlayerController.getInstance().init(id);
 
+        try {
+            //android 10.0 startup when completed
+            if (!Settings.canDrawOverlays(getApplicationContext())) {
+                startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
+            }
+        }catch (Throwable e){
+            e.printStackTrace();
+
+        }
+
     }
+
+
+
+
 
     private void requestPermissionAndStorage() {
         //申请权限
@@ -383,10 +380,6 @@ public class MainActivity extends AppCompatActivity {
     private void initVideo() {
         videoView.requestFocus();
 
-        PlayerController.getInstance().setContext(this);
-
-
-
     }
 
 
@@ -470,7 +463,6 @@ public class MainActivity extends AppCompatActivity {
                 if (isShowHome) return false;
 
                 Log.d(TAG, "up--->");
-                PlayerController.getInstance().prev();
                 break;
 
             case KeyEvent.KEYCODE_DPAD_LEFT: //向左键

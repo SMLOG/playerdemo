@@ -6,8 +6,8 @@ android {
     buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId 'com.usbtv.demo.exo'
-        minSdkVersion 21
-        targetSdkVersion 29
+        minSdkVersion 28
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         ndk{
@@ -45,6 +45,7 @@ dependencies {
 
     //butterknife
     implementation 'com.jakewharton:butterknife:10.1.0'
+    testImplementation 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
 
     implementation 'com.yanzhenjie.andserver:api:2.1.9'
@@ -66,7 +67,9 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     //implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.35'
-    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.22'
+    //implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.22'
+    //implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.22'
+    implementation "io.github.cymchad:BaseRecyclerViewAdapterHelper:3.0.14"
 
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
@@ -82,8 +85,12 @@ dependencies {
     // implementation 'com.google.android.exoplayer:exoplayer-ui:2.11.3'
     //implementation 'com.danikula:videocache:2.6.4'
     //完整版引入
-   // implementation 'com.shuyu:GSYVideoPlayer:8.3.3'
+    // implementation 'com.shuyu:GSYVideoPlayer:8.3.3'
     implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:8.3.3'
+    //implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.4.0-release-jitpack'
+
+
+    implementation 'org.ow2.asm:asm:7.0'
     configurations.all {
         resolutionStrategy {
             force 'androidx.core:core-ktx:1.6.0'

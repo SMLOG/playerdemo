@@ -53,14 +53,12 @@ public final class PlayerController {
     private FolderCatsListRecycleViewAdapter catsAdaper;
     private FolderListAdapter foldersAdapter;
     private FolderNumListRecycleViewAdapter numAdapter;
-    //private List<String> cats;
     private int curFocusFolderIndex;
     private int curCatId;
 
     @JSONField(serialize = false)
     private Map<String, Integer> allTypeMap;
 
-    //@JSONField(serialize = false)
     private LinkedHashMap<Integer, String> typeIdMap;
 
     @JSONField(serialize = false)
@@ -156,10 +154,7 @@ public final class PlayerController {
     }
 
 
-    private  static Context context;
-    public static void setContext(Context context){
-        PlayerController.context = context;
-    }
+
     public static PlayerController getInstance() {
         if (instance == null) instance = new PlayerController();
         return instance;
@@ -194,9 +189,6 @@ public final class PlayerController {
 
     }
 
-    public void prepare() {
-    }
-
 
     public void setMode(int mode) {
         this.mode = mode;
@@ -227,16 +219,7 @@ public final class PlayerController {
             @Override
             public void run() {
 
-                String title = "";
-              //  videoUrl = App.getUri(res);
-                //videoUrl =Uri.parse("https://prod.vodvideo.cbsnews.com/cbsnews/vr/hls/2022/07/15/2052222019587/1127348_hls/master.m3u8");
-                //https:/d2e1asnsl7br7b.cloudfront.net/7782e205e72f43aeb4a48ec97f66ebbe/index.m3u8
-               // title = res.getName();
-
                 Handler handler = new Handler(Looper.getMainLooper());
-                String finalTitle = title;
-
-
 
                 handler.post(new Runnable() {
 
@@ -266,9 +249,6 @@ public final class PlayerController {
         sp.edit().commit();
     }
 
-
-    public void prev() {
-    }
 
     public VFile playNextFolder() {
 

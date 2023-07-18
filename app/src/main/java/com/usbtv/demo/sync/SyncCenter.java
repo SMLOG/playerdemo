@@ -1,28 +1,22 @@
 package com.usbtv.demo.sync;
 
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.alibaba.fastjson.JSON;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.cnn.CnnSync;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.RunCron;
-import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,23 +24,23 @@ import java.util.Map;
 public class SyncCenter {
 
 
+    public static final String CNN = "cnn";
+
     public static  void syncData(String id) throws SQLException {
 
 
 
         Map<Integer, Boolean> keepFoldersMap = new HashMap<Integer, Boolean>();
         Map<String, Boolean> validAidsMap = new HashMap<String, Boolean>();
-       // Map<String, Integer> typesMap = new LinkedHashMap<>();
 
         ArrayList<Integer> housekeepTypeIdList = new ArrayList<>();
 
-        Dao<CatType, Integer> catTypeDao = App.getCatTypeDao();
         Dao<Folder, Integer> folderDao = App.getFolderDao();
         Dao<VFile, Integer> vFileDao = App.getVFileDao();
 
         if (RunCron.peroidMap.size()==0) {
 
-            RunCron.addPeriod(new RunCron.Period("cnn", "cnn", 12l * 3600 * 1000, false) {
+            RunCron.addPeriod(new RunCron.Period(CNN, CNN, 12l * 3600 * 1000, false) {
                 @Override
                 public void doRun() throws Throwable {
                     CnnSync.cnnVideos(this, 400, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
@@ -143,45 +137,10 @@ public class SyncCenter {
 
         updateScreenTabs();
 
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                TV.checkTvUrls(id);
-            }
-        }).start();*/
     }
 
     public static void updateScreenTabs() {
-        /*SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-        SharedPreferences.Editor editor = sp.edit();
-        Map<String, Integer> map = App.getStoreTypeMap();
-
-        Iterator<String> it = map.keySet().iterator();
-
-        while(it.hasNext()){
-            String key=it.next();
-            if(typesMap.get(key)!=null && typesMap.get(key).intValue()!= map.get(key).intValue()){
-                it.remove();
-            }
-        }
-
-        map.putAll(typesMap);
-
-         it = map.keySet().iterator();
-
-
-        while (it.hasNext()) {
-            String cat = it.next();
-            if (  !isCatHasItem(map.get(cat))) {
-                it.remove();
-            }
-        }
-
-        String jsonStr = JSON.toJSONString(map);
-        editor.putString("typesMap", jsonStr);
-        editor.apply();
-        editor.commit();*/
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
@@ -191,16 +150,6 @@ public class SyncCenter {
                 PlayerController.getInstance().refreshCats();
             }
         });
-    }
-
-    private static boolean isCatHasItem(Integer typeId) {
-
-        try {
-            return (typeId == 0 || App.getHelper().getDao(Folder.class).queryBuilder().where().eq("typeId", typeId).queryForFirst() != null);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return true;
     }
 
 

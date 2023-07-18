@@ -212,21 +212,6 @@ public class App extends Application{
         }
     }
 
-    public static List<Folder> getAllMovies() {
-        try {
-            return App.getHelper().getDao(Folder.class).queryBuilder()
-                    .orderBy("typeId", true)
-                    .orderBy("orderSeq", false)
-                    .query();
-        } catch (Throwable throwables) {
-            throwables.printStackTrace();
-        }
-        return new ArrayList<Folder>();
-    }
-
-
-
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -235,8 +220,6 @@ public class App extends Application{
 
         this.createAndStartWebServer(mContext);
         loadConfigs();
-
-        //InetAddress ipaddr = NetUtils.getLocalIPAddress();
 
         syncWithRemote();
     }
