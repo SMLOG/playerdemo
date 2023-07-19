@@ -36,7 +36,7 @@ import com.usbtv.demo.comm.MyBroadcastReceiver;
 import com.usbtv.demo.comm.SSLSocketClient;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.view.SpaceDecoration;
+import com.usbtv.demo.view.widget.SpaceDecoration;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;

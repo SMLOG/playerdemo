@@ -1,4 +1,4 @@
-package com.usbtv.demo.view;
+package com.usbtv.demo.view.widget;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
