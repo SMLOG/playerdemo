@@ -210,6 +210,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
             if(files[i].getCc()!=null){
                 url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId();
                 try {
+                    if(PlayerController.getInstance().isSubTitleActive())
                     url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId()+"&subtitle="+URLEncoder.encode(files[i].getCc(), "UTF-8");
                    if(PlayerController.getInstance().isSubTitleProxyActive())
                     url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId() + "&subtitle=" + URLEncoder.encode(

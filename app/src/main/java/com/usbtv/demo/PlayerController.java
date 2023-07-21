@@ -677,4 +677,9 @@ public final class PlayerController {
     public boolean isSubTitleProxyActive() {
         return this.subTitleProxyActive;
     }
+    private boolean subTitleActive=true;
+    public boolean isSubTitleActive() {
+        return subTitleActive;
+    }
+
 }
