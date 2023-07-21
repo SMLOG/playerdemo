@@ -682,4 +682,11 @@ public final class PlayerController {
         return subTitleActive;
     }
 
+    public void setSubTitleProxyActive(boolean subTitleProxyActive) {
+        this.subTitleProxyActive = subTitleProxyActive;
+    }
+
+    public void setSubTitleActive(boolean subTitleActive) {
+        this.subTitleActive = subTitleActive;
+    }
 }

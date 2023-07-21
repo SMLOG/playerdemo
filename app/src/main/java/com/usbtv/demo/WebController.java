@@ -152,6 +152,12 @@ public class WebController {
             App.broadcastCMD(cmd, val);
         } else if (cmd.startsWith("broadcast")) {
             App.broadcastCMD(cmd, val);
+        } else if ("toggleSubtile".equals(cmd)) {
+
+            PlayerController.getInstance().setSubTitleActive(!PlayerController.getInstance().isSubTitleActive());
+        } else if ("toggleSubtileProxy".equals(cmd)) {
+
+            PlayerController.getInstance().setSubTitleProxyActive(!PlayerController.getInstance().isSubTitleProxyActive());
         }
 
         return "ok";
@@ -601,10 +607,11 @@ public class WebController {
         VFile vfile = dao.queryForId(id);
 
         response.setHeader("Content-Type", "text/ttml");
-        return new StringBody(Utils.translate(vfile.getCc()),new MediaType("text/ttml"));
+        return new StringBody(Utils.translate(vfile.getCc()), new MediaType("text/ttml"));
 
 
     }
+
     @PostMapping(path = "/api/delFolder")
     String delFolder(HttpRequest request, @RequestParam(name = "id") int id) throws IOException, SQLException {
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
