@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 
 public class TestUrl {
 
-    static String url="https://assets.msn.com/service/MSN/Feed/me?$top=20&DisableTypeSerialization=true&activityId=7E2F0C44-D701-4998-A932-A31D48A50A60&apikey=0QfOX3Vn51YCzitbLaRkTTBadtWpgTN8NZLW0C1SEM&contentType=video&location=21.3744|110.248&market=en-us&query=news%20video&queryType=myfeed&responseSchema=cardview&timeOut=1000&wrapodata=false?t=234686";
     @Test
      public void test1() throws IOException {
 
 
+        String url = null;
         String resp = Utils.get(url);
         JSONObject jsonObj = JSONObject.parseObject(resp);
         JSONArray medias = (JSONArray) ( jsonObj.get("subCards"));
@@ -44,9 +44,9 @@ public class TestUrl {
             }
 
         }
-         String url2="https://smlog.github.io/data/updateData.json";
+        // String url2="https://smlog.github.io/data/updateData.json";
 
-        String content = Utils.get(url2);
-       System.out.println(content);
+       // String content = Utils.get(url2);
+      // System.out.println(content);
     }
 }

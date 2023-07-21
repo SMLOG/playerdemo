@@ -55,13 +55,15 @@ import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class Utils {
 
+    private static BTree<String, com.alibaba.fastjson.JSONObject> bTree;
+
     public static String getIPAddress() {
 
         ConnectivityManager connectivityManager = (ConnectivityManager) App.getInstance().getSystemService(CONNECTIVITY_SERVICE);//获取系统的连接服务
 
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
         if (info != null && info.isConnected()) {
-            if ((info.getType() == ConnectivityManager.TYPE_MOBILE) || (info.getType() == ConnectivityManager.TYPE_WIFI) ){//当前使用2G/3G/4G网络
+            if ((info.getType() == ConnectivityManager.TYPE_MOBILE) || (info.getType() == ConnectivityManager.TYPE_WIFI)) {//当前使用2G/3G/4G网络
                 try {
                     for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
                         NetworkInterface intf = en.nextElement();
@@ -72,13 +74,11 @@ public class Utils {
                             }
                         }
                     }
-                }
-                catch (SocketException e) {
+                } catch (SocketException e) {
                     e.printStackTrace();
                 }
             }
-        }
-        else { //当前无网络连接,请在设置中打开网络
+        } else { //当前无网络连接,请在设置中打开网络
             return null;
         }
         return null;
@@ -172,6 +172,7 @@ public class Utils {
         }
         return bitmap;
     }
+
     public static void saveBitmapToJPG(Bitmap bitmap, File file) throws IOException {
         Bitmap newBitmap = Bitmap.createBitmap(bitmap.getWidth(),
                 bitmap.getHeight(), Bitmap.Config.ARGB_8888);
@@ -196,9 +197,8 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSIONS_STORAGE = {
-    //        Manifest.permission.WRITE_EXTERNAL_STORAGE
+            //        Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-
 
 
     public static String convertStreamToString(InputStream is) throws Exception {
@@ -212,7 +212,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return sb.toString();
     }
 
-    public static String getStringFromFile (String filePath) throws Exception {
+    public static String getStringFromFile(String filePath) throws Exception {
         File fl = new File(filePath);
         FileInputStream fin = new FileInputStream(fl);
         String ret = convertStreamToString(fin);
@@ -221,9 +221,9 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return ret;
     }
 
-    public static JSONObject getVideoInfo(String filePath){
+    public static JSONObject getVideoInfo(String filePath) {
         try {
-            String content =getStringFromFile(filePath);
+            String content = getStringFromFile(filePath);
             JSONObject obj = new JSONObject(content);
             return obj;
 
@@ -234,14 +234,13 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return null;
     }
 
-    public  static String exec(String cmd){
+    public static String exec(String cmd) {
         try {
 
-            Process process=null;
-            if(cmd.indexOf("|")>-1){
-                 process = Runtime.getRuntime().exec(new String[]{"sh","-c",cmd});
-            }
-            else process= Runtime.getRuntime().exec(cmd);
+            Process process = null;
+            if (cmd.indexOf("|") > -1) {
+                process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
+            } else process = Runtime.getRuntime().exec(cmd);
             InputStream errorInput = process.getErrorStream();
             InputStream inputStream = process.getInputStream();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -255,7 +254,7 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             while ((line = bufferedReader.readLine()) != null) {
                 error += line;
             }
-           // Log.d("usb",result);
+            // Log.d("usb",result);
             return sb.toString().trim();
 
         } catch (IOException e) {
@@ -264,17 +263,17 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         return null;
     }
 
-    public static void execLocalCmdByAdb(String cmd){
-        try{
+    public static void execLocalCmdByAdb(String cmd) {
+        try {
             exec("adb connect 127.0.0.1");
-            exec("adb shell "+ cmd);
-        }finally {
+            exec("adb shell " + cmd);
+        } finally {
             exec("adb disconnect 127.0.0.1");
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public long getFreeBytes(Context mContext,String fsUuid) {
+    public long getFreeBytes(Context mContext, String fsUuid) {
         try {
             UUID id;
             if (fsUuid == null) {
@@ -291,15 +290,14 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
     }
 
 
-
     public static ArrayList<Drive> getExtendedMemoryPath(Context mContext) {
 
 
         ArrayList<Drive> ret = new ArrayList<>();
 
         Drive drive = null;//new Drive(App.getInstance().getCacheDir().getAbsolutePath());
-       // drive.setRemoveable(false);
-       // ret.add(drive);
+        // drive.setRemoveable(false);
+        // ret.add(drive);
 
         StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
 
@@ -321,27 +319,27 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
                 String state = (String) getVolumeState.invoke(mStorageManager, path);
 
                 boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
-                if (removable && "mounted".equals(state) ) {
+                if (removable && "mounted".equals(state)) {
                     File[] firstList = new File(path).listFiles();
-                    if(firstList!=null)
-                    for(File file:firstList){
-                        if(file.isDirectory() && file.getName().equalsIgnoreCase("videos")){
-                            drive = new Drive(file.getAbsolutePath());
-                            drive.setRemoveable(true);
-                            ret.add(drive);
-                            // return file.getAbsolutePath();
-                        }
-                        File[] secondList = file.listFiles();
-                        if(secondList!=null)
-                        for(File file2:secondList){
-                            if(file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")){
+                    if (firstList != null)
+                        for (File file : firstList) {
+                            if (file.isDirectory() && file.getName().equalsIgnoreCase("videos")) {
                                 drive = new Drive(file.getAbsolutePath());
                                 drive.setRemoveable(true);
                                 ret.add(drive);
+                                // return file.getAbsolutePath();
                             }
-                        }
+                            File[] secondList = file.listFiles();
+                            if (secondList != null)
+                                for (File file2 : secondList) {
+                                    if (file2.isDirectory() && file2.getName().equalsIgnoreCase("videos")) {
+                                        drive = new Drive(file.getAbsolutePath());
+                                        drive.setRemoveable(true);
+                                        ret.add(drive);
+                                    }
+                                }
 
-                    }///storage/2067-B583/videos
+                        }///storage/2067-B583/videos
 
                     //return ret.toArray(new String[]);
                 }
@@ -365,13 +363,13 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
     public static List<Drive> getSysAllDriveList() {
         ArrayList<Drive> driveList = Utils.getExtendedMemoryPath(App.getInstance().getApplicationContext());
         ArrayList<Drive> ret = new ArrayList<>();
-        for(Drive d:driveList){
+        for (Drive d : driveList) {
             try {
-                Drive d2=(Drive)App.getHelper().getDao(Drive.class).queryBuilder().where().eq("p",d.getP()).queryForFirst();
-                if(d2!=null){
+                Drive d2 = (Drive) App.getHelper().getDao(Drive.class).queryBuilder().where().eq("p", d.getP()).queryForFirst();
+                if (d2 != null) {
                     d.setId(d2.getId());
                     ret.add(d);
-                }else{
+                } else {
                     App.getHelper().getDao(Drive.class).create(d);
                     ret.add(d);
                 }
@@ -464,25 +462,27 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
 
     public static String translate(String xmlUrl) throws Exception {
         String xml = Utils.get(xmlUrl);
-        String content = decompress(Utils.get("https://smlog.github.io/data/updateData.json"));
-        //System.out.println((content));
-        com.alibaba.fastjson.JSONObject json = com.alibaba.fastjson.JSONObject.parseObject(content);
-        // System.out.println(json);
+        if (bTree == null) {
 
-        BTree<String, com.alibaba.fastjson.JSONObject> bTree = new BTree<>();
-        JSONArray words = json.getJSONArray("words");
 
-        // words.sort(Comparator.comparing(obj -> ((JSONObject) obj).getString("q")));
+            String content = decompress(Utils.get("https://smlog.github.io/data/updateData.json"));
+            //System.out.println((content));
+            com.alibaba.fastjson.JSONObject json = com.alibaba.fastjson.JSONObject.parseObject(content);
+            // System.out.println(json);
 
-        for (int i = 0; i < words.size(); i++) {
+            bTree = new BTree<>();
+            JSONArray words = json.getJSONArray("words");
 
-            com.alibaba.fastjson.JSONObject word = words.getJSONObject(i);
-            // dict.put(word.getString("q"),word);
-            bTree.put(word.getString("q"), word);
+            // words.sort(Comparator.comparing(obj -> ((JSONObject) obj).getString("q")));
+
+            for (int i = 0; i < words.size(); i++) {
+
+                com.alibaba.fastjson.JSONObject word = words.getJSONObject(i);
+                // dict.put(word.getString("q"),word);
+                bTree.put(word.getString("q"), word);
+            }
         }
 
-        StringBuilder sb = new StringBuilder();
-        //xml="hello world.";
         List<String> sections = new ArrayList<>();
 
         int beg = -1, len = xml.length();
