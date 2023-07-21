@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId 'com.usbtv.demo.exo'
         minSdkVersion 28
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         ndk{
@@ -46,6 +46,7 @@ dependencies {
     //butterknife
     implementation 'com.jakewharton:butterknife:10.1.0'
     testImplementation 'junit:junit:4.12'
+    testImplementation project(path: ':app')
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.1.0'
 
     implementation 'com.yanzhenjie.andserver:api:2.1.9'

@@ -16,7 +16,6 @@ import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.model.GSYVideoModel;
 import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
-import com.shuyu.gsyvideoplayer.utils.Debuger;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoViewBridge;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.SSLSocketClient;
@@ -26,6 +25,8 @@ import com.usbtv.demo.exo.MyExo2MediaPlayer;
 import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.exo.MyExo2VideoManager;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,13 +35,13 @@ import java.util.Map;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
-public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Listener{
+public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Listener {
     private boolean releaseCompleted;
 
     public GsyTvVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-        PlayerFactory.setPlayManager(IjkPlayerManager.class);
+       // PlayerFactory.setPlayManager(IjkPlayerManager.class);
         //PlayerFactory.setPlayManager(GSYExoPlayerManager.class);
 
         //  CacheFactory.setCacheManager(ProxyCacheManager.class);
@@ -49,6 +50,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         this.mDismissControlTime = 200;
 
     }
+
     private SubtitleView mSubtitleView;
 
     @Override
@@ -57,9 +59,10 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         mSubtitleView = findViewById(R.id.sub_title_view);
         mSubtitleView.setUserDefaultStyle();
         mSubtitleView.setUserDefaultTextSize();
+        mSubtitleView.setVisibility(VISIBLE);
 
         //mSubtitleView.setStyle(new CaptionStyleCompat(Color.RED, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_NONE, CaptionStyleCompat.EDGE_TYPE_NONE, null));
-       // mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        // mSubtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
     }
 
     @Override
@@ -73,11 +76,13 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         super.changeUiToPlayingShow();
         setViewShowState(mBottomProgressBar, GONE);
     }
+
     @Override
     protected void hideAllWidget() {
         super.hideAllWidget();
         setViewShowState(mBottomProgressBar, GONE);
     }
+
     private static boolean isAcronym(String word) {
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
@@ -87,24 +92,29 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         }
         return true;
     }
-    int cueCount=0;
+
+    int cueCount = 0;
+
     @Override
     public void onCues(CueGroup cueGroup) {
+       // if(true) return;
         if (mSubtitleView != null) {
             mSubtitleView.setCues(cueGroup.cues);
-            for(Cue cue:cueGroup.cues){
-               if(cue.text!=null &&
-                       !"".equals(cue.text.toString().trim()) &&
-                       isAcronym(cue.text.toString())){
-                   cueCount++;
-               }else cueCount=0;
+            if(false)
+            for (Cue cue : cueGroup.cues) {
+                if (cue.text != null &&
+                        !"".equals(cue.text.toString().trim()) &&
+                        isAcronym(cue.text.toString())) {
+                    cueCount++;
+                } else cueCount = 0;
             }
-            if(cueCount>3)
-            mSubtitleView.setVisibility(GONE);
+            if (cueCount > 3)
+                mSubtitleView.setVisibility(GONE);
             else mSubtitleView.setVisibility(VISIBLE);
 
         }
     }
+
     @Override
     public int getLayoutId() {
         return R.layout.video_layout_subtitle;
@@ -113,15 +123,12 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     @Override
     public void onPrepared() {
         super.onPrepared();
-       if(  getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer){
-           ((MyExo2MediaPlayer) (getGSYVideoManager().getPlayer().getMediaPlayer())).addCutesListener(this);
-           mSubtitleView.setVisibility(GONE);
-       }else{
-           mSubtitleView.setVisibility(GONE);
+        if (getGSYVideoManager().getPlayer().getMediaPlayer() instanceof MyExo2MediaPlayer) {
+            ((MyExo2MediaPlayer) (getGSYVideoManager().getPlayer().getMediaPlayer())).addCutesListener(this);
+        }
+        mSubtitleView.setVisibility(GONE);
 
-       }
     }
-
 
 
     @Override
@@ -129,37 +136,38 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
 
         PlayerController.getInstance().incPlayCount();
-        PlayerController.getInstance().setCurIndex(PlayerController.getInstance().getCurIndex()+1);
+        PlayerController.getInstance().setCurIndex(PlayerController.getInstance().getCurIndex() + 1);
 
-        if(getGSYVideoManager() instanceof MyExo2VideoManager){
+        if (getGSYVideoManager() instanceof MyExo2VideoManager) {
             mPlayPosition++;
-        }else{
+        } else {
             playNext();
         }
     }
+
     @Override
     public void onCompletion() {
         super.onCompletion();
-        if(!releaseCompleted) PlayerController.getInstance().next();
-        else releaseCompleted=false;
+        if (!releaseCompleted) PlayerController.getInstance().next();
+        else releaseCompleted = false;
     }
 
     @Override
     public void onError(int what, int extra) {
         //super.onError(what, extra);
-        Toast.makeText(App.getInstance().getApplicationContext(), "播放出错", Toast.LENGTH_SHORT).show();
+        Toast.makeText(App.getInstance().getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
 
-        if(mPlayPosition<mUriList.size()-1){
+        if (mPlayPosition < mUriList.size() - 1) {
             playNext();
-        }else PlayerController.getInstance().playNextFolder();
+        } else PlayerController.getInstance().playNextFolder();
     }
 
     @Override
     public GSYVideoViewBridge getGSYVideoManager() {
-        if( PlayerFactory.getPlayManager() instanceof  MyExo2PlayerManager){
+        if (PlayerFactory.getPlayManager() instanceof MyExo2PlayerManager) {
             MyExo2VideoManager.instance().initContext(getContext().getApplicationContext());
             return MyExo2VideoManager.instance();
-        }else{
+        } else {
             GSYVideoManager.instance().initContext(getContext().getApplicationContext());
             return GSYVideoManager.instance();
         }
@@ -167,20 +175,14 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     }
 
 
-
     public void setVideoURI(Uri videoUrl, VFile res, int fi) {
 
-        //releaseVideos();
-        mPauseBeforePrepared=false;
+        mPauseBeforePrepared = false;
         getGSYVideoManager().pause();
-        if(res.getFolder().getTypeId()>=500 && res.getFolder().getTypeId()<600){
+        if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
             PlayerFactory.setPlayManager(IjkPlayerManager.class);
-            // GSYVideoManager.onPause();
-            //  GSYExoVideoManager.onPause();
-        }else{
+        } else {
             PlayerFactory.setPlayManager(MyExo2PlayerManager.class);
-            //  GSYVideoManager.onPause();
-
         }
 
         setUpUrls(res, fi);
@@ -203,16 +205,34 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         List<GSYVideoModel> urls = new ArrayList<>();
 
         for (int i = curIndex; i < files.length; i++) {
-            urls.add(
+            String url = null;
 
-                    new GSYVideoModel(
-                            res.getFolder().getTypeId()>=500&& res.getFolder().getTypeId()<600?
-                                    SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId()  :
-                            files[i].getdLink() != null ? App.getUrl(files[i].getdLink()) :
+            if(files[i].getCc()!=null){
+                url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId();
+                try {
+                    url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId()+"&subtitle="+URLEncoder.encode(files[i].getCc(), "UTF-8");
+                   if(PlayerController.getInstance().isSubTitleProxyActive())
+                    url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId() + "&subtitle=" + URLEncoder.encode(
+                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/subtitle?id=" + files[i].getId() + "&url=" +
+                                    URLEncoder.encode(files[i].getCc(), "UTF-8"), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+            }else if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
+                url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId();
+            } else if (files[i].getdLink() != null) {
+                url = App.getUrl(files[i].getdLink());
+            } else {
+                url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.mp4?id=" + files[i].getId();
+            }
 
-                            (SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.mp4?id=" + files[i].getId())
 
-                            , files[i].getName()+"("+files[i].getPage()+")"));
+            urls.add(new GSYVideoModel(url, files[i].getName() + "(" + files[i].getPage() + ")"));
+
+            if(!PlayerController.getInstance().isSeamless()){
+                break;
+            }
+            break;
         }
 
         setMapHeadData(header);
@@ -224,33 +244,21 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     protected void startButtonLogic() {
         if (mVideoAllCallBack != null && (mCurrentState == CURRENT_STATE_NORMAL
                 || mCurrentState == CURRENT_STATE_AUTO_COMPLETE)) {
-            Debuger.printfLog("onClickStartIcon");
             mVideoAllCallBack.onClickStartIcon(mOriginUrl, mTitle, this);
         } else if (mVideoAllCallBack != null) {
-            Debuger.printfLog("onClickStartError");
             mVideoAllCallBack.onClickStartError(mOriginUrl, mTitle, this);
         }
         startPlayLogic();
     }
 
 
-
     @Override
     public void startPlayLogic() {
         if (mVideoAllCallBack != null) {
-            Debuger.printfLog("onClickStartThumb");
             mVideoAllCallBack.onClickStartThumb(mOriginUrl, mTitle, this);
         }
-       // boolean hasPrepare = getGSYVideoManager().listener()
-       // if(!hasPrepare)
-            super.prepareVideo();
-       // else
-      //  prepareDatasources();
-
-       // mHadPrepared=true;
-        getGSYVideoManager().start();;
-
-
+        super.prepareVideo();
+        getGSYVideoManager().start();
         startDismissControlViewTimer();
     }
 
@@ -259,30 +267,35 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     public boolean isPlaying() {
 
         updateHandler.post(() -> {
-            playing = this.getCurrentState()==CURRENT_STATE_PLAYING;
+            playing = this.getCurrentState() == CURRENT_STATE_PLAYING;
         });
         return playing;
 
     }
+
     private long seekTime;
+
     @Override
     public void seekTo(long time) {
         seekTime = time;
         updateHandler.postDelayed(() -> {
             super.seekTo(seekTime);
-        },300);
+        }, 300);
 
     }
+
     private Handler updateHandler = new Handler(Looper.getMainLooper());
     private long currentPosition;
 
     private long duration;
-    public long getDuration(){
+
+    public long getDuration() {
         updateHandler.post(() -> {
             duration = super.getDuration();
         });
         return duration;
     }
+
     public long getCurrentPosition() {
 
         updateHandler.post(() -> {
@@ -294,26 +307,24 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     public void onPause() {
         updateHandler.post(() -> {
             super.onVideoPause();
-
-            // super.pauseLogic(null, true);
         });
     }
 
     public void start() {
-       onResume();
+        onResume();
     }
 
     public void onResume() {
         updateHandler.post(() -> {
             onVideoResume();
-           getGSYVideoManager().start();
+            getGSYVideoManager().start();
         });
     }
 
-  public void release(){
-       //super.release();
+    public void release() {
+        //super.release();
         super.releaseVideos();
-  }
+    }
 
     public boolean onKeyDown(int keyCode) {
         return false;

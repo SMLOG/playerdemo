@@ -38,6 +38,17 @@ public class VFile {
     @DatabaseField
     String p;
 
+
+
+    @DatabaseField
+    String cc;
+    public String getCc() {
+        return cc;
+    }
+
+    public void setCc(String cc) {
+        this.cc = cc;
+    }
     @DatabaseField
     Integer page;
 
@@ -213,4 +224,5 @@ public class VFile {
     public void setPlayCnt(int playCnt) {
         this.playCnt = playCnt;
     }
+
 }

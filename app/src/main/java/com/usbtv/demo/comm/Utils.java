@@ -2,7 +2,6 @@ package com.usbtv.demo.comm;
 
 import android.app.usage.StorageStatsManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,26 +9,19 @@ import android.graphics.Color;
 import android.media.MediaMetadataRetriever;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.storage.StorageManager;
 import android.util.Base64;
-import android.view.View;
 
 import androidx.annotation.RequiresApi;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.QueryBuilder;
-import com.usbtv.demo.MainActivity;
+import com.alibaba.fastjson.JSONArray;
 import com.usbtv.demo.data.Drive;
-import com.usbtv.demo.data.Folder;
-import com.usbtv.demo.data.VFile;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,11 +37,13 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
 
 import okhttp3.Call;
 import okhttp3.HttpUrl;
@@ -429,18 +423,111 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
         Response response = call.execute();
 
         String resp = response.body().string();
-        System.out.println(resp);
+        //System.out.println(resp);
         return resp;
     }
 
 
     public static String getObject(com.alibaba.fastjson.JSONObject obj, String string) {
 
-        if(obj==null) return null;
+        if (obj == null) return null;
 
-        if(string.indexOf(".")==-1)return obj.getString(string);
-        String key = string.substring(0,string.indexOf("."));
+        if (string.indexOf(".") == -1) return obj.getString(string);
+        String key = string.substring(0, string.indexOf("."));
 
-        return  getObject(obj.getJSONObject(key),string.substring(string.indexOf(".")+1));
+        return getObject(obj.getJSONObject(key), string.substring(string.indexOf(".") + 1));
+    }
+
+    public static String decompress(String str) {
+        if (str == null || str.length() == 0) {
+            return str;
+        }
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             ByteArrayInputStream in = new ByteArrayInputStream(str.getBytes(StandardCharsets.ISO_8859_1));
+             GZIPInputStream gunzip = new GZIPInputStream(in)) {
+
+            byte[] buffer = new byte[1024];
+            int n;
+            // 从 GZIP 压缩输入流读取字节数据到 buffer 数组中
+            while ((n = gunzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+
+            return out.toString(StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return str;
+    }
+
+    public static String translate(String xmlUrl) throws Exception {
+        String xml = Utils.get(xmlUrl);
+        String content = decompress(Utils.get("https://smlog.github.io/data/updateData.json"));
+        //System.out.println((content));
+        com.alibaba.fastjson.JSONObject json = com.alibaba.fastjson.JSONObject.parseObject(content);
+        // System.out.println(json);
+
+        BTree<String, com.alibaba.fastjson.JSONObject> bTree = new BTree<>();
+        JSONArray words = json.getJSONArray("words");
+
+        // words.sort(Comparator.comparing(obj -> ((JSONObject) obj).getString("q")));
+
+        for (int i = 0; i < words.size(); i++) {
+
+            com.alibaba.fastjson.JSONObject word = words.getJSONObject(i);
+            // dict.put(word.getString("q"),word);
+            bTree.put(word.getString("q"), word);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        //xml="hello world.";
+        List<String> sections = new ArrayList<>();
+
+        int beg = -1, len = xml.length();
+        for (int j = 0; j < len; ) {
+            char c = xml.charAt(j);
+            if (c == '<') {
+                if (beg > -1 && j > beg) {
+                    sections.add(xml.substring(beg, j));
+                    beg = -1;
+                }
+                int k = xml.indexOf('>', j);
+                if (k <= j) throw new Exception("content error");
+                sections.add(xml.substring(j, k + 1));
+
+                j = k + 1;
+                continue;
+            } else if (beg == -1) beg = j;
+            j++;
+        }
+
+        if (beg > -1) {
+            sections.add(xml.substring(beg, len));
+        }
+        for (int i = 0; i < sections.size(); i++) {
+            String s = sections.get(i);
+            if (s.indexOf('<') > -1 || s.trim().equals("")) continue;
+            String[] tokens = s.split("\\b");
+            StringBuilder newLine = new StringBuilder();
+
+            for (int j = 0; j < tokens.length; j++) {
+                if (!tokens[j].trim().equals("") && tokens[j].length() > 3) {
+
+                    com.alibaba.fastjson.JSONObject jsonObject = bTree.get(tokens[j]);
+                    if (jsonObject != null) {
+
+                        newLine.append("<span style=\"color:#FFFF00FF;font-size:1.5c;font-style:normal;line-height:125%;\">" + tokens[j] + jsonObject.getString("to") + "</span>");
+                    } else newLine.append(tokens[j]);
+
+                } else
+                    newLine.append(tokens[j]);
+
+            }
+            sections.set(i, newLine.toString());
+
+        }
+        return String.join("", sections);
     }
 }

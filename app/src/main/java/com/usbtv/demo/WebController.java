@@ -35,6 +35,7 @@ import com.yanzhenjie.andserver.annotation.ResponseBody;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.framework.body.FileBody;
 import com.yanzhenjie.andserver.framework.body.StreamBody;
+import com.yanzhenjie.andserver.framework.body.StringBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
@@ -80,7 +81,7 @@ public class WebController {
     @GetMapping(path = "/api/status")
     String status(RequestBody body, HttpResponse response) throws IOException {
         response.setHeader("Content-Type", "application/json; charset=utf-8");
-      //  Environment.getExternalStorageState();Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        //  Environment.getExternalStorageState();Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return JSON.toJSONString(PlayerController.getInstance());
     }
 
@@ -94,15 +95,6 @@ public class WebController {
         return "ok";
     }
 
-    @ResponseBody
-    @GetMapping(path = "/play")
-    String play(
-            HttpRequest request
-    ) {
-
-
-        return "OK";
-    }
 
     @ResponseBody
     @GetMapping(path = "/api/cmd")
@@ -202,53 +194,6 @@ public class WebController {
         return null;
     }
 
-
-
-
-    @GetMapping(path = "/api/bgmedia")
-    @ResponseBody
-    int bgmedia(@RequestParam(name = "cmd") String cmd, @RequestParam(name = "val", required = false) String val) {
-        if (App.bgMedia == null) {
-            App.bgMedia = new MediaPlayer();
-        }
-        if ("start".equals(cmd)) {
-            App.bgMedia.start();
-
-        } else if ("pause".equals(cmd)) {
-            if (App.bgMedia.isPlaying()) App.bgMedia.pause();
-
-        } else if ("loop".equals(cmd)) {
-
-            App.bgMedia.setLooping(Boolean.parseBoolean(val));
-
-        } else if ("volume".equals(cmd)) {
-            App.bgMedia.setVolume(Float.parseFloat(val), Float.parseFloat(val));
-
-        } else if ("url".equals(cmd)) {
-            try {
-                if (val == null || val.trim().equals("")) {
-                    if (App.bgMedia.isPlaying()) App.bgMedia.pause();
-                    else App.bgMedia.start();
-
-                } else {
-                    App.bgMedia.reset();
-                    App.bgMedia.setDataSource(val);
-                    // App.bgMedia.setDataSource(Uri.parse(val));
-                    App.bgMedia.prepare();
-                    App.bgMedia.setLooping(true);
-                    App.bgMedia.start();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        return 0;
-    }
-
-
     @GetMapping(path = "/api/channels")
     @ResponseBody
     String channels() {
@@ -257,7 +202,7 @@ public class WebController {
 
             Map<String, Integer> map = PlayerController.getInstance().getAllTypeMap();
 
-          return   JSON.toJSONString(map);
+            return JSON.toJSONString(map);
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -270,11 +215,12 @@ public class WebController {
     @ResponseBody
     String toggleFav(@RequestParam(name = "id") int id) throws SQLException {
         Folder folder = App.getHelper().getDao(Folder.class).queryBuilder().where().eq("id", id).queryForFirst();
-        folder.setIsFav(folder.getIsFav()>0?0:1);
+        folder.setIsFav(folder.getIsFav() > 0 ? 0 : 1);
         App.getHelper().getDao(Folder.class).update(folder);
-        return  JSON.toJSONString(folder);
+        return JSON.toJSONString(folder);
     }
-        @GetMapping(path = "/api/manRes")
+
+    @GetMapping(path = "/api/manRes")
     @ResponseBody
     String getResList(@RequestParam(name = "page") int page, @RequestParam(name = "typeId") int typeId, @RequestParam(name = "searchValue", required = false, defaultValue = "") String searchValue) {
 
@@ -287,9 +233,9 @@ public class WebController {
 
             Where<Folder, ?> where = App.getHelper().getDao(Folder.class).queryBuilder().where();
 
-            if(typeId>0)
-            where.eq("typeId",typeId);
-            else  where.eq("isFav",1);
+            if (typeId > 0)
+                where.eq("typeId", typeId);
+            else where.eq("isFav", 1);
 
             if (searchValue != null && !searchValue.trim().equals("")) {
                 where.and().like("name", "%" + searchValue + "%").queryBuilder();
@@ -298,7 +244,7 @@ public class WebController {
             result.put("total", total);
             List<Folder> list = where.queryBuilder()
                     .offset((long) ((page - 1) * pageSize))
-                    .orderBy("orderSeq",false)
+                    .orderBy("orderSeq", false)
                     .limit(20l).query();
             result.put("datas", list);
 
@@ -310,13 +256,6 @@ public class WebController {
         return null;
     }
 
-
-
-    @GetMapping(path = "/api/delete")
-    String delete(@RequestParam(name = "aIndex") int aIndex, @RequestParam(name = "bIndex") int bIndex, HttpResponse response) throws IOException {
-
-        return null;
-    }
 
     @ResponseBody
     @PostMapping(path = "/api/event")
@@ -334,147 +273,6 @@ public class WebController {
         return "";
     }
 
-
-
-    @PostMapping(path = "/api/upload2")
-    String upload(HttpRequest request, @RequestParam(name = "file") MultipartFile[] files) throws IOException {
-
-        String rootDir = App.getDefaultRootDrive().getP();
-
-        for (MultipartFile file : files) {
-            String to = rootDir + file.getFilename();
-            new File(to).getParentFile().mkdirs();
-            file.transferTo(new File(to));
-        }
-        return "OK";
-
-    }
-
-
-
-    @GetMapping(path = "/api/upload")
-    String upload2(HttpRequest request,
-                   @RequestParam(name = "chunkNumber") int chunkNumber,
-                   @RequestParam(name = "chunkSize") int chunkSize,
-                   @RequestParam(name = "currentChunkSize") int currentChunkSize,
-                   @RequestParam(name = "totalSize") int totalSize,
-                   @RequestParam(name = "identifier") String identifier,
-                   @RequestParam(name = "filename") String filename,
-                   @RequestParam(name = "relativePath") String relativePath,
-                   @RequestParam(name = "totalChunks") int totalChunks
-    ) {
-        Map<String, Object> res = new HashMap<>();
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        Drive drive = drives.get(drives.size() - 1);
-        String rootDir = drive.getP();
-
-        String to = rootDir + "/" + relativePath;
-        if (new File(to).exists()) {
-
-
-            res.put("skipUpload", true);
-        }
-
-
-        return JSON.toJSONString(res);
-    }
-
-    @PostMapping(path = "/api/upload")
-    String upload2(HttpRequest request,
-                   @RequestParam(name = "chunkNumber") int chunkNumber,
-                   @RequestParam(name = "chunkSize") int chunkSize,
-                   @RequestParam(name = "currentChunkSize") int currentChunkSize,
-                   @RequestParam(name = "totalSize") int totalSize,
-                   @RequestParam(name = "identifier") String identifier,
-                   @RequestParam(name = "filename") String filename,
-                   @RequestParam(name = "relativePath") String relativePath,
-                   @RequestParam(name = "totalChunks") int totalChunks,
-                   @RequestParam(name = "file") MultipartFile file
-    ) {
-
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        String rootDir = drives.get(drives.size() - 1).getP();
-
-        String to = rootDir + "/" + relativePath;
-        String chunkTo = to + "-" + chunkNumber;
-
-        if (new File(to).exists()) {
-            return "";
-            //file.delete();
-        }
-
-        new File(to).getParentFile().mkdirs();
-
-        try {
-
-            file.transferTo(new File(chunkTo));
-            if (chunkNumber == totalChunks) {
-
-                if (new File(to).exists()) {
-                    return "";
-                    //file.delete();
-                }
-                BufferedOutputStream destOutputStream = new BufferedOutputStream(new FileOutputStream(to));
-                for (int i = 1; i <= totalChunks; i++) {
-                    byte[] fileBuffer = new byte[1024];
-                    int readBytesLength = 0;
-                    File sourceFile = new File(to + "-" + i);
-                    BufferedInputStream sourceInputStream = new BufferedInputStream(new FileInputStream(sourceFile));
-                    while ((readBytesLength = sourceInputStream.read(fileBuffer)) != -1) {
-                        destOutputStream.write(fileBuffer, 0, readBytesLength);
-                    }
-                    sourceInputStream.close();
-
-                }
-                destOutputStream.flush();
-                destOutputStream.close();
-                for (int i = 1; i <= totalChunks; i++) {
-                    File sourceFile = new File(to + "-" + i);
-                    boolean delete = sourceFile.delete();
-                    if (delete) {
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-
-        return "";
-    }
-
-    @ResponseBody
-    @GetMapping(path = "/api/listDisk")
-    String listDisk(@RequestParam(name = "path", required = false, defaultValue = "") String path) throws IOException {
-
-        List<Drive> drives = Utils.getSysAllDriveList();
-
-        String rootDir = drives.get(drives.size() - 1).getP();
-
-        File curFolder = new File(rootDir + path);
-
-        ArrayList<Map<String, Object>> list = new ArrayList();
-
-
-        for (File f : curFolder.listFiles()) {
-            Map<String, Object> info = new HashMap<>();
-            info.put("name", f.getName());
-            info.put("size", f.getTotalSpace());
-            info.put("isFile", f.isFile());
-            list.add(info);
-        }
-
-        String df = Utils.exec("df -kh |grep /storage/");
-        Map<String, Object> ret = new HashMap<>();
-        ret.put("contents", list);
-        ret.put("path", path);
-
-        return JSON.toJSONString(ret);
-
-    }
 
     private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
 
@@ -503,7 +301,7 @@ public class WebController {
 
             if (this.playIndex == -1) {
                 Document doc = Jsoup.connect("https://api.bilibili.com/x/web-interface/search/type?context=&order=&"
-                        + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
+                                + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
                         .ignoreContentType(true)
                         .data("page", "" + this.searchPage)
                         .data("keyword", this.searchKeyword)
@@ -544,25 +342,25 @@ public class WebController {
         VFile vfile = dao.queryForId(id);
         String path = vfile.getAbsPath();
 
-        if(path == null || ! new File(path).exists())
-        for(Drive d:App.diskList){
-            vfile.getFolder().setRoot(d);
-            if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
-            ){
-                try {
-                    Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
+        if (path == null || !new File(path).exists())
+            for (Drive d : App.diskList) {
+                vfile.getFolder().setRoot(d);
+                if (vfile.exists() && new File(vfile.getAbsPath()).canRead()
+                ) {
+                    try {
+                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
-                    folderDao.update(vfile.getFolder());
+                        folderDao.update(vfile.getFolder());
 
-                    path = vfile.getAbsPath();
-                    break;
+                        path = vfile.getAbsPath();
+                        break;
 
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+
                 }
-
             }
-        }
 
         if (path != null) {
             final File file = new File(path);
@@ -586,14 +384,14 @@ public class WebController {
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
         } else {
-           String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
-           if (bvid!=null){
-            com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+            String bvid = vfile.getBvid() == null ? vfile.getFolder().getBvid() : vfile.getBvid();
+            if (bvid != null) {
+                com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(bvid, vfile.getPage());
 
-            if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                url = vidoInfo.getString("video");
+                if (vidoInfo != null && null != vidoInfo.getString("video")) {
+                    url = vidoInfo.getString("video");
+                }
             }
-           }
         }
 
         App.cache2Disk(vfile, url);
@@ -606,7 +404,6 @@ public class WebController {
         return null;
 
     }
-
 
 
     @ResponseBody
@@ -623,32 +420,26 @@ public class WebController {
         return "ok";
     }
 
-    @ResponseBody
-    @GetMapping("/api/ts")
-    public String speakText(@RequestParam(name = "t") String t) {
-        SpeechUtils.getInstance(App.getInstance().getApplicationContext()).speakText(t);
-        return "OK";
-    }
     @GetMapping("/api/thumb")
-    public StreamBody thumb(HttpResponse response, @RequestParam(name = "id") int id,@RequestParam(name = "path",required = false,defaultValue = "") String path) {
+    public StreamBody thumb(HttpResponse response, @RequestParam(name = "id") int id, @RequestParam(name = "path", required = false, defaultValue = "") String path) {
 
         String vPath = null;
-        if(!path.equals("")){
-                    List<File> matchFiles = Aid.searchFiles( new File(path), ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
+        if (!path.equals("")) {
+            List<File> matchFiles = Aid.searchFiles(new File(path), ".*\\.(mp4|rmvb|flv|mpeg|avi|mkv)");
 
-                    if(matchFiles!=null&&matchFiles.size()>0){
+            if (matchFiles != null && matchFiles.size() > 0) {
                        /* Collections.sort(matchFiles, new Comparator<File>() {
                             public int compare(File f1, File f2) {
                                 return (int) (f1.length() - f2.length());
 
                             }
                         });*/
-                        vPath = matchFiles.get(0).getAbsolutePath();
-                    }
+                vPath = matchFiles.get(0).getAbsolutePath();
+            }
         }
-        if(vPath==null) return null;
-        
-       // Bitmap bitmap = Utils.createVideoThumbnail(vPath, MediaStore.Images.Thumbnails.MINI_KIND);
+        if (vPath == null) return null;
+
+        // Bitmap bitmap = Utils.createVideoThumbnail(vPath, MediaStore.Images.Thumbnails.MINI_KIND);
         Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(
                 vPath, MediaStore.Video.Thumbnails.MINI_KIND);
 
@@ -665,7 +456,7 @@ public class WebController {
 
         byte[] bitmapBytes = baos.toByteArray();
 
-        StreamBody body = new StreamBody(new ByteArrayInputStream(bitmapBytes),bitmapBytes.length, MediaType.IMAGE_JPEG);
+        StreamBody body = new StreamBody(new ByteArrayInputStream(bitmapBytes), bitmapBytes.length, MediaType.IMAGE_JPEG);
 
         response.setBody(body);
         return body;
@@ -675,30 +466,31 @@ public class WebController {
         return "forward:/index.html";
     }*/
 
-    private Map<Integer,UrlCache> urlCache = new HashMap<Integer,UrlCache>();
+    private Map<Integer, UrlCache> urlCache = new HashMap<Integer, UrlCache>();
 
-    class UrlCache{
-         int id;
-         String url;
-         long accessTime;
+    class UrlCache {
+        int id;
+        String url;
+        long accessTime;
     }
 
     @GetMapping(path = "/api/vFileUrl.m3u8")
     com.yanzhenjie.andserver.http.ResponseBody vFileM3u8(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException, URISyntaxException {
-        return this.vFileUrl(request,id,response);
+        return this.vFileUrl(request, id, response);
     }
-        @GetMapping(path = "/api/vFileUrl.mp4")
+
+    @GetMapping(path = "/api/vFileUrl.mp4")
     com.yanzhenjie.andserver.http.ResponseBody vFileUrl(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException, URISyntaxException {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
         String path = vfile.getAbsPath();
 
-        if(path == null || ! new File(path).exists())
-            for(Drive d:App.diskList){
+        if (path == null || !new File(path).exists())
+            for (Drive d : App.diskList) {
                 vfile.getFolder().setRoot(d);
-                if(vfile.exists() && new File(vfile.getAbsPath()).canRead()
-                ){
+                if (vfile.exists() && new File(vfile.getAbsPath()).canRead()
+                ) {
                     try {
                         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
@@ -739,38 +531,38 @@ public class WebController {
         } else {
 
             int typeId = vfile.getFolder().getTypeId();
-            if(typeId>=500 && typeId<600){
+            if (typeId >= 500 && typeId < 600) {
                 MJ2.updateVfileLink(vfile);
-                url =  vfile.getdLink();
+                url = vfile.getdLink();
                 dao.createOrUpdate(vfile);
                 response.setHeader("Content-Type", "audio/x-mpegurl");
 
                 response.sendRedirect(url);
                 return null;
-            }else{
-                if(urlCache.get(vfile.getId())!=null){
+            } else {
+                if (urlCache.get(vfile.getId()) != null) {
                     UrlCache cache = urlCache.get(vfile.getId());
                     cache.accessTime = System.currentTimeMillis();
                     url = cache.url;
 
-                }else{
+                } else {
 
-                    String bvid = vfile.getBvid()==null?vfile.getFolder().getBvid(): vfile.getBvid();
-                    if (bvid!=null){
-                        com.alibaba.fastjson.JSONObject vidoInfo =BiLi.getVidoInfo(bvid, vfile.getPage());
+                    String bvid = vfile.getBvid() == null ? vfile.getFolder().getBvid() : vfile.getBvid();
+                    if (bvid != null) {
+                        com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(bvid, vfile.getPage());
 
                         if (vidoInfo != null && null != vidoInfo.getString("video")) {
                             url = vidoInfo.getString("video");
                             UrlCache cache = new UrlCache();
                             cache.accessTime = System.currentTimeMillis();
-                            cache.url=url;
-                            urlCache.put(vfile.getId(),cache);
+                            cache.url = url;
+                            urlCache.put(vfile.getId(), cache);
 
                             Iterator<Integer> it = urlCache.keySet().iterator();
 
-                            while(it.hasNext()){
-                                Integer cid =it.next();
-                                if(System.currentTimeMillis() - urlCache.get(cid).accessTime >10*60*1000){
+                            while (it.hasNext()) {
+                                Integer cid = it.next();
+                                if (System.currentTimeMillis() - urlCache.get(cid).accessTime > 10 * 60 * 1000) {
                                     it.remove();
                                     urlCache.remove(cid);
                                 }
@@ -782,21 +574,18 @@ public class WebController {
             }
 
 
-
         }
 
-       // App.cache2Disk(vfile, url);
-
-
+        // App.cache2Disk(vfile, url);
 
 
         System.out.println(url);
-        if(url.indexOf(".m3u8")>-1){
+        if (url.indexOf(".m3u8") > -1) {
 
             response.setHeader("Content-Type", "audio/x-mpegurl");
 
-        }else
-        response.setHeader("Content-Type", "video/mp4");
+        } else
+            response.setHeader("Content-Type", "video/mp4");
 
         response.sendRedirect(url);
 
@@ -805,17 +594,28 @@ public class WebController {
 
     }
 
+    @GetMapping(path = "/api/subtitle")
+    com.yanzhenjie.andserver.http.ResponseBody subtitle(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws Exception {
+
+        Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
+        VFile vfile = dao.queryForId(id);
+
+        response.setHeader("Content-Type", "text/ttml");
+        return new StringBody(Utils.translate(vfile.getCc()),new MediaType("text/ttml"));
+
+
+    }
     @PostMapping(path = "/api/delFolder")
     String delFolder(HttpRequest request, @RequestParam(name = "id") int id) throws IOException, SQLException {
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-         folderDao.deleteById(id);
+        folderDao.deleteById(id);
         return "OK";
 
     }
 
     @PostMapping(path = "/api/delFile")
     String delFile(HttpRequest request, @RequestParam(name = "id") int id) throws IOException, SQLException {
-        Dao<VFile, Integer> vfileDao=App.getHelper().getDao(VFile.class);
+        Dao<VFile, Integer> vfileDao = App.getHelper().getDao(VFile.class);
         vfileDao.deleteById(id);
         return "OK";
     }
@@ -826,11 +626,11 @@ public class WebController {
     }
 
     @PostMapping(path = "/api/tasks/update")
-    String toggleTask(@RequestParam(name = "id") String id,@RequestParam(name = "action") String action) throws SQLException {
+    String toggleTask(@RequestParam(name = "id") String id, @RequestParam(name = "action") String action) throws SQLException {
         RunCron.Period period = RunCron.peroidMap.get(id);
-        if(period!=null){
+        if (period != null) {
 
-            switch (action){
+            switch (action) {
                 case "run":
                     SyncCenter.syncData(id);
                     break;
@@ -838,30 +638,30 @@ public class WebController {
                 case "show":
                     SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
-                    if(action.equals("show")){
-                        period.show=!period.show;
+                    if (action.equals("show")) {
+                        period.show = !period.show;
                     }
 
-                    if(!period.show){
+                    if (!period.show) {
                         period.enable = 0;
-                    }else{
-                        period.enable = period.enable>0?0:1;
+                    } else {
+                        period.enable = period.enable > 0 ? 0 : 1;
                     }
 
-                    String pid = "_task_"+period.getId();
+                    String pid = "_task_" + period.getId();
                     SharedPreferences.Editor editor = sp.edit();
-                    editor.putString(pid,JSON.toJSONString(period));
+                    editor.putString(pid, JSON.toJSONString(period));
                     editor.apply();
                     editor.commit();
 
                     List<CatType> cats = App.getCatTypeDao().queryBuilder().where().eq("job", period.getId()).query();
 
-                    for(CatType cat:cats){
-                        cat.setStatus(period.getEnable()?"A":"D");
+                    for (CatType cat : cats) {
+                        cat.setStatus(period.getEnable() ? "A" : "D");
                         App.getCatTypeDao().update(cat);
                     }
-                    if(! period.getEnable() && period.getId().startsWith("dsj")){
-                        MJ2.stop=true;
+                    if (!period.getEnable() && period.getId().startsWith("dsj")) {
+                        MJ2.stop = true;
                     }
 
                     updateScreenTabs();
@@ -876,27 +676,29 @@ public class WebController {
     String startAtBoot() {
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
         String id = "_start_at_boot_";
-        boolean startAtBoot = sp.getBoolean(id,true);
-        return "{\"startAtBoot\":"+startAtBoot+"}";
+        boolean startAtBoot = sp.getBoolean(id, true);
+        return "{\"startAtBoot\":" + startAtBoot + "}";
     }
+
     @PostMapping(path = "/api/boot")
     String toggleStartBoot() {
 
         SharedPreferences sp = App.getInstance().getSharedPreferences("SP", Context.MODE_PRIVATE);
 
         String id = "_start_at_boot_";
-        boolean startAtBoot = sp.getBoolean(id,true);
+        boolean startAtBoot = sp.getBoolean(id, true);
 
         SharedPreferences.Editor editor = sp.edit();
-        editor.putBoolean(id,!startAtBoot);
+        editor.putBoolean(id, !startAtBoot);
         editor.apply();
         editor.commit();
 
-        return "{\"startAtBoot\":"+startAtBoot+"}";
+        return "{\"startAtBoot\":" + startAtBoot + "}";
     }
+
     @PostMapping(path = "/api/usingSpeed")
     String toggleUsingSpeed() {
-        App.updateConfig("usingSpeed",!App.usingSpeed);
+        App.updateConfig("usingSpeed", !App.usingSpeed);
 
         return "ok";
     }
@@ -904,7 +706,7 @@ public class WebController {
     @GetMapping(path = "/api/usingSpeed")
     String getUsingSpeed() {
 
-        return    "{\"usingSpeed\":"+App.usingSpeed+"}";
+        return "{\"usingSpeed\":" + App.usingSpeed + "}";
     }
 
 }

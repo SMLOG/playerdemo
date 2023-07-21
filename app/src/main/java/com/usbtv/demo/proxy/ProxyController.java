@@ -1,7 +1,6 @@
 package com.usbtv.demo.proxy;
 
 
-import com.yanzhenjie.andserver.annotation.Controller;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.RequestParam;
 import com.yanzhenjie.andserver.annotation.RestController;
@@ -31,6 +30,8 @@ import download.M3u8Exception;
 @RestController
 public class ProxyController {
 
+    public static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36";
+
     private String getAbsUrl(String fromUrl, String relativeUrl) {
         String absUrl;
         if (relativeUrl.startsWith("/")) {
@@ -54,7 +55,7 @@ public class ProxyController {
         long timeoutMillisecond = 100000L;
 
         HashMap<String, String> requestHeaderMap = new HashMap<String, String>();
-        requestHeaderMap.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.106 Safari/537.36");
+        requestHeaderMap.put("User-Agent", USER_AGENT);
         String contentType = null;
         System.out.println(url);
 

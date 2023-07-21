@@ -6,6 +6,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
@@ -27,6 +28,9 @@ import androidx.media3.exoplayer.source.SingleSampleMediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +56,7 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
 
     private String mSubTitile;
     private Player.Listener mTextOutput;
+    private List<String> urlList;
 
     public MyExo2MediaPlayer(Context context) {
         super(context);
@@ -76,10 +81,33 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
         if (uris == null) {
             return;
         }
+        this.urlList=uris;
         ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
         for (String uri : uris) {
             MediaSource mediaSource = mExoHelper.getMediaSource(uri, isPreview, cache, false, mCacheDir, getOverrideExtension());
+
+            if(uri.contains("&subtitle=")){
+                mSubTitile=uri.split("&subtitle=")[1];
+                try {
+                    mSubTitile = URLDecoder.decode(mSubTitile,"UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+               // mSubTitile="https://prod-video-cms-amp-microsoft-com.akamaized.net/tenant/amp/entityid/AA1e20RV?blobrefkey=closedcaptionen-us&$blob=1";
+              //  mSubTitile="http://img.cdn.guoshuyu.cn/subtitle2.srt";
+            }
+            if (mSubTitile != null) {
+
+                MediaSource subtitleSource = getTextSource(mSubTitile);
+
+                mediaSource = new MergingMediaSource( subtitleSource,mediaSource);
+                //mediaSource=subtitleSource;
+            }
+            Log.i("player",mSubTitile);
+            Log.i("player",uri);
+
             concatenatedSource.addMediaSource(mediaSource);
+
         }
         playIndex = index;
         mMediaSource = concatenatedSource;
@@ -150,9 +178,17 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
                         mInternalPlayer.seekTo(playIndex, C.INDEX_UNSET);
                     }
 
-                    if (mSubTitile != null) {
-                        MediaSource textMediaSource = getTextSource(Uri.parse(mSubTitile));
-                        mMediaSource = new MergingMediaSource(mMediaSource, textMediaSource);
+
+                   if(false) if (mSubTitile != null) {
+
+                        MediaSource[] mergedMediaSources = new MediaSource[urlList.size()];
+
+                        for(int i=0;i<urlList.size();i++){
+                            MediaSource textMediaSource = getTextSource("http://img.cdn.guoshuyu.cn/subtitle2.srt");
+                            mergedMediaSources[i]=textMediaSource;
+                        }
+
+                        mMediaSource = new MergingMediaSource(mMediaSource, new ConcatenatingMediaSource(mergedMediaSources));
                     }
 
                     mInternalPlayer.setMediaSource(mMediaSource, false);
@@ -163,19 +199,29 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
         );
     }
 
-    public MediaSource getTextSource(Uri subTitle) {
+    public MediaSource getTextSource(String subTitle) {
         //todo C.SELECTION_FLAG_AUTOSELECT language MimeTypes
-        Format textFormat = new Format.Builder()
+
+        Format.Builder builder = new Format.Builder();
                 /// 其他的比如 text/x-ssa ，text/vtt，application/ttml+xml 等等
-                .setSampleMimeType(MimeTypes.APPLICATION_SUBRIP)
-                .setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                //.setSampleMimeType(MimeTypes.BASE_TYPE_APPLICATION)
+        if(subTitle.lastIndexOf("vtt")>-1){
+            builder.setSampleMimeType(MimeTypes.APPLICATION_MP4VTT);
+        }else if(subTitle.lastIndexOf("srt")>-1){
+            builder.setSampleMimeType(MimeTypes.APPLICATION_SUBRIP);
+        }else{
+            builder.setSampleMimeType(MimeTypes.APPLICATION_TTML);
+
+        }
+        Format textFormat=
+                builder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
                 /// 如果出现字幕不显示，可以通过修改这个语音去对应，
                 //  这个问题在内部的 selectTextTrack 时，TextTrackScore 通过 getFormatLanguageScore 方法判断语言获取匹配不上
                 //  就会不出现字幕
                 .setLanguage("en")
                 .build();
 
-        MediaItem.SubtitleConfiguration  subtitle = new MediaItem.SubtitleConfiguration.Builder(subTitle)
+        MediaItem.SubtitleConfiguration  subtitle = new MediaItem.SubtitleConfiguration.Builder(Uri.parse(subTitle))
                 .setMimeType(checkNotNull(textFormat.sampleMimeType))
                 .setLanguage( textFormat.language)
                 .setSelectionFlags(textFormat.selectionFlags).build();

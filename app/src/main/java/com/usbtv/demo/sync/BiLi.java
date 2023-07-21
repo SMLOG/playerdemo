@@ -4,9 +4,7 @@ import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -24,7 +22,6 @@ import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

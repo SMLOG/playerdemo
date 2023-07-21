@@ -8,6 +8,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.cnn.CnnSync;
+import com.usbtv.demo.cnn.MSN;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
@@ -48,7 +49,14 @@ public class SyncCenter {
                 }
 
             });
+            RunCron.addPeriod(new RunCron.Period("MSN", "MSN", 12l * 3600 * 1000, false) {
+                @Override
+                public void doRun() throws Throwable {
+                    MSN.sync(this, 400, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
+                    updateScreenTabs();
+                }
 
+            });
 
             String[][] arr = new String[][]{
                     new String[]{"oumeiju", "欧美剧", ""},

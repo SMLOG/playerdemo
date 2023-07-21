@@ -24,7 +24,6 @@ import com.usbtv.demo.view.adapter.QtabListRecycleViewAdapter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -669,4 +668,13 @@ public final class PlayerController {
     }
 
 
+    private boolean seamless=false;
+    public boolean isSeamless() {
+        return this.seamless;
+    }
+
+    private boolean subTitleProxyActive=false;
+    public boolean isSubTitleProxyActive() {
+        return this.subTitleProxyActive;
+    }
 }
