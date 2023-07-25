@@ -160,13 +160,13 @@ public class Utils {
         } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
             // Assume this is a corrupt video file
-        } catch (RuntimeException ex) {
+        } catch (Throwable ex) {
             ex.printStackTrace();
             // Assume this is a corrupt video file.
         } finally {
             try {
                 retriever.release();
-            } catch (RuntimeException ex) {
+            } catch (Throwable ex) {
                 // Ignore failures while cleaning up.
             }
         }
