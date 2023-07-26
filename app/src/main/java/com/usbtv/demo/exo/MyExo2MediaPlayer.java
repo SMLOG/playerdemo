@@ -103,8 +103,8 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
                 mediaSource = new MergingMediaSource( subtitleSource,mediaSource);
                 //mediaSource=subtitleSource;
             }
-            Log.i("player",mSubTitile);
-            Log.i("player",uri);
+            Log.i("player",""+mSubTitile);
+           if(uri!=null) Log.i("player",""+uri);
 
             concatenatedSource.addMediaSource(mediaSource);
 
@@ -176,19 +176,6 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
                     ///fix start index
                     if (playIndex > 0) {
                         mInternalPlayer.seekTo(playIndex, C.INDEX_UNSET);
-                    }
-
-
-                   if(false) if (mSubTitile != null) {
-
-                        MediaSource[] mergedMediaSources = new MediaSource[urlList.size()];
-
-                        for(int i=0;i<urlList.size();i++){
-                            MediaSource textMediaSource = getTextSource("http://img.cdn.guoshuyu.cn/subtitle2.srt");
-                            mergedMediaSources[i]=textMediaSource;
-                        }
-
-                        mMediaSource = new MergingMediaSource(mMediaSource, new ConcatenatingMediaSource(mergedMediaSources));
                     }
 
                     mInternalPlayer.setMediaSource(mMediaSource, false);

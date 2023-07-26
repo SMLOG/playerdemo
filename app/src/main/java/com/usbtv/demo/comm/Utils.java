@@ -453,14 +453,14 @@ mTextView02.setBackground(new BitmapDrawable(bmp));*/
             }
 
             return out.toString(StandardCharsets.UTF_8.name());
-        } catch (IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
 
         return str;
     }
 
-    public static String translate(String xmlUrl) throws Exception {
+    public static synchronized String translate(String xmlUrl) throws Exception {
         String xml = Utils.get(xmlUrl);
         if (bTree == null) {
 

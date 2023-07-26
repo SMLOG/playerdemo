@@ -91,7 +91,7 @@ public class SyncCenter {
                 }
             });
 
-            RunCron.addPeriod(new RunCron.Period("bili", "bili", 3l * 24 * 3600 * 1000, true) {
+            RunCron.addPeriod(new RunCron.Period("bili", "bili", 3l * 24 * 3600 * 1000, false) {
                 @Override
                 public void doRun() throws Throwable {
                     BiLi.bilibiliVideos(this, 100, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, validAidsMap);
@@ -99,14 +99,14 @@ public class SyncCenter {
                 }
             });
 
-            RunCron.addPeriod(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000, true) {
+           /* RunCron.addPeriod(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
                     BiLi.bilibiliVideosSearchByKeyWord(this, 200, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, validAidsMap
                     );
                     updateScreenTabs();
                 }
-            });
+            });*/
 
             RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
                 @Override

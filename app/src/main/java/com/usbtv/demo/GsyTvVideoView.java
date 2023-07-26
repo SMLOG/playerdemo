@@ -1,7 +1,6 @@
 package com.usbtv.demo;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -41,7 +40,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     public GsyTvVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         PlayerFactory.setPlayManager(Exo2PlayerManager.class);
-       // PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        // PlayerFactory.setPlayManager(IjkPlayerManager.class);
         //PlayerFactory.setPlayManager(GSYExoPlayerManager.class);
 
         //  CacheFactory.setCacheManager(ProxyCacheManager.class);
@@ -97,17 +96,17 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
     @Override
     public void onCues(CueGroup cueGroup) {
-       // if(true) return;
+        // if(true) return;
         if (mSubtitleView != null) {
             mSubtitleView.setCues(cueGroup.cues);
-            if(false)
-            for (Cue cue : cueGroup.cues) {
-                if (cue.text != null &&
-                        !"".equals(cue.text.toString().trim()) &&
-                        isAcronym(cue.text.toString())) {
-                    cueCount++;
-                } else cueCount = 0;
-            }
+            if (false)
+                for (Cue cue : cueGroup.cues) {
+                    if (cue.text != null &&
+                            !"".equals(cue.text.toString().trim()) &&
+                            isAcronym(cue.text.toString())) {
+                        cueCount++;
+                    } else cueCount = 0;
+                }
             if (cueCount > 3)
                 mSubtitleView.setVisibility(GONE);
             else mSubtitleView.setVisibility(VISIBLE);
@@ -175,15 +174,25 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     }
 
 
-    public void setVideoURI(Uri videoUrl, VFile res, int fi) {
+    public void setVideoURI(VFile res, int fi) {
 
         mPauseBeforePrepared = false;
         getGSYVideoManager().pause();
-        if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
+
+
+        if (PlayerController.getInstance().getPlayer() != null) {
+            if (("bili".equals(PlayerController.getInstance().getPlayer()))
+            ) {
+                PlayerFactory.setPlayManager(IjkPlayerManager.class);
+            } else {
+                PlayerFactory.setPlayManager(MyExo2PlayerManager.class);
+
+            }
+        } else if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
             PlayerFactory.setPlayManager(IjkPlayerManager.class);
-        } else {
-            PlayerFactory.setPlayManager(MyExo2PlayerManager.class);
-        }
+
+        } else PlayerFactory.setPlayManager(MyExo2PlayerManager.class);
+
 
         setUpUrls(res, fi);
         releaseCompleted = true;
@@ -207,19 +216,19 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         for (int i = curIndex; i < files.length; i++) {
             String url = null;
 
-            if(files[i].getCc()!=null){
+            if (files[i].getCc() != null) {
                 url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId();
                 try {
-                    if(PlayerController.getInstance().isSubTitleActive())
-                    url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId()+"&subtitle="+URLEncoder.encode(files[i].getCc(), "UTF-8");
-                   if(PlayerController.getInstance().isSubTitleProxyActive())
-                    url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId() + "&subtitle=" + URLEncoder.encode(
-                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/subtitle?id=" + files[i].getId() + "&url=" +
-                                    URLEncoder.encode(files[i].getCc(), "UTF-8"), "UTF-8");
+                    if (PlayerController.getInstance().getSubTitleType()==PlayerController.SUBTITLE_ACTIVE)
+                        url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId() + "&subtitle=" + URLEncoder.encode(files[i].getCc(), "UTF-8");
+                    else if (PlayerController.getInstance().getSubTitleType()==PlayerController.SUBTITLE_ACTIVE_TRRAN)
+                        url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId() + "&subtitle=" + URLEncoder.encode(
+                                SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/subtitle?id=" + files[i].getId() + "&url=" +
+                                        URLEncoder.encode(files[i].getCc(), "UTF-8"), "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
-            }else if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
+            } else if (res.getFolder().getTypeId() >= 500 && res.getFolder().getTypeId() < 600) {
                 url = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vFileUrl.m3u8?id=" + files[i].getId();
             } else if (files[i].getdLink() != null) {
                 url = App.getUrl(files[i].getdLink());
@@ -230,7 +239,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
             urls.add(new GSYVideoModel(url, files[i].getName() + "(" + files[i].getPage() + ")"));
 
-            if(!PlayerController.getInstance().isSeamless()){
+            if (!PlayerController.getInstance().isSeamless()) {
                 break;
             }
             break;

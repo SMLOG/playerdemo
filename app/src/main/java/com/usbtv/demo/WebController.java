@@ -6,7 +6,6 @@ import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
 
@@ -22,7 +21,6 @@ import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.MJ2;
 import com.usbtv.demo.sync.SyncCenter;
-import com.usbtv.demo.comm.SpeechUtils;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
@@ -35,11 +33,9 @@ import com.yanzhenjie.andserver.annotation.ResponseBody;
 import com.yanzhenjie.andserver.annotation.RestController;
 import com.yanzhenjie.andserver.framework.body.FileBody;
 import com.yanzhenjie.andserver.framework.body.StreamBody;
-import com.yanzhenjie.andserver.framework.body.StringBody;
 import com.yanzhenjie.andserver.http.HttpRequest;
 import com.yanzhenjie.andserver.http.HttpResponse;
 import com.yanzhenjie.andserver.http.RequestBody;
-import com.yanzhenjie.andserver.http.multipart.MultipartFile;
 import com.yanzhenjie.andserver.util.MediaType;
 
 import org.json.JSONException;
@@ -47,18 +43,13 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -152,15 +143,13 @@ public class WebController {
             App.broadcastCMD(cmd, val);
         } else if (cmd.startsWith("broadcast")) {
             App.broadcastCMD(cmd, val);
-        } else if ("toggleSubtile".equals(cmd)) {
-
-            PlayerController.getInstance().setSubTitleActive(!PlayerController.getInstance().isSubTitleActive());
-        } else if ("toggleSubtileProxy".equals(cmd)) {
-
-            PlayerController.getInstance().setSubTitleProxyActive(!PlayerController.getInstance().isSubTitleProxyActive());
+        } else if ("subtile".equals(cmd)) {
+            PlayerController.getInstance().setSubTitleType(Integer.parseInt(val));
+        } else if ("player".equals(cmd)) {
+            PlayerController.getInstance().setPlayer(val);
         }
 
-        return "ok";
+        return JSON.toJSONString(PlayerController.getInstance());
 
     }
 
@@ -601,13 +590,13 @@ public class WebController {
     }
 
     @GetMapping(path = "/api/subtitle")
-    com.yanzhenjie.andserver.http.ResponseBody subtitle(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws Exception {
+    String subtitle(HttpRequest request, @RequestParam(name = "id") int id,@RequestParam(name = "url",required = false) String url, HttpResponse response) throws Exception {
 
         Dao<VFile, Integer> dao = App.getHelper().getDao(VFile.class);
         VFile vfile = dao.queryForId(id);
 
-        response.setHeader("Content-Type", "text/ttml");
-        return new StringBody(Utils.translate(vfile.getCc()), new MediaType("text/ttml"));
+        response.setHeader("Content-Type", "application/text/ttml");
+        return Utils.translate(vfile.getCc());
 
 
     }

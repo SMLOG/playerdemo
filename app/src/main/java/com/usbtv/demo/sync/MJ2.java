@@ -140,7 +140,7 @@ public class MJ2 {
         boolean isFirstUpdate=false;
         while(!next.equals("")) {
             System.out.println(next);
-            doc = Jsoup.connect(next).userAgent(Utils.AGENT).get();
+            doc = Jsoup.connect(next).userAgent("curl/7.64.0").header("Accept","*/*").get();
             Elements itmes = doc.select(".post.clearfix");
             Elements nextLink = doc.select(".nextpostslink");
             if (nextLink.size() > 0)

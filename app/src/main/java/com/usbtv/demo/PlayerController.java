@@ -33,6 +33,9 @@ import java.util.TimerTask;
 
 public final class PlayerController {
 
+    final static int SUBTITLE_ACTIVE=1;
+    final static int SUBTITLE_NO_ACTIVE=0;
+    final static int SUBTITLE_ACTIVE_TRRAN=2;
     final static int MODE_RANDOM = 1;
     final static int MODE_SEQ = 0;
     final static int MODE_LOOP = 2;
@@ -228,7 +231,7 @@ public final class PlayerController {
                         synchronized (videoView) {
 
                             //videoView.pause();
-                            videoView.setVideoURI(videoUrl,res,fi);
+                            videoView.setVideoURI(res,fi);
                             //videoView.resume();
 
                         }
@@ -673,20 +676,23 @@ public final class PlayerController {
         return this.seamless;
     }
 
-    private boolean subTitleProxyActive=false;
-    public boolean isSubTitleProxyActive() {
-        return this.subTitleProxyActive;
-    }
-    private boolean subTitleActive=true;
-    public boolean isSubTitleActive() {
-        return subTitleActive;
+    private int subTitleType =1;
+    public int getSubTitleType() {
+        return subTitleType;
     }
 
-    public void setSubTitleProxyActive(boolean subTitleProxyActive) {
-        this.subTitleProxyActive = subTitleProxyActive;
+
+
+    public void setSubTitleType(int subTitleType) {
+        this.subTitleType = subTitleType;
     }
 
-    public void setSubTitleActive(boolean subTitleActive) {
-        this.subTitleActive = subTitleActive;
+    private String player;
+    public String getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(String player) {
+        this.player = player;
     }
 }
