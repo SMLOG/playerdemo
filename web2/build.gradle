@@ -1,0 +1,35 @@
+// build.gradle
+plugins {
+    id "com.github.node-gradle.node" version "1.3.0"
+}
+
+//调用npm run build命令的Gradle任务
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
+    inputs.files(fileTree('config'))
+    inputs.files(fileTree('src'))
+    inputs.files(fileTree('public'))
+    inputs.files(fileTree('build'))
+    inputs.file('package.json')
+    inputs.file('package-lock.json')
+    //inputs.file('index.html')
+
+    outputs.files(fileTree('dist'))
+
+    group = 'node'
+    args = ['run', 'build']
+}
+
+//调用npm run dev
+task npmDev(type: NpmTask, dependsOn: npmInstall) {
+    group = 'node'
+    args = ['run', 'dev']
+}
+
+/*
+assemble.dependsOn project(':web').getTasksByName('npmBuild', false)
+processResources {
+    from(project(':web').file('dist').path) {
+        into 'static'
+    }
+}
+* */

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="110dp"
+    android:layout_height="110dp"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_recyclerview_item"
+    android:focusable="true"
+    android:gravity="center"
+    >
+
+    <ImageView
+        android:id="@+id/iv_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="fitXY" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#aa000000">
+
+        <TextView
+            android:id="@+id/indexNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:lines="1"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="@color/gray"
+            android:textSize="12sp" />
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_gravity="bottom"
+        android:background="#aa000000">
+
+        <TextView
+            android:id="@+id/tv_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_recyclerview_item"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:lines="1"
+            android:singleLine="true"
+            android:text="222222"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+    </RelativeLayout>
+</FrameLayout>

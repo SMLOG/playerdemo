@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.application'
+    id 'com.yanzhenjie.andserver'
+}
+
+android {
+    namespace 'com.usbtv.demo'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.usbtv.demo"
+        minSdk 28
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+        ndk{
+            abiFilters  "armeabi-v7a","x86"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'com.yanzhenjie.andserver:api:2.1.12'
+    annotationProcessor 'com.yanzhenjie.andserver:processor:2.1.12'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation "com.squareup.retrofit2:converter-gson:2.5.0"
+
+    implementation 'com.alibaba:fastjson:1.2.3'
+    implementation 'com.j256.ormlite:ormlite-android:5.3'
+    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation "io.github.cymchad:BaseRecyclerViewAdapterHelper:3.0.14"
+    implementation 'com.eclipsesource.j2v8:j2v8:6.2.0@aar'
+    implementation 'com.github.CarGuo.GSYVideoPlayer:GSYVideoPlayer:v8.4.0-release-jitpack'
+
+    //implementation 'com.jakewharton:butterknife:10.2.3'
+    //annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    testImplementation 'junit:junit:4.12'
+
+    // https://mvnrepository.com/artifact/com.eclipsesource.j2v8/j2v8_win32_x86_64
+    testImplementation group: 'com.eclipsesource.j2v8', name: 'j2v8_win32_x86_64', version: '4.6.0'
+
+}
