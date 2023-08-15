@@ -75,7 +75,7 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
-        Folder folder = PlayerController.getInstance().getCurCatList().get(position);
+        Folder folder = PlayerController.getInstance().getFocusCatList().get(position);
         viewHolder.tv.setText((folder.getIsFav()>0?"*":"")+folder.getShortName());
 
         viewHolder.tv.setBackgroundColor(PlayerController.getInstance().isFolderPositionSelected(position)?Color.RED:Color.BLACK);
@@ -89,7 +89,9 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     mOnItemClickListener.onItemClick(v, folder,position);
+                    FolderListAdapter.this.notifyDataSetChanged();
 
                 }
             });
@@ -136,7 +138,7 @@ public abstract class FolderListAdapter extends RecyclerView.Adapter<RecyclerVie
 
     @Override
     public int getItemCount() {
-        List<Folder> curCatList = PlayerController.getInstance().getCurCatList();
+        List<Folder> curCatList = PlayerController.getInstance().getFocusCatList();
         return curCatList!=null?curCatList.size():0;
     }
 

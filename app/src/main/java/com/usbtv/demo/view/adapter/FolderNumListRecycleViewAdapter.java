@@ -51,7 +51,7 @@ public class FolderNumListRecycleViewAdapter extends RecyclerView.Adapter<Recycl
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlayerController.getInstance().play(position).hideMenu();
+                PlayerController.getInstance().play(PlayerController.getInstance().getNumFiles()[position],position).hideMenu();
             }
         });
 

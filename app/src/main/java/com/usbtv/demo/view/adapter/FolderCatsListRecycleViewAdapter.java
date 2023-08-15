@@ -62,7 +62,7 @@ public class FolderCatsListRecycleViewAdapter extends RecyclerView.Adapter<Recyc
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus && !recyclerView.isComputingLayout()) {
-                    PlayerController.getInstance().selectCat(viewHolder.catText.getText().toString());
+                    PlayerController.getInstance().focusCat(viewHolder.catText.getText().toString());
                     viewHolder.catText.setTextColor(Color.RED);
                     int p = curPos;
                     curPos = position;

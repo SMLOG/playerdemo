@@ -75,6 +75,7 @@ public final class PlayerController {
     private Timer timer2 = new Timer();
     private List<CatType> cats;
     public ConfigStore configStore;
+    private int folderIndex;
 
 
     private PlayerController() {
@@ -84,6 +85,17 @@ public final class PlayerController {
     @JSONField(serialize = false)
     public List<Folder> getCurCatList() {
         return this.curCatList;
+    }
+
+    private  List tmpList;
+    @JSONField(serialize = false)
+    public List<Folder> getFocusCatList() {
+        if(focusCat==null)focusCat = curCat;
+        if(tmpList==null && focusCat!=null)
+            tmpList=  loadCatFolderList(allTypeMap.get(focusCat));
+
+        if(tmpList==null) return new ArrayList<>();
+        return tmpList;
     }
 
 
@@ -236,7 +248,7 @@ public final class PlayerController {
         Folder folder = null;
 
         List<Folder> catFolerList = this.getCurCatList();
-        int nextPos = this.curFocusFolderIndex + 1;
+        int nextPos = folderIndex + 1;
         if (nextPos >= 0 && catFolerList != null) {
             for (int i = nextPos; i < catFolerList.size(); i++) {
                 Log.i("" + i);
@@ -422,6 +434,30 @@ public final class PlayerController {
         return this;
     }
 
+    private  String focusCat;
+    public void focusCat(String cat){
+        focusCat=cat;
+
+        this.timerCat.cancel();
+        this.timerCat = new Timer();
+
+        timerCat.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                tmpList=  loadCatFolderList(allTypeMap.get(focusCat));
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        PlayerController.this.foldersAdapter.notifyDataSetChanged();
+                    }
+                });
+
+
+            }
+        }, 500);//延时1s执行
+    }
     public void selectCat(String cat) {
 
         if (this.curCat != null && this.curCat.equals(cat)) {
@@ -466,11 +502,7 @@ public final class PlayerController {
         return curCat;
     }
 
-    public void play(Folder folder, int folderIndex, int fileIndexOfFolder) {
-        this.selectFolder(folderIndex);
-        this.play(folder, fileIndexOfFolder);
 
-    }
 
     public void focusFolder(int folderPosition) {
         this.curFocusFolderIndex = folderPosition;
@@ -481,7 +513,7 @@ public final class PlayerController {
         timer2.schedule(new TimerTask() {
             @Override
             public void run() {
-                Folder folder = PlayerController.this.curCatList.get(curFocusFolderIndex);
+                Folder folder = PlayerController.this.getFocusCatList().get(curFocusFolderIndex);
                 VFile[] numFiles =  folder.getFiles().toArray(new VFile[]{});
 
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -499,6 +531,7 @@ public final class PlayerController {
 
     }
     public void selectFolder(int folderPosition) {
+        folderIndex=folderPosition;
         this.curFolder = curCatList.get(folderPosition);
         this.foldersAdapter.notifyItemChanged(folderPosition);
 
@@ -526,8 +559,9 @@ public final class PlayerController {
 
     public boolean isFolderPositionSelected(int position) {
 
-        if (this.curCat != null && this.curFolder != null) {
-            return getCurCatList().get(position).getId() == this.curFolder.getId();
+        if (this.focusCat != null && this.curFolder != null) {
+            System.out.println(getFocusCatList().get(position).getId());
+            return getFocusCatList().get(position).getId() == this.curFolder.getId();
         }
         return false;
     }
@@ -542,6 +576,7 @@ public final class PlayerController {
 
 
     public boolean isNumberSelect(int i) {
+        if(this.curFolder == null)return false;
         VFile curFile = getFile();
         return (curFile != null && this.curFolder != null && curFile.getFolder().getId() == this.curFolder.getId() && i == this.fileIndexOfFolder);
     }
@@ -603,5 +638,17 @@ public final class PlayerController {
 
         }
         return null;
+    }
+    public void play(Folder folder, int folderIndex, int fileIndexOfFolder) {
+        this.curCat = this.focusCat;
+        this.curCatList=this.tmpList;
+
+        this.selectFolder(folderIndex);
+        this.play(folder, fileIndexOfFolder);
+
+    }
+    public PlayerController play(VFile numFile, int position) {
+        play(numFile.getFolder(),curFocusFolderIndex,position);
+        return this;
     }
 }
