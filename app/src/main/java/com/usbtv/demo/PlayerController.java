@@ -359,6 +359,7 @@ public final class PlayerController {
     }
 
     public void playVFile(VFile vfile) {
+
         String curCat = this.typeIdMap.get(vfile.getFolder().getTypeId());
         if (curCat == null && this.typeIdMap.values().size() > 0) {
             curCat = this.typeIdMap.values().iterator().next();
@@ -466,30 +467,9 @@ public final class PlayerController {
         this.curCat = cat;
         Integer typeId = allTypeMap.get(cat);
         this.setCurCatId(typeId);
+        curCatList = loadCatFolderList(PlayerController.this.curCatId);
 
 
-        this.timerCat.cancel();
-        this.timerCat = new Timer();
-
-        timerCat.schedule(new TimerTask() {
-            @Override
-            public void run() {
-
-                List<Folder> catItemList = loadCatFolderList(PlayerController.this.curCatId);
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        PlayerController.this.curCatList = catItemList;
-                        if (PlayerController.this.curCatList.size() > 0)
-                            ((HorizontalGridView) PlayerController.this.foldersRecyclerView).setSelectedPosition(0);
-                        PlayerController.this.foldersAdapter.notifyDataSetChanged();
-                    }
-                });
-
-
-            }
-        }, 500);//延时1s执行
 
     }
 
