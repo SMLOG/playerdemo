@@ -61,22 +61,23 @@ public class BiLi {
 
             String i = (String) scriptEngine.eval("tool.cal('" + link + "'+'@'+" + e + ").toString(10)");
 
-            String phead = (String) scriptEngine.eval("tool.uc('" + link + "'," + "'bilibili')");
+            String phead = (String) scriptEngine.eval("tool.uc('" + link + "')");
             String elink = (String) scriptEngine.eval("tool.encode('" + link + "')");
             json.put("link", elink + "@" + e + "@" + i);
 
             RequestBody requestBody = RequestBody.create(JSON, String.valueOf(json));
 
-            cookies.add(scriptEngine.eval("_0x5c74a7(-0x27b, -0x284, -0x292, -0x28d)") + "=1");
+          //  cookies.add(scriptEngine.eval("_0x5c74a7(-0x27b, -0x284, -0x292, -0x28d)") + "=1");
             String cookieStr = join(";", cookies);
+            cookieStr="lab0626=1";
             System.out.println("sendcookie:" + cookieStr);
 
-            request = new Request.Builder().url("https://bilibili.iiilab.com/media")
+            request = new Request.Builder().url("https://bili.iiilab.com/media")
 
-                    .addHeader("Origin", "https://bilibili.iiilab.com/")
-                    .addHeader("Referer", "https://bilibili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
+                    .addHeader("Origin", "https://bili.iiilab.com/")
+                    .addHeader("Referer", "https://bili.iiilab.com/").addHeader("User-Agent", Utils.AGENT)
                     .addHeader("Cookie", cookieStr)// .addHeader("X-Client-Data", xclientdata)
-                    .addHeader("accept-patch", phead).post(requestBody).build();
+                    .addHeader("Accept-Patch", phead).post(requestBody).build();
             call = okHttpClient.newCall(request);
             response = call.execute();
             String rsp = response.body().string();
@@ -133,8 +134,8 @@ public class BiLi {
             //if(v8scriptEngine==null) {
 
             //  V8ScriptEngine scriptEngine=new V8ScriptEngine();
-            InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto.js");
-            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time2.js");
+            InputStream fd1 = App.getInstance().getApplicationContext().getAssets().open("crypto-js.min.js");
+            InputStream fd2 = App.getInstance().getApplicationContext().getAssets().open("time.min.js");
 
 
             //scriptEngine.eval(new FileReader(path + "/md5.js"));

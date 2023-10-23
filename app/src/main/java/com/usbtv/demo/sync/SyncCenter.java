@@ -100,7 +100,7 @@ public class SyncCenter {
                 }
             });
 
-            RunCron.addPeriod(new RunCron.Period("local", "local", 0, true) {
+           if(false) RunCron.addPeriod(new RunCron.Period("local", "local", 0, true) {
                 @Override
                 public void doRun() throws Throwable {
                     Aid.scanAllDrive(this, housekeepTypeIdList, keepFoldersMap, validAidsMap);
