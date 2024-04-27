@@ -3,6 +3,8 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        maven { url 'https://jitpack.io' }
+
     }
     dependencies {
         classpath 'com.yanzhenjie.andserver:plugin:2.1.12'
@@ -13,4 +15,5 @@ plugins {
     id 'com.android.library' version '8.0.2' apply false
 
 }
+
 

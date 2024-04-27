@@ -25,6 +25,8 @@ import com.usbtv.demo.data.VFile;
 import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.vurl.M3U;
+import com.yausername.youtubedl_android.YoutubeDL;
+import com.yausername.youtubedl_android.YoutubeDLException;
 
 import java.io.File;
 import java.io.IOException;
@@ -220,6 +222,11 @@ public class App extends Application{
         this.createAndStartWebServer(mContext);
 
         syncWithRemote();
+        try {
+            YoutubeDL.getInstance().init(this);
+        } catch (YoutubeDLException e) {
+            Log.e(TAG, "failed to initialize youtubedl-android", e);
+        }
     }
 
 

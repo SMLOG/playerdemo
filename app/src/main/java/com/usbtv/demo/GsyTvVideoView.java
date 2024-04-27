@@ -25,6 +25,9 @@ import com.usbtv.demo.exo.MyExo2MediaPlayer;
 import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.exo.MyExo2VideoManager;
 import com.usbtv.demo.proxy.HttpBuffer;
+import com.yausername.youtubedl_android.YoutubeDL;
+import com.yausername.youtubedl_android.YoutubeDLRequest;
+import com.yausername.youtubedl_android.mapper.VideoInfo;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -255,6 +258,39 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
             String url = null;
 
             VFile file = files[i];
+
+            if (configStore.proxy != null) {
+                try {
+                    url = configStore.proxy + "?url=" + URLEncoder.encode(url, "UTF-8") + "&bvid" + file.getBvid() + "&id=" + file.getId()+"&ext="+file.getExt();
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+            }else if(ConfigStore.usingYtdl){
+                try{
+                    String ytUrl="";
+                    if(file.getFolder().getTypeId()>=100&&file.getFolder().getTypeId()<200){
+                        ytUrl ="https://www.bilibili.com/video/" + file.getBvid() + "?p=" + file.getPage() + "&spm_id_from=pageDriver";
+                    }else if(file.getFolder().getTypeId()>=800&&file.getFolder().getTypeId()<900){
+                        ytUrl ="https://www.youtube.com/watch?v="+file.getBvid();
+                    }
+                    if(!ytUrl.trim().equals("")){
+                        YoutubeDLRequest request = new YoutubeDLRequest(ytUrl);
+                        request.addOption("-f", "best");
+                        VideoInfo streamInfo = YoutubeDL.getInstance().getInfo(request);
+                        System.out.println(streamInfo.getUrl());
+                        url = streamInfo.getUrl();
+                    }
+
+
+                }catch (Throwable error){
+                    error.printStackTrace();
+                }
+
+            }
+            if(url==null&&url.trim().equals("")){
+
+
+
             String httpUrl = baseurl + "/api/vFileUrl" + file.getExt() + "?id=" + file.getId();
             if (file.getCc() != null) {
                 url = httpUrl;
@@ -280,14 +316,8 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                 url = httpUrl;
             }
 
-
-            if (configStore.proxy != null) {
-                try {
-                    url = configStore.proxy + "?url=" + URLEncoder.encode(url, "UTF-8") + "&bvid" + file.getBvid() + "&id=" + file.getId()+"&ext="+file.getExt();
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
             }
+
 
             System.out.println(url);
             urls.add(new GSYVideoModel(url, file.getName() + "(" + file.getPage() + ")"));

@@ -11,7 +11,8 @@ import com.usbtv.demo.data.Feed;
 import java.util.List;
 
 public class ConfigStore {
-   public Integer fileId=0;
+    public static boolean usingYtdl=true;
+    public Integer fileId=0;
    public boolean usingBiliPlayer =false;
    public boolean isSeamless=false;
    public boolean startAtBoot=true;
