@@ -287,7 +287,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                 }
 
             }
-            if(url==null&&url.trim().equals("")){
+            if(url==null||url.trim().equals("")){
 
 
 
