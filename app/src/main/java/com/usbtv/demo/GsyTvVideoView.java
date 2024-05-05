@@ -265,12 +265,14 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
-            }else if(ConfigStore.usingYtdl){
+            }
+            if(url == null && ConfigStore.usingYtdl){
                 try{
                     String ytUrl="";
-                    if(file.getFolder().getTypeId()>=100&&file.getFolder().getTypeId()<200){
+                    /*if(file.getFolder().getTypeId()>=100&&file.getFolder().getTypeId()<200){
                         ytUrl ="https://www.bilibili.com/video/" + file.getBvid() + "?p=" + file.getPage() + "&spm_id_from=pageDriver";
-                    }else if(file.getFolder().getTypeId()>=800&&file.getFolder().getTypeId()<900){
+                    }else */
+                    if(file.getFolder().getTypeId()>=800&&file.getFolder().getTypeId()<900){
                         ytUrl ="https://www.youtube.com/watch?v="+file.getBvid();
                     }
                     if(!ytUrl.trim().equals("")){
