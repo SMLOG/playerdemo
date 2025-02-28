@@ -75,8 +75,15 @@ public class VideoList {
                 vFileDao.createOrUpdate(vf);
             }
 
-
+            exists = vFileDao.queryBuilder().where().eq("folder_id", folder.getId()).query();
+            if(exists.size()==0){
+                folderDao.delete(folder);
+            }
         }
+
+
+
+
 
 
         CatType type = new CatType();
@@ -84,6 +91,10 @@ public class VideoList {
         type.setTypeId(channelId);
         type.setName(typename);
         App.getCatTypeDao().createOrUpdate(type);
+
+        List<Folder> exitsFolder = folderDao.queryBuilder().where().eq("typeId", channelId).and().query();
+        if(exitsFolder.size()==0)App.getCatTypeDao().delete(type);
+
         SyncCenter.updateScreenTabs();
 
     }
