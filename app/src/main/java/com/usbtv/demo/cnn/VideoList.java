@@ -14,13 +14,12 @@ import com.usbtv.demo.sync.SyncCenter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+// $.post("/api/insert", { url:'http://192.168.3.227:9080/videos.json',typeid:'200',typename:'Video', content: 'a' })
 public class VideoList {
 
-    public static void insertVideos(int channelId, String feedUrl, String jsonContent
-    ) throws IOException, SQLException {
+    public static void insertVideos(int channelId, String feedUrl, String jsonContent,
+                                     String typename) throws IOException, SQLException {
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
@@ -83,7 +82,7 @@ public class VideoList {
         CatType type = new CatType();
         type.setStatus("A");
         type.setTypeId(channelId);
-        type.setName("Video");
+        type.setName(typename);
         App.getCatTypeDao().createOrUpdate(type);
         SyncCenter.updateScreenTabs();
 
