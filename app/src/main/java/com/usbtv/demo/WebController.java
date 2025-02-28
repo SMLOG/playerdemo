@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
+import com.usbtv.demo.cnn.VideoList;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.ConvertToInlineHttp;
@@ -681,6 +682,27 @@ public class WebController {
         return JSON.toJSONString(RunCron.peroidMap);
     }
 
+
+    @PostMapping(path = "/api/insert")
+    String insertVideos(
+            @RequestParam(name = "url") String url,
+            @RequestParam(name = "content") String json,
+            RequestBody body) throws SQLException, IOException {
+
+
+        String str = null;
+        try {
+            String content = body.string();
+            JSONObject params = new JSONObject(content);
+
+            str = params.getString("content");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        VideoList.insertVideos(200,url,json);
+
+        return "{\"status\":1}";
+    }
     @PostMapping(path = "/api/tasks/update")
     String toggleTask(@RequestParam(name = "id") String id, @RequestParam(name = "action") String action) throws SQLException {
         RunCron.Period period = RunCron.peroidMap.get(id);
