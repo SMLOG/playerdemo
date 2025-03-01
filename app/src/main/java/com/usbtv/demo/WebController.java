@@ -686,8 +686,6 @@ public class WebController {
     @PostMapping(path = "/api/insert")
     String insertVideos(
             @RequestParam(name = "url",defaultValue = "") String url,
-            @RequestParam(name = "typeid",defaultValue = "200") String typeid,
-            @RequestParam(name = "typename",defaultValue = "Video") String typename,
             @RequestParam(name = "content",defaultValue = "") String json,
             RequestBody body) throws SQLException, IOException {
 
@@ -701,7 +699,7 @@ public class WebController {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        VideoList.insertVideos(Integer.parseInt((typeid)),url,json,typename);
+        VideoList.insertVideos(url,json);
 
         return "{\"status\":1}";
     }

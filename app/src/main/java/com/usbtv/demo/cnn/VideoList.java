@@ -13,26 +13,38 @@ import com.usbtv.demo.sync.SyncCenter;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // $.post("/api/insert", { url:'http://192.168.3.227:9080/videos.json',typeid:'200',typename:'Video', content: 'a' })
 public class VideoList {
 
-    public static void insertVideos(int channelId, String feedUrl, String jsonContent,
-                                     String typename) throws IOException, SQLException {
+    public static void insertVideos( String feedUrl, String jsonContent) throws IOException, SQLException {
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
 
 
         JSONArray jsonArr = null;
-        if(jsonContent!=null&&!jsonContent.trim().equals("")&&jsonContent.length()>10){
-            jsonArr = JSONArray.parseArray(jsonContent);
-        }else{
-            String resp = Utils.get(feedUrl);
-            jsonArr = JSON.parseArray(resp);
+        JSONObject rootObject;
+        String content = jsonContent;
+        if(jsonContent==null|| jsonContent.trim().length()<10){
+            content = Utils.get(feedUrl);
+
+        }
+        rootObject = JSONObject.parseObject(content);
+        jsonArr = rootObject.getJSONArray("data");
+        Integer channelId = rootObject.getInteger("id");
+        String channel = rootObject.getString("channel");
+        if(channelId==null){
+            channelId = 200;
+        }
+        if(channel==null&&channel.trim().isEmpty()){
+            channel="Video";
         }
 
+        List<Integer> folderIds = new ArrayList<>();
         for (int i = 0; i < jsonArr.size(); i++) {
             JSONObject item = (JSONObject) jsonArr.get(i);
 
@@ -63,6 +75,9 @@ public class VideoList {
 
             vFileDao.delete(exists);
 
+            if(urls.size()>0)
+                folderIds.add(folder.getId());
+
             for (int j = 0; j < urls.size(); j++) {
                 JSONObject itemObj = urls.getJSONObject(j);
                 String url = itemObj.getString("url");
@@ -75,24 +90,29 @@ public class VideoList {
                 vFileDao.createOrUpdate(vf);
             }
 
-            exists = vFileDao.queryBuilder().where().eq("folder_id", folder.getId()).query();
-            if(exists.size()==0){
-                folderDao.delete(folder);
-            }
+
         }
 
+        if(rootObject.get("clean")!=null){
+            List<Folder> shouldDelFolds = folderDao.queryBuilder().where().eq("typeId", channelId).and().notIn("id", folderIds).query();
 
-
+            List<Integer> shouldDelFolderIds = shouldDelFolds.stream().map(f -> f.getId()).collect(Collectors.toList());
+            List<VFile> shouldDelVfiles = vFileDao.queryBuilder().where().in("folder_id", shouldDelFolderIds).query();
+            if(shouldDelVfiles.size()>0)
+                vFileDao.delete(shouldDelVfiles);
+            if(shouldDelFolds.size()>0)
+                folderDao.delete(shouldDelFolds);
+        }
 
 
 
         CatType type = new CatType();
         type.setStatus("A");
         type.setTypeId(channelId);
-        type.setName(typename);
+        type.setName(channel);
         App.getCatTypeDao().createOrUpdate(type);
 
-        List<Folder> exitsFolder = folderDao.queryBuilder().where().eq("typeId", channelId).and().query();
+        List<Folder> exitsFolder = folderDao.queryBuilder().where().eq("typeId", channelId).query();
         if(exitsFolder.size()==0)App.getCatTypeDao().delete(type);
 
         SyncCenter.updateScreenTabs();
