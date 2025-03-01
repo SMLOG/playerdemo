@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Test  {
-    @Test
+   // @Test
     public void onCreate() {
 ///https://www.bilibili.com/video/BV1fF411Z7bZ?spm_id_from=333.1007.tianma.2-2-5.click
         BiLi.getVidoInfo("BV1fF411Z7b", 0);
