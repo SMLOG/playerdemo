@@ -332,6 +332,7 @@ public final class PlayerController {
         VFile item = null;
         try {
             item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
+            this.curCatList = null;
             playVFile(item);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
