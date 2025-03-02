@@ -194,7 +194,7 @@ public class Folder {
 
     public String getShortName() {
 
-        return getName().length() < 10 ? getName() : getName().substring(0, 10);
+        return getName().length() < 30 ? getName() : getName().substring(0, 30);
     }
 
     public int getOrderSeq() {
