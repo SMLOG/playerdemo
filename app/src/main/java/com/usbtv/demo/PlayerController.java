@@ -14,6 +14,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
@@ -179,6 +180,7 @@ public final class PlayerController {
         return videoView == null ? false : videoView.isPlaying();
 
     }
+
 
     public void setMode(int mode) {
         this.mode = mode;
@@ -632,4 +634,6 @@ public final class PlayerController {
         play(numFile.getFolder(),curFocusFolderIndex,position);
         return this;
     }
+
+
 }

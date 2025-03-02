@@ -360,13 +360,13 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     private boolean playing;
 
     public boolean isPlaying() {
-
         updateHandler.post(() -> {
-            playing = this.getCurrentState() == CURRENT_STATE_PLAYING;
+            playing = getGSYVideoManager().isPlaying();
         });
         return playing;
 
     }
+
 
     private long seekTime;
 
