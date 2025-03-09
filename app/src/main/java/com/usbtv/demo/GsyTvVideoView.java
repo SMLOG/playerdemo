@@ -436,8 +436,8 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
                 case KeyEvent.KEYCODE_ENTER:
                 case KeyEvent.KEYCODE_DPAD_CENTER:
-
-                    if (this.getCurrentState() == CURRENT_STATE_PLAYING)
+                    //getGSYVideoManager()
+                    if ( getGSYVideoManager().isPlaying())
                         this.onPause();
                     else this.start();
                     ;
