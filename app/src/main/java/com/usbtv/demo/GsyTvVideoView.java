@@ -3,8 +3,10 @@ package com.usbtv.demo;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import androidx.media3.common.Player;
@@ -424,28 +426,55 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         getGSYVideoManager().releaseMediaPlayer();
     }
 
-    public boolean onKeyDown(int keyCode) {
+    private final Runnable dismissControlViewRunnable = new Runnable() {
+        @Override
+        public void run() {
+            startDismissControlViewTimer();
+            isTouch=false;
+        }
+    };
 
+    private void resetDismissControlViewTimer() {
+        updateHandler.removeCallbacks(dismissControlViewRunnable);
+        updateHandler.postDelayed(dismissControlViewRunnable, 2000);
+    }
+    private boolean isTouch = false;
+    public boolean onKeyDown(int keyCode) {
         updateHandler.post(() -> {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                     // mProgressBar.requestFocus();
-                    //touchSurfaceUp();
+                    //touchSurfaceDown(0, 0);
+                    //this.mTouchingProgressBar = true;
+                    if(!isTouch){
+                    isTouch=true;
+                    this.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                            SystemClock.uptimeMillis(),
+                            MotionEvent.ACTION_DOWN,
+                            this.getWidth() / 2,
+                            this.getHeight() / 2,
+                            0));
+                    this.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                            SystemClock.uptimeMillis(),
+                            MotionEvent.ACTION_UP,
+                            this.getWidth() / 2,
+                            this.getHeight() / 2,
+                            0));
+                    }
+                    resetDismissControlViewTimer(); // Reset the timer when the keys are pressed
                     break;
 
                 case KeyEvent.KEYCODE_ENTER:
                 case KeyEvent.KEYCODE_DPAD_CENTER:
-                    //getGSYVideoManager()
-                    if ( getGSYVideoManager().isPlaying())
+                    // getGSYVideoManager()
+                    if (getGSYVideoManager().isPlaying())
                         this.onPause();
-                    else this.start();
-                    ;
+                    else
+                        this.start();
                     break;
-
             }
-
         });
-        return false;
+        return true; // Return true to indicate the event was handled
     }
 }
