@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.media3.common.Player;
@@ -79,6 +80,17 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         mPostDismiss = false;
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event){
+        if (keyCode == KeyEvent.KEYCODE_ENTER) {
+             onKeyDown(keyCode);
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+    @Override
+    public void onClick(View v) {
+        super.onClick(v);
+    }
     @Override
     protected void changeUiToPlayingShow() {
         super.changeUiToPlayingShow();
@@ -375,9 +387,9 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     @Override
     public void seekTo(long time) {
         seekTime = time;
-        updateHandler.postDelayed(() -> {
+        updateHandler.post(() -> {
             super.seekTo(seekTime);
-        }, 300);
+        });
 
     }
 
@@ -439,6 +451,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
         updateHandler.postDelayed(dismissControlViewRunnable, 2000);
     }
     private boolean isTouch = false;
+    private long curPostion=0l;
     public boolean onKeyDown(int keyCode) {
         updateHandler.post(() -> {
             switch (keyCode) {
@@ -449,7 +462,8 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                     //this.mTouchingProgressBar = true;
                     if(!isTouch){
                     isTouch=true;
-                    this.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                    curPostion=this.getCurrentPosition();
+                    /*this.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),
                             SystemClock.uptimeMillis(),
                             MotionEvent.ACTION_DOWN,
                             this.getWidth() / 2,
@@ -460,8 +474,15 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                             MotionEvent.ACTION_UP,
                             this.getWidth() / 2,
                             this.getHeight() / 2,
-                            0));
+                            0));*/
                     }
+                    if(keyCode==KeyEvent.KEYCODE_DPAD_RIGHT){
+                        curPostion=Math.min(curPostion + this.getDuration()/50, this.getDuration());
+                    }else {
+                        curPostion=Math.max(curPostion- this.getDuration()/50, 0);
+                    }
+                    this.seekTo(curPostion);
+
                     resetDismissControlViewTimer(); // Reset the timer when the keys are pressed
                     break;
 
