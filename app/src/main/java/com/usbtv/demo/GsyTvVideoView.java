@@ -280,29 +280,6 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                     throw new RuntimeException(e);
                 }
             }
-            if(url == null && ConfigStore.usingYtdl){
-                try{
-                    String ytUrl="";
-                    /*if(file.getFolder().getTypeId()>=100&&file.getFolder().getTypeId()<200){
-                        ytUrl ="https://www.bilibili.com/video/" + file.getBvid() + "?p=" + file.getPage() + "&spm_id_from=pageDriver";
-                    }else */
-                    if(file.getFolder().getTypeId()>=800&&file.getFolder().getTypeId()<900){
-                        ytUrl ="https://www.youtube.com/watch?v="+file.getBvid();
-                    }
-                    if(!ytUrl.trim().equals("")){
-                        YoutubeDLRequest request = new YoutubeDLRequest(ytUrl);
-                        request.addOption("-f", "best");
-                        VideoInfo streamInfo = YoutubeDL.getInstance().getInfo(request);
-                        System.out.println(streamInfo.getUrl());
-                        url = streamInfo.getUrl();
-                    }
-
-
-                }catch (Throwable error){
-                    error.printStackTrace();
-                }
-
-            }
             if(url==null||url.trim().equals("")){
 
 
@@ -336,7 +313,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
 
             System.out.println(url);
-            urls.add(new GSYVideoModel(url, file.getName() + "(" + file.getPage() + ")"));
+            urls.add(new GSYVideoModel(url, file.getName()==null?file.getFolder().getName():file.getName() + "(" + file.getPage() + ")"));
 
             if (!configStore.isSeamless) {
                 break;

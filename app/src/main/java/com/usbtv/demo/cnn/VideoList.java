@@ -84,6 +84,7 @@ public class VideoList {
                 VFile vf = null;
                 vf = new VFile();
                 //vf.setName(title);
+                vf.setPage(j+1);
                 vf.setFolder(folder);
                 vf.setdLink(url);
                 vf.setOrderSeq(j);
