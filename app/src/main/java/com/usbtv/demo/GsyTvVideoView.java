@@ -89,6 +89,11 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     }
     @Override
     public void onClick(View v) {
+        if(isPlaying()){
+            this.onPause();
+        }else{
+            this.onResume();
+        }
         super.onClick(v);
     }
     @Override
