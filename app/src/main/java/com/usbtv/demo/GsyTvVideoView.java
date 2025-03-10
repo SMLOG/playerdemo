@@ -454,9 +454,9 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                             0));*/
                     }
                     if(keyCode==KeyEvent.KEYCODE_DPAD_RIGHT){
-                        curPostion=Math.min(curPostion + this.getDuration()/50, this.getDuration());
+                        curPostion=Math.min(curPostion + this.getDuration()/100, this.getDuration());
                     }else {
-                        curPostion=Math.max(curPostion- this.getDuration()/50, 0);
+                        curPostion=Math.max(curPostion- this.getDuration()/100, 0);
                     }
                     this.seekTo(curPostion);
                     this.mProgressBar.setProgress((int) ((float)curPostion/this.getDuration()*100));
