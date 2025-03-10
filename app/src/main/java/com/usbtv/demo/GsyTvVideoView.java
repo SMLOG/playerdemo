@@ -448,7 +448,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
     private void resetDismissControlViewTimer() {
         updateHandler.removeCallbacks(dismissControlViewRunnable);
-        updateHandler.postDelayed(dismissControlViewRunnable, 2000);
+        updateHandler.postDelayed(dismissControlViewRunnable, 3000);
     }
     private boolean isTouch = false;
     private long curPostion=0l;
@@ -482,7 +482,8 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                         curPostion=Math.max(curPostion- this.getDuration()/50, 0);
                     }
                     this.seekTo(curPostion);
-
+                    this.mProgressBar.setProgress((int) ((float)curPostion/this.getDuration()*100));
+                    this.cancelDismissControlViewTimer();
                     resetDismissControlViewTimer(); // Reset the timer when the keys are pressed
                     break;
 
