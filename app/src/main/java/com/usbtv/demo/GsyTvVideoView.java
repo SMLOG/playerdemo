@@ -444,7 +444,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                     //this.mTouchingProgressBar = true;
                     if(!isTouch){
                     isTouch=true;
-                    curPostion=this.getCurrentPosition();
+                    curPostion=super.getCurrentPositionWhenPlaying();
                     /*this.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(),
                             SystemClock.uptimeMillis(),
                             MotionEvent.ACTION_DOWN,
@@ -458,13 +458,14 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
                             this.getHeight() / 2,
                             0));*/
                     }
+                    long duration = getGSYVideoManager().getDuration();
                     if(keyCode==KeyEvent.KEYCODE_DPAD_RIGHT){
-                        curPostion=Math.min(curPostion + this.getDuration()/100, this.getDuration());
+                        curPostion=Math.min(curPostion + duration/100, this.getDuration());
                     }else {
-                        curPostion=Math.max(curPostion- this.getDuration()/100, 0);
+                        curPostion=Math.max(curPostion- duration/100, 0);
                     }
                     this.seekTo(curPostion);
-                    this.mProgressBar.setProgress((int) ((float)curPostion/this.getDuration()*100));
+                    this.mProgressBar.setProgress((int) ((float)curPostion/duration*100));
                     this.cancelDismissControlViewTimer();
                     resetDismissControlViewTimer(); // Reset the timer when the keys are pressed
                     break;
