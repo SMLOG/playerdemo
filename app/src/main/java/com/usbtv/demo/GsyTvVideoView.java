@@ -94,16 +94,17 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
            // getGSYVideoManager().pause();
             if(getGSYVideoManager().isPlaying()){
                 this.onPause();
-                cancelDismissControlViewTimer();
+                changeUiToPauseShow();
 
             }else{
                 this.onResume();
-                startDismissControlViewTimer();
+                changeUiToPlayingShow();
+                super.onClick(v);
             }
         });
 
 
-        super.onClick(v);
+        //super.onClick(v);
     }
     @Override
     protected void changeUiToPlayingShow() {
