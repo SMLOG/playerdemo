@@ -79,8 +79,14 @@ public class VideoList {
                 folderIds.add(folder.getId());
 
             for (int j = 0; j < urls.size(); j++) {
-                JSONObject itemObj = urls.getJSONObject(j);
-                String url = itemObj.getString("url");
+                String url = null;
+                try{
+                   url = urls.getString(j);
+                }catch (Throwable ee){
+                    JSONObject itemObj = urls.getJSONObject(j);
+                    url=itemObj.getString("url");
+                }
+
                 VFile vf = null;
                 vf = new VFile();
                 //vf.setName(title);
@@ -97,7 +103,10 @@ public class VideoList {
         if(rootObject.get("clean")!=null){
             List<Folder> shouldDelFolds = folderDao.queryBuilder().where().eq("typeId", channelId).and().notIn("id", folderIds).query();
 
-            List<Integer> shouldDelFolderIds = shouldDelFolds.stream().map(f -> f.getId()).collect(Collectors.toList());
+            List<Integer> shouldDelFolderIds = new ArrayList<>();
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                shouldDelFolderIds = shouldDelFolds.stream().map(f -> f.getId()).collect(Collectors.toList());
+            }
             List<VFile> shouldDelVfiles = vFileDao.queryBuilder().where().in("folder_id", shouldDelFolderIds).query();
             if(shouldDelVfiles.size()>0)
                 vFileDao.delete(shouldDelVfiles);

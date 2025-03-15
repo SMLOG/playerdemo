@@ -39,6 +39,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
 public class App extends Application{
     public static final String URLACTION = "urlaction";
     public static final String CMD = "cmd";
@@ -78,7 +82,16 @@ public class App extends Application{
 
 
 
-
+    public void trustAllCertificates() {
+        try {
+            TrustManager[] trustAllCerts = new TrustManager[] { new TrustAllTrustManager() };
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void broadcastCMD(String cmd, String val) {
 
@@ -222,11 +235,7 @@ public class App extends Application{
         this.createAndStartWebServer(mContext);
 
         syncWithRemote();
-        try {
-            YoutubeDL.getInstance().init(this);
-        } catch (YoutubeDLException e) {
-            Log.e(TAG, "failed to initialize youtubedl-android", e);
-        }
+        trustAllCertificates();
     }
 
 

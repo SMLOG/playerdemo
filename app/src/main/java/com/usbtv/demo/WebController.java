@@ -690,16 +690,12 @@ public class WebController {
             RequestBody body) throws SQLException, IOException {
 
 
-        String str = null;
-        try {
-            String content = body.string();
-            JSONObject params = new JSONObject(content);
+        try{
+            VideoList.insertVideos(url,json);
 
-            str = params.getString("content");
-        } catch (JSONException e) {
-            e.printStackTrace();
+        }catch (Throwable ee){
+            return ee.getMessage();
         }
-        VideoList.insertVideos(url,json);
 
         return "{\"status\":1}";
     }
