@@ -60,16 +60,6 @@ public class SyncCenter {
             attachFeeds(keepFoldersMap, housekeepTypeIdList, folderDao, vFileDao);
 
 
-
-           /* RunCron.addPeriod(new RunCron.Period("bili2", "bili2", 5l * 24 * 3600 * 1000, true) {
-                @Override
-                public void doRun() throws Throwable {
-                    BiLi.bilibiliVideosSearchByKeyWord(this, 200, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, validAidsMap
-                    );
-                    updateScreenTabs();
-                }
-            });*/
-
             RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
