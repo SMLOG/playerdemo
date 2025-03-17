@@ -16,7 +16,6 @@ import com.usbtv.demo.cnn.VideoList;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.ConvertToInlineHttp;
-import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.CatType;
@@ -308,7 +307,7 @@ public class WebController {
 
 
         if (vfile.getdLink() != null) {
-            url = DLVideo.getM3U8(vfile.getdLink());
+            url = vfile.getdLink();
         }
 
 
