@@ -9,7 +9,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.ConfigStore;
 import com.usbtv.demo.PlayerController;
-import com.usbtv.demo.cnn.CnnSync;
 import com.usbtv.demo.cnn.Start;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
@@ -43,15 +42,6 @@ public class SyncCenter {
         Dao<VFile, Integer> vFileDao = App.getVFileDao();
 
         if (RunCron.peroidMap.size() == 0) {
-
-            RunCron.addPeriod(new RunCron.Period(CNN, CNN, 12l * 3600 * 1000, false) {
-                @Override
-                public void doRun() throws Throwable {
-                    CnnSync.cnnVideos(this, 400, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
-                    updateScreenTabs();
-                }
-
-            });
 
             RunCron.addPeriod(new RunCron.Period("Update Feed", "Update Feed", 2592000l * 1000, true) {
                 @Override
