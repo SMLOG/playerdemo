@@ -3,10 +3,8 @@ package com.usbtv.demo;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -27,12 +25,7 @@ import com.usbtv.demo.exo.MyExo2ListPlayerView;
 import com.usbtv.demo.exo.MyExo2MediaPlayer;
 import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.exo.MyExo2VideoManager;
-import com.usbtv.demo.proxy.HttpBuffer;
-import com.yausername.youtubedl_android.YoutubeDL;
-import com.yausername.youtubedl_android.YoutubeDLRequest;
-import com.yausername.youtubedl_android.mapper.VideoInfo;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;

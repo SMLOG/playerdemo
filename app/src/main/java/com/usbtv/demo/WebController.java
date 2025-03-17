@@ -15,7 +15,6 @@ import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.cnn.VideoList;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.comm.ConvertToInlineHttp;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.CatType;
@@ -390,19 +389,6 @@ public class WebController {
     @GetMapping(path = "/api/vFileUrl.m3u8")
     com.yanzhenjie.andserver.http.ResponseBody vFileM3u8(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException, URISyntaxException {
         return this.vFileUrl(request, id, response);
-    }
-
-    @GetMapping(path="/api/ulink.mp4")
-    synchronized com.yanzhenjie.andserver.http.ResponseBody  ulink(HttpRequest request,
-                                                                   @RequestParam(name = "bvid") String bvid,
-                                                                   @RequestParam(name = "p") int p,
-                                                                   @RequestParam(name = "id") int id,
-                                                                   @RequestParam(name = "typeid") int typeid,
-                                                                   HttpResponse response) throws IOException {
-
-
-        return new ConvertToInlineHttp(request,response, bvid,p,id,typeid);
-
     }
 
     @GetMapping(path = "/api/vFileUrl.mp4")
