@@ -1,4 +1,4 @@
-package download;
+package com.usbtv.demo.comm;
 
 /**
  * 常量

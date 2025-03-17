@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import download.Log;
+import com.usbtv.demo.comm.Log;
 
 public final class PlayerController {
 
