@@ -22,11 +22,8 @@ import com.usbtv.demo.data.DatabaseHelper;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.sync.BiLi;
 import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.vurl.M3U;
-import com.yausername.youtubedl_android.YoutubeDL;
-import com.yausername.youtubedl_android.YoutubeDLException;
 
 import java.io.File;
 import java.io.IOException;
@@ -194,13 +191,6 @@ public class App extends Application{
                 );
 
 
-            } else {
-                com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(vf.getBvid(), vf.getPage());
-                if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                    vremote = vidoInfo.getString("video");
-                   // vremote = App.cache2Disk(vf, vremote);
-                }
-                App.getInstance().player(3);
             }
 
 

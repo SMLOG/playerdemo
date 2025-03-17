@@ -19,16 +19,12 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.ConvertToInlineHttp;
 import com.usbtv.demo.comm.DLVideo;
 import com.usbtv.demo.comm.RunCron;
-import com.usbtv.demo.data.CatType;
-import com.usbtv.demo.proxy.HttpBuffer;
-import com.usbtv.demo.proxy.ULinkDownload;
-import com.usbtv.demo.sync.BiLi;
-import com.usbtv.demo.sync.MJ2;
-import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Drive;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.sync.TV;
 import com.yanzhenjie.andserver.annotation.GetMapping;
 import com.yanzhenjie.andserver.annotation.PostMapping;
@@ -47,7 +43,6 @@ import org.json.JSONObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.ByteArrayInputStream;
@@ -56,11 +51,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -276,67 +269,6 @@ public class WebController {
     }
 
 
-    private static final String AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36";
-
-    @GetMapping(path = "/api/searchplay")
-    com.yanzhenjie.andserver.http.ResponseBody searchplay(
-            @RequestParam(name = "keyword") String keyword,
-            @RequestParam(name = "research", required = false, defaultValue = "true"
-            ) boolean research,
-
-            HttpResponse response) throws SQLException, IOException {
-
-        while (true) {
-
-
-            if (research || searchResult == null) {
-                this.searchPage = 1;
-                this.curP = 1;
-                this.playIndex = -1;
-                this.searchKeyword = keyword;
-
-            }
-            if (this.playIndex > 20) {
-                this.searchPage++;
-                this.playIndex = -1;
-            }
-
-            if (this.playIndex == -1) {
-                Document doc = Jsoup.connect("https://api.bilibili.com/x/web-interface/search/type?context=&order=&"
-                                + "duration=&tids_1=&tids_2=&from_source=video_tag&from_spmid=333.788.b_765f746167.6&platform=pc&__refresh__=true&_extra=&search_type=video&highlight=1&single_column=0")
-                        .ignoreContentType(true)
-                        .data("page", "" + this.searchPage)
-                        .data("keyword", this.searchKeyword)
-                        .userAgent(AGENT).get();
-
-                System.out.println(doc.body().text());
-                com.alibaba.fastjson.JSONObject json = JSON.parseObject(doc.body().text());
-
-                json = (com.alibaba.fastjson.JSONObject) json.get("data");
-                this.searchResult = json.getJSONArray("result");
-                this.playIndex = 0;
-            }
-
-            com.alibaba.fastjson.JSONObject data = this.searchResult.getJSONObject(this.playIndex);
-            com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(data.getString("bvid"), this.curP);
-            if (vidoInfo == null || null == vidoInfo.getString("video")) {
-                this.curP = 1;
-                this.playIndex++;
-                continue;
-            } else {
-                this.curP++;
-
-                if (vidoInfo != null && null != vidoInfo.getString("video"))
-                    response.sendRedirect(vidoInfo.getString("video"));
-
-            }
-
-            break;
-        }
-        return null;
-
-    }
-
     @GetMapping(path = "/api/vfile")
     com.yanzhenjie.andserver.http.ResponseBody vfile(HttpRequest request, @RequestParam(name = "id") int id, HttpResponse response) throws SQLException, IOException {
 
@@ -385,15 +317,6 @@ public class WebController {
 
         if (vfile.getdLink() != null) {
             url = DLVideo.getM3U8(vfile.getdLink());
-        } else {
-            String bvid = vfile.getBvid() == null ? vfile.getFolder().getBvid() : vfile.getBvid();
-            if (bvid != null) {
-                com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(bvid, vfile.getPage());
-
-                if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                    url = vidoInfo.getString("video");
-                }
-            }
         }
 
         App.cache2Disk(vfile, url);
@@ -511,67 +434,6 @@ public class WebController {
 
         if (vfile.getdLink() != null) {
             url = vfile.getdLink();
-
-        } else {
-
-            int typeId = vfile.getFolder().getTypeId();
-            if (typeId >= 500 && typeId < 600) {
-                MJ2.updateVfileLink(vfile);
-                url = vfile.getdLink();
-                dao.createOrUpdate(vfile);
-                response.setHeader("Content-Type", "audio/x-mpegurl");
-
-                response.sendRedirect(url);
-                return null;
-            } else {
-                if (urlCache.get(vfile.getId()) != null) {
-                    UrlCache cache = urlCache.get(vfile.getId());
-                    cache.accessTime = System.currentTimeMillis();
-                    url = cache.url;
-
-                } else {
-
-                    String bvid = vfile.getBvid() == null ? vfile.getFolder().getBvid() : vfile.getBvid();
-                    if (bvid != null) {
-
-                        if(this.errorTimes<5 && vfile.getFolder().getTypeId()<800){
-
-
-                        com.alibaba.fastjson.JSONObject vidoInfo = BiLi.getVidoInfo(bvid, vfile.getPage());
-
-                            if (vidoInfo != null && null != vidoInfo.getString("video")) {
-                                url = vidoInfo.getString("video");
-                                this.errorTimes=0;
-
-                            }
-                            this.errorTimes++;
-                        }
-
-                        if(url==null){
-                            response.sendRedirect("ulink.mp4?bvid="+bvid+"&p="+vfile.getPage()+"&id="+vfile.getId() +"&typeid="+vfile.getFolder().getTypeId());
-                            return null;
-                        }
-
-                        if(url!=null){
-                            UrlCache cache = new UrlCache();
-                            cache.accessTime = System.currentTimeMillis();
-                            cache.url = url;
-                            urlCache.put(vfile.getId(), cache);
-                        }
-
-                    }
-                    Iterator<Integer> it = urlCache.keySet().iterator();
-
-                    while (it.hasNext()) {
-                        Integer cid = it.next();
-                        if (System.currentTimeMillis() - urlCache.get(cid).accessTime > 10 * 60 * 1000) {
-                            it.remove();
-                            urlCache.remove(cid);
-                        }
-                    }
-                }
-            }
-
 
         }
 
@@ -733,9 +595,6 @@ public class WebController {
                     for (CatType cat : cats) {
                         cat.setStatus(period.getEnable() ? "A" : "D");
                         App.getCatTypeDao().update(cat);
-                    }
-                    if (!period.getEnable() && period.getId().startsWith("dsj")) {
-                        MJ2.stop = true;
                     }
 
                     updateScreenTabs();
