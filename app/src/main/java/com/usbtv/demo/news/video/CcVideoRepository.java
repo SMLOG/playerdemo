@@ -3,7 +3,6 @@ package com.usbtv.demo.news.video;
 import com.j256.ormlite.dao.Dao;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.news.BaseRepository;
-import com.usbtv.demo.news.UploadItem;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
