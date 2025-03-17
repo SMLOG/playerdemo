@@ -9,7 +9,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.usbtv.demo.ConfigStore;
 import com.usbtv.demo.PlayerController;
-import com.usbtv.demo.cnn.Start;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;

@@ -1,4 +1,4 @@
-package com.usbtv.demo.cnn;
+package com.usbtv.demo.sync;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
