@@ -507,7 +507,7 @@ public class WebController {
         VFile vfile = dao.queryForId(id);
 
         response.setHeader("Content-Type", "application/text/ttml");
-        return Utils.translate(vfile.getCc());
+        return "";
 
 
     }

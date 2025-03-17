@@ -1,14 +1,6 @@
 package com.usbtv.demo.data;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.field.ForeignCollectionField;
-import com.usbtv.demo.comm.SSLSocketClient;
-
-import java.io.File;
-import java.net.URLEncoder;
-import java.util.Collection;
-import java.util.List;
 
 
 public class CatType {

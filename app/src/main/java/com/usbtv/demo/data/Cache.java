@@ -1,9 +1,6 @@
 package com.usbtv.demo.data;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.j256.ormlite.field.DatabaseField;
-
-import java.io.File;
 
 
 public class Cache {
