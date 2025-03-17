@@ -9,8 +9,6 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.usbtv.demo.R;
-import com.usbtv.demo.news.UploadItem;
-import com.usbtv.demo.news.video.CcVideo;
 
 import java.sql.SQLException;
 
@@ -43,9 +41,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Folder.class);
             TableUtils.createTable(connectionSource, VFile.class);
             TableUtils.createTable(connectionSource, Cache.class);
-            TableUtils.createTable(connectionSource, UploadItem.class);
             TableUtils.createTable(connectionSource, Video.class);
-            TableUtils.createTable(connectionSource, CcVideo.class);
             TableUtils.createTable(connectionSource, ChannelCheck.class);
             TableUtils.createTable(connectionSource, CatType.class);
 
@@ -77,9 +73,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, Folder.class, true);
             TableUtils.dropTable(connectionSource, Drive.class, true);
             TableUtils.dropTable(connectionSource, Cache.class, true);
-            TableUtils.dropTable(connectionSource, UploadItem.class, true);
             TableUtils.dropTable(connectionSource, Video.class, true);
-            TableUtils.dropTable(connectionSource, CcVideo.class, true);
             TableUtils.dropTable(connectionSource, ChannelCheck.class, true);
             TableUtils.dropTable(connectionSource, CatType.class, true);
 
