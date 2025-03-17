@@ -10,7 +10,6 @@ import android.media.ThumbnailUtils;
 import android.provider.MediaStore;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.cnn.VideoList;
@@ -64,13 +63,6 @@ import okhttp3.Request;
 
 @RestController
 public class WebController {
-    private static String TAG = "WebController";
-    private int searchPage;
-    private int curP;
-    private int playIndex;
-    private String searchKeyword;
-    private JSONArray searchResult;
-    private int errorTimes;
 
     @ResponseBody
     @GetMapping(path = "/api/status")

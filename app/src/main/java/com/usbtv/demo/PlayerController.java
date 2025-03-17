@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 
-import androidx.leanback.widget.HorizontalGridView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson.annotation.JSONField;
@@ -14,7 +13,6 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.exo.MyExo2PlayerManager;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
@@ -34,13 +32,7 @@ import download.Log;
 
 public final class PlayerController {
 
-    final static int SUBTITLE_ACTIVE = 1;
-    final static int SUBTITLE_NO_ACTIVE = 0;
-    final static int SUBTITLE_ACTIVE_TRRAN = 2;
-    final static int MODE_RANDOM = 1;
-    final static int MODE_SEQ = 0;
     final static int MODE_LOOP = 2;
-    final static int MODE_KEYWORD = 3;
 
     private static PlayerController instance;
 
