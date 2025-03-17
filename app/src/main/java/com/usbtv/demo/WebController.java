@@ -319,10 +319,7 @@ public class WebController {
             url = DLVideo.getM3U8(vfile.getdLink());
         }
 
-        App.cache2Disk(vfile, url);
 
-
-        System.out.println(url);
         response.sendRedirect(url);
 
 

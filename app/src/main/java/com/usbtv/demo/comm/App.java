@@ -2,10 +2,7 @@ package com.usbtv.demo.comm;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
@@ -43,7 +40,6 @@ public class App extends Application{
     public static final String URLACTION = "urlaction";
     public static final String CMD = "cmd";
     public static final String TAG = "demo";
-    public static MediaPlayer bgMedia;
     private static DatabaseHelper databaseHelper = null;
 
     public static String host;
@@ -89,84 +85,6 @@ public class App extends Application{
         }
     }
 
-    public static void broadcastCMD(String cmd, String val) {
-
-        Intent intent = new Intent();
-        intent.setAction("cmd");
-        intent.putExtra("cmd", cmd);
-        intent.putExtra("val", val);
-        App.getInstance().getApplicationContext().sendBroadcast(intent);
-    }
-    public static Uri getUri(VFile vf) {
-
-        String vremote = SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/vfile?id=" + vf.getId();
-
-        String path = vf.getAbsPath();
-
-        if (path == null || !new File(path).exists())
-            for (Drive d : App.diskList) {
-                vf.getFolder().setRoot(d);
-                if (vf.exists() && new File(vf.getAbsPath()).canRead()
-                ) {
-                    try {
-                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-
-                        folderDao.update(vf.getFolder());
-
-                        //  path = vf.getAbsPath();
-                        break;
-
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-
-                }
-            }
-
-        if (!vf.exists()) {
-
-            String dlink = vf.getdLink();
-            if (dlink != null && dlink.indexOf(".m3u8") > -1) {
-
-                // vremote = "http://127.0.0.1:8080/api/r/"+ URLEncoder.encode(vf.getFolder().getName())+"/"+vf.getOrderSeq() +"/index.m3u8?url="+URLEncoder.encode(vf.getdLink());
-                //if(true)return Uri.parse("http://192.168.0.101/32.m3u8?t="+System.currentTimeMillis());
-
-                String rate = PlayerController.getInstance().getRate();
-                if (dlink.startsWith(":/")) return Uri.parse(SSLSocketClient.ServerManager.getServerHttpAddress()+dlink+"&rate="+ rate);
-
-                if (true) {
-
-                   App.getInstance().player(3);
-
-                    return Uri.parse(dlink);
-
-                }
-
-                if (true) {
-                    return Uri.parse(
-                            SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/m3u8proxy/" + dlink
-                    );
-                }
-                return Uri.parse(
-                        SSLSocketClient.ServerManager.getServerHttpAddress() + "/api/r/" + vf.getFolder().getId()
-                                + "/" + vf.getOrderSeq() + "/index.m3u8"
-                                + "?t=" + System.currentTimeMillis()
-                );
-
-
-            }
-
-
-        } else {
-            path = vf.getAbsPath();
-            if (new File(path).exists()) {
-                vremote = "file://" + path;
-            }
-        }
-        System.out.println(vremote);
-        //return Uri.parse(vremote);
-        return Uri.parse(vremote);
-    }
 
     private static int playerType=0;
     private void player(int i) {
@@ -295,45 +213,6 @@ public class App extends Application{
                     return "file://" + vfile.getAbsPath();
                 }
             }
-            String finalUrl = url;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    //String proxyUrl = App.getProxyUrl("http://127.0.0.1:8080/api/vfile?id=" + id);
-
-                    if (vfile.getFolder().getRoot() == null) {
-                        vfile.getFolder().setRoot(App.getDefaultRemoveableDrive());
-
-                    }
-
-                    File[] files = App.getInstance().getApplicationContext().getExternalFilesDirs(null);
-
-                    String dest = vfile.getAbsPath();
-
-                    if(false) {
-                        String prefix = vfile.getAbsPath().split("videos")[0];
-                        String path = vfile.getAbsPath().split("videos")[1];
-                        dest = "/storage/44C4-1615/Android/data/com.usbtv.demo.exo/files" + path;//vfile.getAbsPath().replaceAll("videos","Download/videos");
-
-                        for (File file : files) {
-                            if (file != null && file.getAbsolutePath().startsWith(prefix)) {
-                                dest = file.getAbsolutePath() + path;
-                                break;
-                            }
-                        }
-                    }
-                    ///storage/44C4-1615/Android/data/com.usbtv.demo.exo/files
-                    oInstance.addItem(vfile, finalUrl, dest);
-                    oInstance.downLoadByList();
-                    try {
-                        Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
-
-                        folderDao.update(vfile.getFolder());
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-                }
-            }).start();
 
             return url;
         }
