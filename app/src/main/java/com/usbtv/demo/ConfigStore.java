@@ -6,9 +6,6 @@ import android.content.SharedPreferences;
 
 import com.alibaba.fastjson.JSON;
 import com.usbtv.demo.comm.App;
-import com.usbtv.demo.data.Feed;
-
-import java.util.List;
 
 public class ConfigStore {
     public Integer fileId=0;
@@ -17,7 +14,6 @@ public class ConfigStore {
    public boolean startAtBoot=true;
    public boolean subTitleActive=true;
    public boolean subTitleActiveTran=false;
-    public List<Feed> feeds;
     public String configUrl ="https://smlog.github.io/data/configStore.json";
     public String fallback;
     public String[] ytPlayList;

@@ -13,7 +13,6 @@ import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
-import com.usbtv.demo.data.Feed;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
 
