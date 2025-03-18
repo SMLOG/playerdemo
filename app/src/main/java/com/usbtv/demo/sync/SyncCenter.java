@@ -26,9 +26,6 @@ import java.util.Map;
 
 public class SyncCenter {
 
-
-    public static final String CNN = "cnn";
-
     public static void syncData(String id) throws SQLException {
 
 
@@ -50,13 +47,11 @@ public class SyncCenter {
                     ConfigStore configStore = JSON.parseObject(content, ConfigStore.class);
                     PlayerController.getInstance().configStore=configStore;
                     PlayerController.getInstance().configStore.save();
-                    attachFeeds(keepFoldersMap, housekeepTypeIdList, folderDao, vFileDao);
 
                 }
 
             });
 
-            attachFeeds(keepFoldersMap, housekeepTypeIdList, folderDao, vFileDao);
 
 
             RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
@@ -98,22 +93,8 @@ public class SyncCenter {
 
     }
 
-    private static void attachFeeds(Map<Integer, Boolean> keepFoldersMap, ArrayList<Integer> housekeepTypeIdList, Dao<Folder, Integer> folderDao, Dao<VFile, Integer> vFileDao) {
-        List<Feed> feeds = PlayerController.getInstance().configStore.feeds;
-        if (feeds != null)
-            for (int i = 0; i < feeds.size(); i++) {
-                Feed feed = feeds.get(i);
-                int finalI = i;
-                RunCron.addPeriod(new RunCron.Period(feed.name, feed.name, feed.refreshTime, feed.isDefRun) {
-                    @Override
-                    public void doRun() throws Throwable {
-                        Start.sync(this, 401 + finalI, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap, feed);
-                        updateScreenTabs();
-                    }
 
-                });
-            }
-    }
+
 
     public static void updateScreenTabs() {
 
