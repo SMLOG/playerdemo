@@ -40,7 +40,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, Drive.class);
             TableUtils.createTable(connectionSource, Folder.class);
             TableUtils.createTable(connectionSource, VFile.class);
-            TableUtils.createTable(connectionSource, Cache.class);
             TableUtils.createTable(connectionSource, ChannelCheck.class);
             TableUtils.createTable(connectionSource, CatType.class);
 
@@ -71,7 +70,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, VFile.class, true);
             TableUtils.dropTable(connectionSource, Folder.class, true);
             TableUtils.dropTable(connectionSource, Drive.class, true);
-            TableUtils.dropTable(connectionSource, Cache.class, true);
             TableUtils.dropTable(connectionSource, ChannelCheck.class, true);
             TableUtils.dropTable(connectionSource, CatType.class, true);
 

@@ -1,13 +1,14 @@
 package com.usbtv.demo.sync;
 
 
+import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
+
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.Where;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
-import com.usbtv.demo.data.Cache;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.ChannelCheck;
 import com.usbtv.demo.data.Folder;
@@ -32,8 +33,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.usbtv.demo.sync.SyncCenter.updateScreenTabs;
 
 
 class Channel {
