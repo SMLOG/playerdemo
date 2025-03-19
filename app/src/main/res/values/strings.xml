@@ -1,3 +1,3 @@
 <resources>
-    <string name="app_name">ALearningApp</string>
+    <string name="app_name" translatable="false">A Learning App</string>
 </resources>
