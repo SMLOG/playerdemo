@@ -9,13 +9,13 @@
               <type value="RUNNING_DEVICE_TARGET" />
               <deviceKey>
                 <Key>
-                  <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="C:\Users\Alex Wang\.android\avd\Television_720p_API_23.avd" />
+                  <type value="SERIAL_NUMBER" />
+                  <value value="192.168.3.201:5555" />
                 </Key>
               </deviceKey>
             </Target>
           </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2025-03-18T15:13:26.836276Z" />
+          <timeTargetWasSelectedWithDropDown value="2025-03-19T14:09:23.621451800Z" />
         </State>
       </entry>
     </value>
