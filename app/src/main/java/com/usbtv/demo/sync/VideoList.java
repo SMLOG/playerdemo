@@ -81,10 +81,10 @@ public class VideoList {
             for (int j = 0; j < urls.size(); j++) {
                 String url = null;
                 try{
-                   url = urls.getString(j);
-                }catch (Throwable ee){
                     JSONObject itemObj = urls.getJSONObject(j);
                     url=itemObj.getString("url");
+                }catch (Throwable ee){
+                    url = urls.getString(j);
                 }
 
                 VFile vf = null;

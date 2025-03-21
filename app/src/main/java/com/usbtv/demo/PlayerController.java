@@ -372,6 +372,7 @@ public final class PlayerController {
                 if (this.curCatList.get(i).getId() == curfolderId) {
                     curFolderIndex = i;
                     this.curFolder = this.curCatList.get(i);
+                    fileIndexOfFolder = vfile.getOrderSeq();
                     break;
                 }
             }
