@@ -396,7 +396,7 @@ public class TV {
                     if (m.find()) {
                         vf.setName(m.group());
                     }
-                    vf.setOrderSeq(i);
+                    vf.setOrderSeq(0);
                     vFileDao.createOrUpdate(vf);
                 }
 
@@ -456,49 +456,6 @@ public class TV {
 
     }
 
-    public static boolean isGongDong(Channel ch) {
-        return contains(ch.title, "广东,深圳,广州,珠海,东莞,佛山,中山,惠州,汕头,江门,湛江,肇庆,梅州,茂名,阳江,清远,韶关,揭阳,汕尾,潮州,河源,云浮".split(","));
-    }
-
-    private static Map<String, List<Channel>> getChannels(ChannelFilter[] channelFilters) throws IOException {
-
-
-        String[] urls = new String[]{"https://iptv-org.github.io/iptv/index.m3u"};
-        List<Channel> channels = new ArrayList<>();
-        for (String m3uUrl : urls) {
-            String str = Utils.get(m3uUrl);
-
-            extractChannels(channels, str);
-        }
-
-        Map<String, List<Channel>> mapList = new LinkedHashMap<>();
-
-        for (ChannelFilter def : channelFilters) {
-            mapList.put(def.getChannelName(), new ArrayList<>());
-
-        }
-
-        for (Channel ch : channels) {
-            for (ChannelFilter def : channelFilters) {
-                if (def.filter(ch)) {
-                    mapList.get(def.getChannelName()).add(ch);
-                }
-            }
-        }
-
-        for (ChannelFilter def : channelFilters) {
-            Collections.sort(mapList.get(def.getChannelName()), new Comparator<Channel>() {
-                @Override
-                public int compare(Channel t1, Channel t2) {
-                    return def.compare(t1, t2);
-
-                }
-            });
-
-        }
-
-        return mapList;
-    }
 
     private static void extractChannels(List<Channel> channels, String str) {
         String[] lines = str.split("\n");

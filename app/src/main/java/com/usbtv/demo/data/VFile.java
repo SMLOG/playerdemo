@@ -38,7 +38,7 @@ public class VFile {
     @DatabaseField
     String p;
     @DatabaseField
-    String ext=".m3u8";
+    String ext;
 
 
     @DatabaseField
