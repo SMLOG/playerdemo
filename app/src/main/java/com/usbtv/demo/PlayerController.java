@@ -297,7 +297,8 @@ public final class PlayerController {
     }
 
     VFile getFile() {
-        return this.curFolder.getFiles().toArray(new VFile[]{})[this.fileIndexOfFolder];
+        VFile[] files = this.curFolder.getFiles().toArray(new VFile[]{});
+        return files[this.fileIndexOfFolder>files.length?0:this.fileIndexOfFolder];
     }
 
     public void next() {
