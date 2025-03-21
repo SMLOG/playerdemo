@@ -81,7 +81,7 @@
 
       <div>
         <h4 style="margin: 5px">
-          Baby Plan
+          A Learning App
           <font-awesome-icon
             :icon="showMenu ? 'angle-up' : 'angle-down'"
             fixed-width

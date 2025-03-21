@@ -100,7 +100,7 @@ public class VideoList {
 
         }
 
-        if(rootObject.get("clean")!=null){
+        if(rootObject.get("clean")!=null&&rootObject.getBoolean("clean")){
             List<Folder> shouldDelFolds = folderDao.queryBuilder().where().eq("typeId", channelId).and().notIn("id", folderIds).query();
 
             List<Integer> shouldDelFolderIds = new ArrayList<>();
@@ -120,8 +120,14 @@ public class VideoList {
         type.setStatus("A");
         type.setTypeId(channelId);
         type.setName(channel);
-        App.getCatTypeDao().createOrUpdate(type);
+        if(rootObject.get("sync")!=null&&rootObject.getBoolean("sync")){
+            type.setUrl(feedUrl);
+        }else{
+            type.setUrl(null);
+        }
 
+
+        App.getCatTypeDao().createOrUpdate(type);
         List<Folder> exitsFolder = folderDao.queryBuilder().where().eq("typeId", channelId).query();
         if(exitsFolder.size()==0)App.getCatTypeDao().delete(type);
 

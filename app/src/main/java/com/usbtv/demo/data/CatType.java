@@ -18,7 +18,8 @@ public class CatType {
 
     @DatabaseField
     String job;
-
+    @DatabaseField
+    String url;
     public int getTypeId() {
         return typeId;
     }
@@ -57,5 +58,13 @@ public class CatType {
 
     public void setJob(String job) {
         this.job = job;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

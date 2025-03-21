@@ -13,8 +13,11 @@ import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
+import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+
+import org.jsoup.internal.StringUtil;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -51,8 +54,6 @@ public class SyncCenter {
 
             });
 
-
-
             RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
@@ -60,6 +61,23 @@ public class SyncCenter {
                     updateScreenTabs();
                 }
             });
+
+            RunCron.addPeriod(new RunCron.Period("Sync", "Sync",  24 * 3600 * 1000, true) {
+                @Override
+                public void doRun() throws Throwable {
+                    List<CatType> types = App.getCatTypeDao().queryForAll();
+                    for(CatType type:types){
+                        try{
+                            if(!StringUtil.isBlank(type.getUrl()))VideoList.insertVideos(type.getUrl(),null);
+                        }catch (Throwable ee){
+                            ee.printStackTrace();
+                        }
+                    }
+
+                    updateScreenTabs();
+                }
+            });
+
 
            if(false) RunCron.addPeriod(new RunCron.Period("local", "local", 0, true) {
                 @Override
