@@ -450,14 +450,15 @@ public class MainActivity extends AppCompatActivity {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
 
                     Log.d(TAG, "down--->");
-                    PlayerController.getInstance().nextFolderFile();
+                    //PlayerController.getInstance().nextFolderFile();
+                    PlayerController.getInstance().next();
                 }
 
                 break;
 
             case KeyEvent.KEYCODE_DPAD_UP:   //向上键
                 if (isShowHome) return false;
-
+                PlayerController.getInstance().prev();
                 Log.d(TAG, "up--->");
                 break;
 

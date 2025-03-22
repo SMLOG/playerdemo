@@ -319,7 +319,24 @@ public final class PlayerController {
 
 
     }
+    public void prev() {
 
+        if (mode == MODE_LOOP) {
+            play();
+            return;
+        }
+
+        if (this.curFolder != null && this.curFolder.getFiles() != null && this.fileIndexOfFolder >0) {
+            this.fileIndexOfFolder--;
+            if (this.fileIndexOfFolder < this.curFolder.getFiles().size()) {
+                this.play();
+                return;
+            }
+        }
+        nextFolderFile();
+
+
+    }
 
     public void playByVFileId(int id) {
 
