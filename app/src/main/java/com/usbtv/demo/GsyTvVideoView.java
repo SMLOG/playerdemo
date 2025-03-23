@@ -411,6 +411,8 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     }
 
     public void onResume() {
+
+        releaseCompleted = false;
         updateHandler.post(() -> {
             onVideoResume();
             getGSYVideoManager().start();
