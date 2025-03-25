@@ -16,10 +16,9 @@ public class ConfigStore {
    public boolean subTitleActiveTran=false;
     public String configUrl ="https://smlog.github.io/data/configStore.json";
     public String fallback;
-    public String[] ytPlayList;
+    public String[] playList;
     public String proxy;
     public String[] ipTvList;
-    public String[] cnnList;
 
     public void save() {
       SharedPreferences sp = App.getInstance().getApplicationContext().getSharedPreferences("ConfigStore", Context.MODE_PRIVATE);

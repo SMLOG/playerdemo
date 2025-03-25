@@ -61,7 +61,22 @@ public class SyncCenter {
                     updateScreenTabs();
                 }
             });
+            RunCron.addPeriod(new RunCron.Period("Center", "Center",  15l * 24 * 3600 * 1000, true) {
+                @Override
+                public void doRun() throws Throwable {
+                    if( PlayerController.getInstance().configStore.playList!=null)
+                        for(String str: PlayerController.getInstance().configStore.playList){
+                            try{
+                                if(!StringUtil.isBlank(str))VideoList.insertVideos(str,null);
+                            }catch (Throwable ee){
+                                ee.printStackTrace();
+                            }
+                        }
 
+
+                    updateScreenTabs();
+                }
+            });
             RunCron.addPeriod(new RunCron.Period("Sync", "Sync",  24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
