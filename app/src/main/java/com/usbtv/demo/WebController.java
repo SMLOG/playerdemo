@@ -527,7 +527,7 @@ public class WebController {
 
 
         try{
-            VideoList.insertVideos(url,json);
+            VideoList.insertVideos(url,json,true);
 
         }catch (Throwable ee){
             return ee.getMessage();

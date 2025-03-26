@@ -1,6 +1,5 @@
 package com.usbtv.demo.sync;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
@@ -9,7 +8,6 @@ import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
-import com.usbtv.demo.sync.SyncCenter;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 // $.post("/api/insert", { url:'http://192.168.3.227:9080/videos.json',typeid:'200',typename:'Video', content: 'a' })
 public class VideoList {
 
-    public static void insertVideos( String feedUrl, String jsonContent) throws IOException, SQLException {
+    public static void insertVideos( String feedUrl, String jsonContent,boolean schSch) throws IOException, SQLException {
 
         Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
         Dao<Folder, Integer> folderDao = App.getHelper().getDao(Folder.class);
@@ -35,6 +33,15 @@ public class VideoList {
         }
         rootObject = JSONObject.parseObject(content);
         jsonArr = rootObject.getJSONArray("data");
+        try{
+            JSONArray playList = rootObject.getJSONArray("playList");
+            if(playList!=null&& !playList.isEmpty()){
+                for(int i=0;i<playList.size();i++) VideoList.insertVideos(playList.getString(i), null,false);
+            }
+
+        }catch (Throwable ignored){
+
+        }
         Integer channelId = rootObject.getInteger("id");
         String channel = rootObject.getString("channel");
         if(channelId==null){
@@ -120,7 +127,7 @@ public class VideoList {
         type.setStatus("A");
         type.setTypeId(channelId);
         type.setName(channel);
-        if(rootObject.get("sync")!=null&&rootObject.getBoolean("sync")){
+        if(schSch&&rootObject.get("sync")!=null&&rootObject.getBoolean("sync")){
             type.setUrl(feedUrl);
         }else{
             type.setUrl(null);

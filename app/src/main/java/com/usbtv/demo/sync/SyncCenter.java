@@ -67,7 +67,7 @@ public class SyncCenter {
                     if( PlayerController.getInstance().configStore.playList!=null)
                         for(String str: PlayerController.getInstance().configStore.playList){
                             try{
-                                if(!StringUtil.isBlank(str))VideoList.insertVideos(str,null);
+                                if(!StringUtil.isBlank(str))VideoList.insertVideos(str,null,true);
                             }catch (Throwable ee){
                                 ee.printStackTrace();
                             }
@@ -83,7 +83,7 @@ public class SyncCenter {
                     List<CatType> types = App.getCatTypeDao().queryForAll();
                     for(CatType type:types){
                         try{
-                            if(!StringUtil.isBlank(type.getUrl()))VideoList.insertVideos(type.getUrl(),null);
+                            if(!StringUtil.isBlank(type.getUrl()))VideoList.insertVideos(type.getUrl(),null,true);
                         }catch (Throwable ee){
                             ee.printStackTrace();
                         }
