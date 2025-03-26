@@ -94,6 +94,7 @@ public class VideoList {
                     url=itemObj.getString("url");
                     try {
                         vf.setName(itemObj.getString("title"));
+                        vf.setCc(itemObj.getString("cc"));
                     }catch (Throwable ignore){
 
                     }

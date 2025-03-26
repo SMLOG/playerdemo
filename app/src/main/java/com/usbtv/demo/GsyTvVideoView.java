@@ -292,7 +292,7 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
 
 
 
-            String httpUrl = baseurl + "/api/vFileUrl" + file.getExt() + "?id=" + file.getId();
+            String httpUrl = baseurl + "/api/vFileUrl" + (file.getExt()==null?".m3u8": file.getExt())+ "?id=" + file.getId();
             if (file.getCc() != null) {
                 url = httpUrl;
                 try {
