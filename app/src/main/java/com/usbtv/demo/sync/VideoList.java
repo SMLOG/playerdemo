@@ -87,15 +87,21 @@ public class VideoList {
 
             for (int j = 0; j < urls.size(); j++) {
                 String url = null;
+                VFile vf = null;
+                vf = new VFile();
                 try{
                     JSONObject itemObj = urls.getJSONObject(j);
                     url=itemObj.getString("url");
+                    try {
+                        vf.setName(itemObj.getString("title"));
+                    }catch (Throwable ignore){
+
+                    }
                 }catch (Throwable ee){
                     url = urls.getString(j);
                 }
 
-                VFile vf = null;
-                vf = new VFile();
+
                 //vf.setName(title);
                 vf.setPage(j+1);
                 vf.setFolder(folder);
