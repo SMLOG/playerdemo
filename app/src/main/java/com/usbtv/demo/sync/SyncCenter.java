@@ -77,7 +77,27 @@ public class SyncCenter {
                     updateScreenTabs();
                 }
             });
-            RunCron.addPeriod(new RunCron.Period("Sync", "Sync",  24 * 3600 * 1000, true) {
+
+
+            List<CatType> types = App.getCatTypeDao().queryForAll();
+            for(CatType type:types){
+                try{
+                    if(!StringUtil.isBlank(type.getUrl())){
+                        RunCron.addPeriod(new RunCron.Period(type.getTypeId()+"", type.getName(),  24 * 3600 * 1000, true) {
+                            @Override
+                            public void doRun() throws Throwable {
+                                VideoList.insertVideos(type.getUrl(),null,true);
+
+                                updateScreenTabs();
+                            }
+                        });
+                    }
+                }catch (Throwable ee){
+                    ee.printStackTrace();
+                }
+            }
+
+            if(false)RunCron.addPeriod(new RunCron.Period("Sync", "Sync",  24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
                     List<CatType> types = App.getCatTypeDao().queryForAll();
