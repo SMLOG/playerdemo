@@ -13,6 +13,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.sync.VideoList;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
 import com.usbtv.demo.view.adapter.FolderNumListRecycleViewAdapter;
@@ -41,6 +42,17 @@ public final class PlayerController {
 
     private GsyTvVideoView videoView;
     private View girdView;
+
+    private VFile  curFile;
+    private ArrayList<String> options;
+    public void setFileIndexOfFolder(int fileIndexOfFolder) {
+        this.fileIndexOfFolder = fileIndexOfFolder;
+        curFile = getFile();
+        options = null;
+        options = getFileOptions();
+    }
+
+
     private int fileIndexOfFolder;
     private String curCat;
 
@@ -237,8 +249,7 @@ public final class PlayerController {
     }
 
     public void nextFolderFile() {
-
-        fileIndexOfFolder = -1;
+        setFileIndexOfFolder(-1);
         Folder folder = null;
 
         List<Folder> catFolerList = this.getCurCatList();
@@ -277,7 +288,7 @@ public final class PlayerController {
     }
 
     private void selectFile(int i) {
-        this.fileIndexOfFolder = i;
+        setFileIndexOfFolder(i);
         PlayerController.this.numAdapter.notifyDataSetChanged();
     }
 
@@ -297,6 +308,7 @@ public final class PlayerController {
     }
 
     VFile getFile() {
+        if(this.curFolder==null)return null;
         VFile[] files = this.curFolder.getFiles().toArray(new VFile[]{});
         return files[this.fileIndexOfFolder>files.length?0:this.fileIndexOfFolder];
     }
@@ -393,7 +405,7 @@ public final class PlayerController {
                     int index=0;
                     for(VFile tf: this.curFolder.getFiles()){
                         if(tf.getId()==vfile.getId()){
-                            fileIndexOfFolder = index;
+                            setFileIndexOfFolder(index);
                             break;
                         }
                     }
@@ -449,7 +461,7 @@ public final class PlayerController {
     public PlayerController play(Folder folder, int position) {
         if (folder != null) {
             this.curFolder = folder;
-            this.fileIndexOfFolder = position;
+            setFileIndexOfFolder(position);
             play();
         }
         return this;
@@ -522,13 +534,68 @@ public final class PlayerController {
                     public void run() {
                         PlayerController.this.setNumFiles(numFiles);
                         PlayerController.this.numAdapter.notifyDataSetChanged();
-                        qTabRecyclerView.setVisibility(folder.getTypeId() >= 200 && folder.getTypeId() < 300 ? View.VISIBLE : View.GONE);
+                        qTabRecyclerView.setVisibility(PlayerController.this.getFileOptions().size()>0 ? View.VISIBLE : View.GONE);
 
                     }
                 });
             }
         }, 500);
 
+    }
+
+    public ArrayList<String> getFileOptions() {
+        if(options!=null) return options;
+        VFile file= getFile();
+        ArrayList<String> list = new ArrayList();
+        if(file==null)return list;
+        CatType type = null;
+        try {
+            type = App.getCatTypeDao().queryForId(file.getFolder().getTypeId());
+            if(type.getUrl()!=null){
+                list.add("Sync");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        if(file.getCc()!=null){
+            list.add("Cc");
+        }
+        return list;
+    }
+    public void toggleFileOption(int position) {
+        ArrayList<String> options = getFileOptions();
+        switch (options.get(position)){
+            case "Sync":
+                new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            VFile file= getFile();
+                            CatType type = App.getCatTypeDao().queryForId(file.getFolder().getTypeId());
+                            if(type.getUrl()!=null){
+                                VideoList.insertVideos(type.getUrl(),null,true);
+                            }
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }).start();
+
+                break;
+            case "Cc":
+                configStore.subTitleActive=!configStore.subTitleActive;
+                configStore.save();
+                break;
+        }
+    }
+    public boolean isOptionSelect(int position){
+        ArrayList<String> options = getFileOptions();
+        if (options.get(position).equals("Cc")) {
+            return configStore.subTitleActive;
+        }
+        return false;
     }
     public void selectFolder(int folderPosition) {
         folderIndex=folderPosition;
@@ -651,6 +718,7 @@ public final class PlayerController {
         play(numFile.getFolder(),curFocusFolderIndex,position);
         return this;
     }
+
 
 
 }

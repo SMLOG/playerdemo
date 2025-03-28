@@ -36,17 +36,18 @@ public class QtabListRecycleViewAdapter extends RecyclerView.Adapter<RecyclerVie
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final RecyclerViewHolder viewHolder = (RecyclerViewHolder) holder;
 
-        viewHolder.tv.setText(PlayerController.getInstance().getRates()[position]);
+        viewHolder.tv.setText(PlayerController.getInstance().getFileOptions().get(position));
         viewHolder.numPos.setText(""+(position+1));
         holder.itemView.setFocusable(true);
         holder.itemView.setClickable(true);
-        boolean isSelect = PlayerController.getInstance().getRate(position);
+        boolean isSelect = PlayerController.getInstance().isOptionSelect(position);
         viewHolder.numPos.setTextColor(isSelect? Color.RED : Color.GRAY);
         viewHolder.tv.setTextColor(isSelect? Color.RED : Color.WHITE);
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlayerController.getInstance().setCurRateIndex(position).hideMenu();
+                PlayerController.getInstance().toggleFileOption(holder.getBindingAdapterPosition());
+                PlayerController.getInstance().setCurRateIndex(holder.getBindingAdapterPosition()).hideMenu();
             }
         });
 
@@ -54,7 +55,7 @@ public class QtabListRecycleViewAdapter extends RecyclerView.Adapter<RecyclerVie
 
     @Override
     public int getItemCount() {
-        return PlayerController.getInstance().getRates().length;
+        return PlayerController.getInstance().getFileOptions().size();
     }
 
     private class RecyclerViewHolder extends RecyclerView.ViewHolder {
