@@ -13,6 +13,7 @@ import com.usbtv.demo.comm.App;
 import com.usbtv.demo.data.CatType;
 import com.usbtv.demo.data.Folder;
 import com.usbtv.demo.data.VFile;
+import com.usbtv.demo.sync.SyncCenter;
 import com.usbtv.demo.sync.VideoList;
 import com.usbtv.demo.view.adapter.FolderCatsListRecycleViewAdapter;
 import com.usbtv.demo.view.adapter.FolderListAdapter;
@@ -556,7 +557,8 @@ public final class PlayerController {
                             VFile file = getFile();
                             CatType type = App.getCatTypeDao().queryForId(file.getFolder().getTypeId());
                             if (type.getUrl() != null) {
-                                VideoList.insertVideos(type.getUrl(), null, true);
+                                SyncCenter.syncDataType(type);
+                               /// VideoList.insertVideos(type.getUrl(), null, true);
                             }
                         } catch (Throwable e) {
                             android.util.Log.e("Sync", android.util.Log.getStackTraceString(e));

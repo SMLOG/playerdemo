@@ -154,14 +154,14 @@ public class RunCron {
                     editor.commit();
 
                 } catch (Throwable throwable) {
-                    throwable.printStackTrace();
+                    Log.e(throwable);
                 } finally {
                     task.status = 0;
                 }
 
             }
         } catch (Throwable ee) {
-            ee.printStackTrace();
+            Log.e(ee);
         } finally {
             lock.unlock();
         }

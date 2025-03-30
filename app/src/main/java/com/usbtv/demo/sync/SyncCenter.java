@@ -162,4 +162,7 @@ public class SyncCenter {
     }
 
 
+    public static void syncDataType(CatType type) throws SQLException {
+        syncData(""+type.getTypeId());
+    }
 }
