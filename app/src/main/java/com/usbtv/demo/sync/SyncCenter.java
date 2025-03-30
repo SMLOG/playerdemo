@@ -11,6 +11,7 @@ import com.usbtv.demo.ConfigStore;
 import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.Aid;
 import com.usbtv.demo.comm.App;
+import com.usbtv.demo.comm.Log;
 import com.usbtv.demo.comm.RunCron;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.CatType;
@@ -39,9 +40,9 @@ public class SyncCenter {
         Dao<Folder, Integer> folderDao = App.getFolderDao();
         Dao<VFile, Integer> vFileDao = App.getVFileDao();
 
-        if (RunCron.peroidMap.size() == 0) {
+        if (RunCron.peroidMap.isEmpty()) {
 
-            RunCron.addPeriod(new RunCron.Period("Update Feed", "Update Feed", 2592000l * 1000, true) {
+            RunCron.addPeriod(new RunCron.Period("Update Feed", "Update Feed", 2592000L * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
 
@@ -54,14 +55,14 @@ public class SyncCenter {
 
             });
 
-            RunCron.addPeriod(new RunCron.Period("tv", "tv", 15l * 24 * 3600 * 1000, true) {
+            RunCron.addPeriod(new RunCron.Period("tv", "tv", 15L * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
                     TV.liveStream(this, 300, housekeepTypeIdList, folderDao, vFileDao, keepFoldersMap);
                     updateScreenTabs();
                 }
             });
-            RunCron.addPeriod(new RunCron.Period("Center", "Center",  15l * 24 * 3600 * 1000, true) {
+            RunCron.addPeriod(new RunCron.Period("Center", "Center", 15L * 24 * 3600 * 1000, true) {
                 @Override
                 public void doRun() throws Throwable {
                     if( PlayerController.getInstance().configStore.playList!=null)
@@ -69,7 +70,7 @@ public class SyncCenter {
                             try{
                                 if(!StringUtil.isBlank(str))VideoList.insertVideos(str,null,true);
                             }catch (Throwable ee){
-                                ee.printStackTrace();
+                                Log.e(ee);
                             }
                         }
 
