@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
         google()
         maven { url 'https://jitpack.io' }
-
+        maven { url "https://maven.aliyun.com/repository/public" }
     }
     dependencies {
         classpath 'com.yanzhenjie.andserver:plugin:2.1.12'
