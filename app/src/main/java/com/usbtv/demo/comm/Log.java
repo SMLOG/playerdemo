@@ -1,21 +1,23 @@
 package com.usbtv.demo.comm;
 
+import java.sql.SQLException;
+
 public class Log {
 
+    public static String TAG="app";
     private static volatile int level = Constant.INFO;
 
     public static void i(CharSequence message) {
-        System.out.println( message);
-
+        android.util.Log.i(TAG, (String) message);
     }
 
     public static void d(CharSequence message) {
-            System.out.println( message);
+        android.util.Log.d(TAG, (String) message);
 
     }
 
     public static void e(CharSequence message) {
-        System.out.println( message);
+        android.util.Log.e(TAG, (String) message);
 
     }
 
@@ -27,5 +29,13 @@ public class Log {
 
     public static int getLevel() {
         return level;
+    }
+
+    public static CharSequence getStackTraceString(SQLException throwables) {
+        return android.util.Log.getStackTraceString(throwables);
+    }
+
+    public static void e(Throwable e) {
+        e(android.util.Log.getStackTraceString(e));
     }
 }

@@ -161,7 +161,6 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
     @Override
     public void onAutoCompletion() {
 
-        PlayerController.getInstance().incPlayCount();
         PlayerController.getInstance().setCurFileIndexInFolderAndUpdateUI();
 
         if (getGSYVideoManager() instanceof MyExo2VideoManager) {

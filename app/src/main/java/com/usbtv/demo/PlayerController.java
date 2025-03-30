@@ -43,11 +43,12 @@ public final class PlayerController {
     private GsyTvVideoView videoView;
     private View girdView;
 
-    private VFile  curFile;
+    private VFile curFile;
     private ArrayList<String> options;
+
     public void setFileIndexOfFolder(int fileIndexOfFolder) {
         this.fileIndexOfFolder = fileIndexOfFolder;
-        curFile=null;
+        curFile = null;
         curFile = getFile();
         options = null;
         options = getFileOptions();
@@ -93,14 +94,15 @@ public final class PlayerController {
         return this.curCatList;
     }
 
-    private  List tmpList;
+    private List tmpList;
+
     @JSONField(serialize = false)
     public List<Folder> getFocusCatList() {
-        if(focusCat==null)focusCat = curCat;
-        if(tmpList==null && focusCat!=null)
-            tmpList=  loadCatFolderList(allTypeMap.get(focusCat));
+        if (focusCat == null) focusCat = curCat;
+        if (tmpList == null && focusCat != null)
+            tmpList = loadCatFolderList(allTypeMap.get(focusCat));
 
-        if(tmpList==null) return new ArrayList<>();
+        if (tmpList == null) return new ArrayList<>();
         return tmpList;
     }
 
@@ -118,7 +120,7 @@ public final class PlayerController {
 
 
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            Log.e(Log.getStackTraceString(throwables));
             ret = new ArrayList<>();
         }
         return ret;
@@ -144,7 +146,7 @@ public final class PlayerController {
             }
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            Log.e(e);
         }
 
 
@@ -250,15 +252,12 @@ public final class PlayerController {
     }
 
     public void nextFolderFile() {
-        setFileIndexOfFolder(-1);
         Folder folder = null;
 
         List<Folder> catFolerList = this.getCurCatList();
         int nextPos = folderIndex + 1;
-        if (nextPos >= 0 && catFolerList != null) {
-            for (int i = nextPos; i < catFolerList.size(); i++) {
-                Log.i("" + i);
-                Log.i("" + catFolerList.size());
+        if (catFolerList != null && !catFolerList.isEmpty()) {
+            for (int i = nextPos > catFolerList.size() ? 0 : nextPos; i < catFolerList.size(); i++) {
                 folder = catFolerList.get(i);
 
                 if (folder != null && folder.getFiles() != null && folder.getFiles().size() > 0) {
@@ -269,20 +268,7 @@ public final class PlayerController {
                 }
 
             }
-            if (folder == null || folder.getFiles() == null || folder.getFiles().size() == 0) {
-                for (int i = 0; i < nextPos && i < catFolerList.size(); i++) {
 
-                    folder = this.getCurCatList().get(i);
-
-                    if (folder != null && folder.getFiles() != null && folder.getFiles().size() > 0) {
-                        selectFolder(i);
-                        selectFile(0);
-                        play();
-                        break;
-                    }
-
-                }
-            }
 
         }
 
@@ -293,27 +279,12 @@ public final class PlayerController {
         PlayerController.this.numAdapter.notifyDataSetChanged();
     }
 
-    public void incPlayCount() {
-
-        try {
-            VFile o = getFile();
-            o.setPlayCnt(o.getPlayCnt() + 1);
-            Dao<VFile, Integer> vFileDao = App.getHelper().getDao(VFile.class);
-
-            vFileDao.createOrUpdate(o);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
     VFile getFile() {
-        if(this.curFolder==null)return null;
-        if(curFile!=null)return  curFile;
-        if(fileIndexOfFolder<0)return null;
+        if (this.curFolder == null) return null;
+        if (curFile != null) return curFile;
+        if (fileIndexOfFolder < 0) return null;
         VFile[] files = this.curFolder.getFiles().toArray(new VFile[]{});
-        if(files.length<=fileIndexOfFolder)return null;
+        if (files.length <= fileIndexOfFolder) return null;
         return files[this.fileIndexOfFolder];
     }
 
@@ -324,9 +295,9 @@ public final class PlayerController {
             return;
         }
 
-        if (this.curFolder != null && this.curFolder.getFiles() != null && this.fileIndexOfFolder < this.curFolder.getFiles().size()) {
-            this.fileIndexOfFolder++;
+        if (this.curFolder != null && this.curFolder.getFiles() != null) {
             if (this.fileIndexOfFolder < this.curFolder.getFiles().size()) {
+                setFileIndexOfFolder(fileIndexOfFolder + 1);
                 this.play();
                 return;
             }
@@ -335,6 +306,7 @@ public final class PlayerController {
 
 
     }
+
     public void prev() {
 
         if (mode == MODE_LOOP) {
@@ -342,8 +314,8 @@ public final class PlayerController {
             return;
         }
 
-        if (this.curFolder != null && this.curFolder.getFiles() != null && this.fileIndexOfFolder >0) {
-            this.fileIndexOfFolder--;
+        if (this.curFolder != null && this.curFolder.getFiles() != null && this.fileIndexOfFolder > 0) {
+            setFileIndexOfFolder(this.fileIndexOfFolder - 1);
             if (this.fileIndexOfFolder < this.curFolder.getFiles().size()) {
                 this.play();
                 return;
@@ -362,8 +334,8 @@ public final class PlayerController {
             item = App.getHelper().getDao(VFile.class).queryBuilder().where().eq("id", id).queryForFirst();
             this.curCatList = null;
             playVFile(item);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (Throwable throwables) {
+            Log.e(throwables);
         }
     }
 
@@ -380,44 +352,48 @@ public final class PlayerController {
             }
 
 
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (Throwable throwables) {
+            Log.e(throwables);
         }
 
 
     }
 
     public void playVFile(VFile vfile) {
-
-        String curCat = this.typeIdMap.get(vfile.getFolder().getTypeId());
-        if (curCat == null && this.typeIdMap.values().size() > 0) {
+        if (vfile == null) return;
+        Folder folder = vfile.getFolder();
+        String curCat = this.typeIdMap.get(folder.getTypeId());
+        if (curCat == null && !this.typeIdMap.values().isEmpty()) {
             curCat = this.typeIdMap.values().iterator().next();
         }
         if (curCat != null) {
             this.selectCat(curCat);
             int curFolderIndex = -1;
 
-            int curfolderId = vfile.getFolder().getId();
-            if (this.curCatList == null || this.curCatList.size() == 0) {
-                this.curCatList = loadCatFolderList(vfile.getFolder().getTypeId());
+            int curfolderId = folder.getId();
+
+            if (this.curCatList == null || this.curCatList.isEmpty()) {
+                this.curCatList = loadCatFolderList(folder.getTypeId());
             }
 
             for (int i = 0; i < this.curCatList.size(); i++) {
                 if (this.curCatList.get(i).getId() == curfolderId) {
                     curFolderIndex = i;
                     this.curFolder = this.curCatList.get(i);
-                    int index=0;
-                    for(VFile tf: this.curFolder.getFiles()){
-                        if(tf.getId()==vfile.getId()){
+                    int index = 0;
+                    for (VFile tf : this.curFolder.getFiles()) {
+
+                        if (tf.getId() == vfile.getId()) {
+                            selectFolder(curFolderIndex);
                             setFileIndexOfFolder(index);
                             break;
                         }
+                        index++;
                     }
                     break;
                 }
             }
 
-            this.selectFolder(curFolderIndex);
 
         }
 
@@ -471,9 +447,10 @@ public final class PlayerController {
         return this;
     }
 
-    private  String focusCat;
-    public void focusCat(String cat){
-        focusCat=cat;
+    private String focusCat;
+
+    public void focusCat(String cat) {
+        focusCat = cat;
 
         this.timerCat.cancel();
         this.timerCat = new Timer();
@@ -482,7 +459,7 @@ public final class PlayerController {
             @Override
             public void run() {
 
-                tmpList=  loadCatFolderList(allTypeMap.get(focusCat));
+                tmpList = loadCatFolderList(allTypeMap.get(focusCat));
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(new Runnable() {
                     @Override
@@ -495,6 +472,7 @@ public final class PlayerController {
             }
         }, 500);//延时1s执行
     }
+
     public void selectCat(String cat) {
 
         if (this.curCat != null && this.curCat.equals(cat)) {
@@ -504,7 +482,6 @@ public final class PlayerController {
         Integer typeId = allTypeMap.get(cat);
         this.setCurCatId(typeId);
         curCatList = loadCatFolderList(PlayerController.this.curCatId);
-
 
 
     }
@@ -519,7 +496,6 @@ public final class PlayerController {
     }
 
 
-
     public void focusFolder(int folderPosition) {
         this.curFocusFolderIndex = folderPosition;
 
@@ -530,7 +506,7 @@ public final class PlayerController {
             @Override
             public void run() {
                 Folder folder = PlayerController.this.getFocusCatList().get(curFocusFolderIndex);
-                VFile[] numFiles =  folder.getFiles().toArray(new VFile[]{});
+                VFile[] numFiles = folder.getFiles().toArray(new VFile[]{});
 
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(new Runnable() {
@@ -538,7 +514,7 @@ public final class PlayerController {
                     public void run() {
                         PlayerController.this.setNumFiles(numFiles);
                         PlayerController.this.numAdapter.notifyDataSetChanged();
-                        qTabRecyclerView.setVisibility(PlayerController.this.getFileOptions().size()>0 ? View.VISIBLE : View.GONE);
+                        qTabRecyclerView.setVisibility(PlayerController.this.getFileOptions().size() > 0 ? View.VISIBLE : View.GONE);
 
                     }
                 });
@@ -548,38 +524,39 @@ public final class PlayerController {
     }
 
     public ArrayList<String> getFileOptions() {
-        if(options!=null) return options;
-        VFile file= getFile();
+        if (options != null) return options;
+        VFile file = getFile();
         ArrayList<String> list = new ArrayList();
-        if(file==null)return list;
+        if (file == null) return list;
         CatType type = null;
         try {
             type = App.getCatTypeDao().queryForId(file.getFolder().getTypeId());
-            if(type.getUrl()!=null){
+            if (type.getUrl() != null) {
                 list.add("Sync");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        if(file.getCc()!=null){
+        if (file.getCc() != null) {
             list.add("Cc");
         }
         return list;
     }
+
     public void toggleFileOption(int position) {
         ArrayList<String> options = getFileOptions();
-        switch (options.get(position)){
+        switch (options.get(position)) {
             case "Sync":
                 new Thread(new Runnable() {
 
                     @Override
                     public void run() {
                         try {
-                            VFile file= getFile();
+                            VFile file = getFile();
                             CatType type = App.getCatTypeDao().queryForId(file.getFolder().getTypeId());
-                            if(type.getUrl()!=null){
-                                VideoList.insertVideos(type.getUrl(),null,true);
+                            if (type.getUrl() != null) {
+                                VideoList.insertVideos(type.getUrl(), null, true);
                             }
                         } catch (Throwable e) {
                             android.util.Log.e("Sync", android.util.Log.getStackTraceString(e));
@@ -589,20 +566,22 @@ public final class PlayerController {
 
                 break;
             case "Cc":
-                configStore.subTitleActive=!configStore.subTitleActive;
+                configStore.subTitleActive = !configStore.subTitleActive;
                 configStore.save();
                 break;
         }
     }
-    public boolean isOptionSelect(int position){
+
+    public boolean isOptionSelect(int position) {
         ArrayList<String> options = getFileOptions();
         if (options.get(position).equals("Cc")) {
             return configStore.subTitleActive;
         }
         return false;
     }
+
     public void selectFolder(int folderPosition) {
-        folderIndex=folderPosition;
+        folderIndex = folderPosition;
         this.curFolder = curCatList.get(folderPosition);
         this.foldersAdapter.notifyItemChanged(folderPosition);
 
@@ -631,7 +610,6 @@ public final class PlayerController {
     public boolean isFolderPositionSelected(int position) {
 
         if (this.focusCat != null && this.curFolder != null) {
-            System.out.println(getFocusCatList().get(position).getId());
             return getFocusCatList().get(position).getId() == this.curFolder.getId();
         }
         return false;
@@ -647,7 +625,7 @@ public final class PlayerController {
 
 
     public boolean isNumberSelect(int i) {
-        if(this.curFolder == null)return false;
+        if (this.curFolder == null) return false;
         VFile curFile = getFile();
         return (curFile != null && this.curFolder != null && curFile.getFolder().getId() == this.curFolder.getId() && i == this.fileIndexOfFolder);
     }
@@ -710,19 +688,20 @@ public final class PlayerController {
         }
         return null;
     }
+
     public void play(Folder folder, int folderIndex, int fileIndexOfFolder) {
         this.curCat = this.focusCat;
-        this.curCatList=this.tmpList;
+        this.curCatList = this.tmpList;
 
         this.selectFolder(folderIndex);
         this.play(folder, fileIndexOfFolder);
 
     }
+
     public PlayerController play(VFile numFile, int position) {
-        play(numFile.getFolder(),curFocusFolderIndex,position);
+        play(numFile.getFolder(), curFocusFolderIndex, position);
         return this;
     }
-
 
 
 }
