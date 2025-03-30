@@ -16,6 +16,7 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.Player;
 import androidx.media3.common.Timeline;
 import androidx.media3.common.text.Cue;
+import androidx.media3.common.util.UnstableApi;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
@@ -93,8 +94,6 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
-               // mSubTitile="https://prod-video-cms-amp-microsoft-com.akamaized.net/tenant/amp/entityid/AA1e20RV?blobrefkey=closedcaptionen-us&$blob=1";
-              //  mSubTitile="http://img.cdn.guoshuyu.cn/subtitle2.srt";
             }
             if (mSubTitile != null) {
 
@@ -141,7 +140,7 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
     protected void prepareAsyncInternal() {
         new Handler(Looper.getMainLooper()).post(
             new Runnable() {
-                @Override
+                @UnstableApi @Override
                 public void run() {
                     if (mTrackSelector == null) {
                         mTrackSelector = new DefaultTrackSelector(mAppContext);
@@ -154,12 +153,14 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
                     if (mRendererFactory == null) {
-                        mRendererFactory = new DefaultRenderersFactory(mAppContext);
+                        mRendererFactory = new MyRenderersFactory(mAppContext);
                         mRendererFactory.setExtensionRendererMode(extensionRendererMode);
+
                     }
                     if (mLoadControl == null) {
                         mLoadControl = new DefaultLoadControl();
                     }
+
                     mInternalPlayer = new ExoPlayer.Builder(mAppContext, mRendererFactory)
                         .setLooper(Looper.getMainLooper())
                         .setTrackSelector(mTrackSelector)
@@ -198,8 +199,8 @@ public class MyExo2MediaPlayer extends IjkExo2MediaPlayer {
             builder.setSampleMimeType(MimeTypes.APPLICATION_SUBRIP);
         }else{
             builder.setSampleMimeType(MimeTypes.APPLICATION_TTML);
-
         }
+
         Format textFormat=
                 builder.setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
                 /// 如果出现字幕不显示，可以通过修改这个语音去对应，
