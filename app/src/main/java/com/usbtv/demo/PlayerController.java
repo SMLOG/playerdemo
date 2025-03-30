@@ -47,6 +47,7 @@ public final class PlayerController {
     private ArrayList<String> options;
     public void setFileIndexOfFolder(int fileIndexOfFolder) {
         this.fileIndexOfFolder = fileIndexOfFolder;
+        curFile=null;
         curFile = getFile();
         options = null;
         options = getFileOptions();
@@ -309,8 +310,11 @@ public final class PlayerController {
 
     VFile getFile() {
         if(this.curFolder==null)return null;
+        if(curFile!=null)return  curFile;
+        if(fileIndexOfFolder<0)return null;
         VFile[] files = this.curFolder.getFiles().toArray(new VFile[]{});
-        return files[this.fileIndexOfFolder>files.length?0:this.fileIndexOfFolder];
+        if(files.length<=fileIndexOfFolder)return null;
+        return files[this.fileIndexOfFolder];
     }
 
     public void next() {
@@ -578,7 +582,7 @@ public final class PlayerController {
                                 VideoList.insertVideos(type.getUrl(),null,true);
                             }
                         } catch (Throwable e) {
-                            throw new RuntimeException(e);
+                            android.util.Log.e("Sync", android.util.Log.getStackTraceString(e));
                         }
                     }
                 }).start();
