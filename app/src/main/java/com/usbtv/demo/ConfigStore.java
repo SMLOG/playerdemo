@@ -18,6 +18,7 @@ public class ConfigStore {
     public String fallback;
     public String[] playList;
     public String proxy;
+    public String centerUrl;
     public String[] ipTvList;
 
     public void save() {

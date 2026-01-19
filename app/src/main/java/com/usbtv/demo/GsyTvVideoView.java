@@ -283,8 +283,9 @@ public class GsyTvVideoView extends MyExo2ListPlayerView implements Player.Liste
             if (configStore.proxy != null) {
                 try {
                     url = configStore.proxy + "?url=" + URLEncoder.encode(url, "UTF-8") + "&bvid" + file.getBvid() + "&id=" + file.getId()+"&ext="+file.getExt();
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                   // throw new RuntimeException(e);
                 }
             }
             if(url==null||url.trim().equals("")){

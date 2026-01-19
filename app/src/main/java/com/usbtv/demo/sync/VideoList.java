@@ -3,6 +3,7 @@ package com.usbtv.demo.sync;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.j256.ormlite.dao.Dao;
+import com.usbtv.demo.PlayerController;
 import com.usbtv.demo.comm.App;
 import com.usbtv.demo.comm.Utils;
 import com.usbtv.demo.data.CatType;
@@ -136,6 +137,8 @@ public class VideoList {
         type.setName(channel);
         if(schSch&&rootObject.get("sync")!=null&&rootObject.getBoolean("sync")){
             type.setUrl(feedUrl);
+            PlayerController.getInstance().configStore.centerUrl = feedUrl;
+            PlayerController.getInstance().configStore.save();
         }else{
             type.setUrl(null);
         }

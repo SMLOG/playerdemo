@@ -48,6 +48,7 @@ public class SyncCenter {
 
                     String content = Utils.get( PlayerController.getInstance().configStore.configUrl);
                     ConfigStore configStore = JSON.parseObject(content, ConfigStore.class);
+                    configStore.centerUrl =  PlayerController.getInstance().configStore.centerUrl;
                     PlayerController.getInstance().configStore=configStore;
                     PlayerController.getInstance().configStore.save();
 
@@ -74,6 +75,22 @@ public class SyncCenter {
                             }
                         }
 
+
+                    updateScreenTabs();
+                }
+            });
+
+            RunCron.addPeriod(new RunCron.Period("Center2", "Center2",  24 * 3600 * 1000, true) {
+                @Override
+                public void doRun() throws Throwable {
+                   // PlayerController.getInstance().configStore.restore();
+                    if( PlayerController.getInstance().configStore.centerUrl!=null)
+                            try{
+
+                                if(!StringUtil.isBlank(PlayerController.getInstance().configStore.centerUrl))VideoList.insertVideos(PlayerController.getInstance().configStore.centerUrl,null,true);
+                            }catch (Throwable ee){
+                                Log.e(ee);
+                            }
 
                     updateScreenTabs();
                 }
