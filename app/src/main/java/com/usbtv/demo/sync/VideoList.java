@@ -57,6 +57,9 @@ public class VideoList {
             JSONObject item = (JSONObject) jsonArr.get(i);
 
             String folderName = item.getString("title");
+            if (folderName != null && folderName.length() > 100) {
+                folderName = folderName.substring(0, 100);
+            }
 
             String imageUrl = item.getString("img");
 
