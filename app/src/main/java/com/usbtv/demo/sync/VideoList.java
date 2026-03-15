@@ -60,7 +60,7 @@ public class VideoList {
 
             String imageUrl = item.getString("img");
 
-            Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName).queryForFirst();
+            Folder folder = folderDao.queryBuilder().where().eq("typeId", channelId).and().eq("name", folderName.replaceAll("'","''")).queryForFirst();
 
 
             if (folder == null) {
